@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <sys/stat.h>
+#include <zmq.h>
 
 #define BUFLEN 100
 
@@ -54,14 +55,25 @@ class Gateway {
 int main () {
     Gateway * gateway = new Gateway();
     NewOrderEvent item;
-    item.clientId = 5;
-    item.limitPrice = 6;
+    item.clientId = 0;
+    item.limitPrice = 0;
     item.side = 0;
 
-    for (int i = 0; i < 1000; i += 1) {
-        item.clientId = i;
+    //  Socket to talk to clients
+    void *context = zmq_ctx_new ();
+    void *responder = zmq_socket (context, ZMQ_REP);
+    int rc = zmq_bind (responder, "tcp://*:5555");
+    assert (rc == 0);
+
+    while (1) {
+        char buffer [3];
+        zmq_recv (responder, buffer, 10, 0);
+        item.clientId = (int)buffer[0];
+        item.limitPrice = (int)buffer[1];
+        item.side = (int)buffer[2];
         gateway->put(item);
-        // std::cout << gateway->get().clientId << "\n";
+        std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side;
+        zmq_send (responder, "ack", 5, 0);
     }
 
     return 0;
