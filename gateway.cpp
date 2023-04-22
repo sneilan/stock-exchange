@@ -5,13 +5,15 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <zmq.h>
+#include <csignal>
 
 #define BUFLEN 100
 
 struct NewOrderEvent {
-    int side;
-    int limitPrice;
-    int clientId;
+    char side;
+    // stored as 55.55
+    char limitPrice[5];
+    char clientId;
     bool stale;
 };
 
@@ -34,14 +36,17 @@ class Gateway {
         shm_unlink(name);
     }
 
+    // @TODO instead of recreating item each time, pass in values perhaps?
+    // one less copy per call.
     void put(NewOrderEvent item) {
         gatewayRingBuf[end].clientId = item.clientId;
-        gatewayRingBuf[end].limitPrice = item.limitPrice;
+        std::memcpy(gatewayRingBuf[end].limitPrice, item.limitPrice, 5);
         gatewayRingBuf[end].side = item.side;
         gatewayRingBuf[end].stale = false;
+        std::cout << gatewayRingBuf[end].limitPrice << "\n";
+
         end++;
 
-        std::cout << end << "\n";
         end %= BUFLEN;
     }
 
@@ -55,9 +60,6 @@ class Gateway {
 int main () {
     Gateway * gateway = new Gateway();
     NewOrderEvent item;
-    item.clientId = 0;
-    item.limitPrice = 0;
-    item.side = 0;
 
     //  Socket to talk to clients
     void *context = zmq_ctx_new ();
@@ -65,12 +67,15 @@ int main () {
     int rc = zmq_bind (responder, "tcp://*:5555");
     assert (rc == 0);
 
+    char buffer[7];
     while (1) {
-        char buffer [3];
-        zmq_recv (responder, buffer, 10, 0);
-        item.clientId = (int)buffer[0];
-        item.limitPrice = (int)buffer[1];
-        item.side = (int)buffer[2];
+        // clientId: 0-9, limitPrice: xx.xx, side: b or s
+        // 0xx.xxb    
+        std::string str = std::string(buffer);
+        zmq_recv (responder, buffer, 7, 0);
+        item.clientId = buffer[0];
+        std::memcpy(item.limitPrice, &buffer[1], 5);
+        item.side = buffer[6];
         gateway->put(item);
         std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side;
         zmq_send (responder, "ack", 5, 0);
