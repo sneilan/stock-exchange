@@ -1,0 +1,1 @@
+# Goal: Simple C++ Stock Exchange in < 1k LOC that supports 10k orders per second.

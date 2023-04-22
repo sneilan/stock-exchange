@@ -20,6 +20,9 @@ class Gateway {
     void put(NewOrderEvent item);
     NewOrderEvent get();
 
+    // a loop that starts a zeromq server and waits for incoming orders
+    // Then parsers & puts incoming orders into the ring buffer managed by gateway.
+    void run();
   private:
     const char* name = "/gateway_ring_buf";
     int end = 0;       /* write index */

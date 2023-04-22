@@ -6,31 +6,11 @@
 #include <zmq.h>
 #include "gateway.h";
 
-void runGateway(Gateway* gateway) {
-    //  Socket to talk to clients
-    void *context = zmq_ctx_new ();
-    void *responder = zmq_socket (context, ZMQ_REP);
-    int rc = zmq_bind (responder, "tcp://*:5555");
-    assert (rc == 0);
-
-    NewOrderEvent item;
-    char buffer[7];
-    while (1) {
-        // clientId: 0-9, limitPrice: xx.xx, side: b or s
-        // 0xx.xxb
-        std::string str = std::string(buffer);
-        zmq_recv (responder, buffer, 7, 0);
-        item.clientId = buffer[0];
-        std::memcpy(item.limitPrice, &buffer[1], 5);
-        item.side = buffer[6];
-        gateway->put(item);
-        std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
-        zmq_send (responder, "ack", 3, 0);
-    }
-}
 
 int main() {
     Gateway * gateway = new Gateway();
+
+    std::cout << "Exchange starting\n";
 
     pid_t c_pid = fork();
   
@@ -41,7 +21,7 @@ int main() {
     else if (c_pid > 0) {
         // parent
         // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
-        runGateway(gateway);
+        gateway->run();
     }
     else {
         // child
