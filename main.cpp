@@ -6,7 +6,6 @@
 #include <zmq.h>
 #include "gateway.h";
 
-
 int main() {
     Gateway * gateway = new Gateway();
 
@@ -30,6 +29,9 @@ int main() {
             // @TODO should I be allocating this?
             NewOrderEvent item = gateway->get();
             if (!item.stale) {
+                // Store the event in the event store
+                // Tell the order engine to check the order
+                // Tell the matcher to 
                 std::cout << "Need to process order from " << item.clientId << " for " << item.limitPrice << " on side " << item.side;
             }
         }

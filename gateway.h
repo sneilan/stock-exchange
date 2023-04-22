@@ -1,6 +1,6 @@
 #ifndef _gateway_h
 #define _gateway_h
-#define BUFLEN 100
+#define GATEWAY_BUFLEN 100
 
 struct NewOrderEvent {
     char side;
@@ -24,7 +24,7 @@ class Gateway {
     // Then parsers & puts incoming orders into the ring buffer managed by gateway.
     void run();
   private:
-    const char* name = "/gateway_ring_buf";
+    const char * name = "/gateway_ring_buf";
     int end = 0;       /* write index */
     int start = 0;     /* read index */
     NewOrderEvent* gatewayRingBuf;

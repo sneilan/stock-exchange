@@ -10,16 +10,16 @@
 
 Gateway::Gateway() {
     int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-    ftruncate(fd, sizeof(NewOrderEvent) * BUFLEN);
-    gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * BUFLEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    ftruncate(fd, sizeof(NewOrderEvent) * GATEWAY_BUFLEN);
+    gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * GATEWAY_BUFLEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     // Initialize all orders to stale
-    for (int i = 0; i < BUFLEN; i++) {
+    for (int i = 0; i < GATEWAY_BUFLEN; i++) {
         gatewayRingBuf[i].stale = true;
     }
 }
 
 Gateway::~Gateway() throw() {
-    munmap(gatewayRingBuf, sizeof(NewOrderEvent) * BUFLEN);
+    munmap(gatewayRingBuf, sizeof(NewOrderEvent) * GATEWAY_BUFLEN);
     shm_unlink(name);
     std::cout << "Destructor called";
 }
@@ -35,14 +35,14 @@ void Gateway::put(NewOrderEvent item) {
 
     end++;
 
-    end %= BUFLEN;
+    end %= GATEWAY_BUFLEN;
 }
 
 NewOrderEvent Gateway::get() {
     NewOrderEvent item = gatewayRingBuf[start];
     gatewayRingBuf[start].stale = true;
     start++;
-    start %= BUFLEN;
+    start %= GATEWAY_BUFLEN;
     return item;
 }
 
@@ -65,6 +65,6 @@ void Gateway::run() {
         item.side = buffer[6];
         this->put(item);
         std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
-        zmq_send (responder, "ack", 3, 0);
+        zmq_send(responder, "ack", 3, 0);
     }
 }
