@@ -4,3 +4,5 @@ example.txt
 gateway
 *.dSYM/
 mmap_test
+*.o
+main
