@@ -4,8 +4,7 @@
 
 struct NewOrderEvent {
     char side;
-    // stored as 55.55
-    char limitPrice[5];
+    float limitPrice;
     char clientId;
     bool stale;
 };
@@ -28,5 +27,7 @@ class Gateway {
     int end = 0;       /* write index */
     int start = 0;     /* read index */
     NewOrderEvent* gatewayRingBuf;
+    void *socket;
+    void *context;
 };
 #endif

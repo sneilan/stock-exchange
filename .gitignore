@@ -6,3 +6,4 @@ gateway
 mmap_test
 *.o
 main
+socketTest

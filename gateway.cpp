@@ -28,7 +28,7 @@ Gateway::~Gateway() throw() {
 // one less copy per call.
 void Gateway::put(NewOrderEvent item) {
     gatewayRingBuf[end].clientId = item.clientId;
-    std::memcpy(gatewayRingBuf[end].limitPrice, item.limitPrice, 5);
+    gatewayRingBuf[end].limitPrice = item.limitPrice;
     gatewayRingBuf[end].side = item.side;
     gatewayRingBuf[end].stale = false;
     std::cout << gatewayRingBuf[end].limitPrice << "\n";
@@ -61,7 +61,8 @@ void Gateway::run() {
         std::string str = std::string(buffer);
         zmq_recv (responder, buffer, 7, 0);
         item.clientId = buffer[0];
-        std::memcpy(item.limitPrice, &buffer[1], 5);
+        // @TODO parse prices from strings
+        item.limitPrice = 5.69;
         item.side = buffer[6];
         this->put(item);
         std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";

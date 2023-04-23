@@ -15,8 +15,9 @@
 struct Event {
     SEQUENCE_ID sequence;
     char side;
-    // stored as 55.55
-    char limitPrice[5];
+    // @TODO will need to convert this to use as currency as floats
+    // can store currencies but not manipulate them.
+    float limitPrice;
     char clientId;
     // Something else related to the event like if it's cancelled, new order, order modification.
     // for now lets focus on sequences.
@@ -29,15 +30,14 @@ class EventStore {
     public:
     EventStore();
     ~EventStore();
-    void newEvent(char side, char limitPrice[5], char clientId);
+    SEQUENCE_ID newEvent(char side, float limitPrice, char clientId);
 
     private:
     size_t size;
     void* ptr;
     std::unordered_map<SEQUENCE_ID, Event> *  eventStoreBuf;
     int fd;
+    SEQUENCE_ID sequence;
 };
-
-
 
 #endif

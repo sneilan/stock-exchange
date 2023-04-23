@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <cstring>
 #include <zmq.h>
-#include "gateway.h";
+#include "gateway.h"
+#include "eventstore.h"
 
 int main() {
     Gateway * gateway = new Gateway();
+    EventStore * eventStore = new EventStore();
 
     std::cout << "Exchange starting\n";
 
@@ -20,6 +22,8 @@ int main() {
     else if (c_pid > 0) {
         // parent
         // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
+        // @TODO should the loop to await data be at a higher level?
+        // 
         gateway->run();
     }
     else {
@@ -30,8 +34,7 @@ int main() {
             NewOrderEvent item = gateway->get();
             if (!item.stale) {
                 // Store the event in the event store
-                // Tell the order engine to check the order
-                // Tell the matcher to 
+                eventStore->newEvent(item.side, item.limitPrice, item.clientId);
                 std::cout << "Need to process order from " << item.clientId << " for " << item.limitPrice << " on side " << item.side;
             }
         }

@@ -1,12 +1,16 @@
 #include "eventstore.h"
 
 EventStore::EventStore() {
-    fd = shm_open("/eventstore_buff", O_CREAT | O_RDWR, 0666);
-    size = sizeof(std::unordered_map<SEQUENCE_ID, Event>);
-    // @TODO define ptr better.
+    const char * name = "/eventstore_buff";
+    fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+    //size = sizeof(std::unordered_map<SEQUENCE_ID, Event>);
+    size = 100000;
+
+    ftruncate(fd, size);
+
     ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
-        throw std::runtime_error("mmap");
+        throw std::runtime_error("could not initialize /eventstore_buff mmap");
     }
 
     eventStoreBuf = new (ptr) std::unordered_map<SEQUENCE_ID, Event>;
@@ -14,6 +18,8 @@ EventStore::EventStore() {
     // @TODO Handle errors returned by ftruncate.
     // @TODO do we need this if we are not operating on a file?
     ftruncate(fd, sizeof(Event) * EVENTSTORE_BUFLEN);
+
+    sequence = 0;
 }
 
 EventStore::~EventStore() {
@@ -23,4 +29,18 @@ EventStore::~EventStore() {
   }
 
   close(fd);
+}
+
+SEQUENCE_ID EventStore::newEvent(char side, float limitPrice, char clientId) {
+    Event event;
+    event.clientId = clientId;
+    event.side = side;
+    event.limitPrice = limitPrice;
+
+    sequence++;
+    event.sequence = sequence;
+
+    eventStoreBuf->insert(std::make_pair(sequence, event));
+
+    return sequence;
 }
