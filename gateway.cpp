@@ -65,7 +65,7 @@ void Gateway::run() {
         item.limitPrice = 5.69;
         item.side = buffer[6];
         this->put(item);
-        std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
+        // std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
         zmq_send(responder, "ack", 3, 0);
     }
 }

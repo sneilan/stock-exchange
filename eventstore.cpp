@@ -4,11 +4,11 @@ EventStore::EventStore() {
     const char * name = "/eventstore_buff";
     fd = shm_open(name, O_CREAT | O_RDWR, 0666);
     //size = sizeof(std::unordered_map<SEQUENCE_ID, Event>);
-    size = 100000;
+    shared_mem_size = 100000;
 
-    ftruncate(fd, size);
+    ftruncate(fd, shared_mem_size);
 
-    ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    ptr = mmap(nullptr, shared_mem_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         throw std::runtime_error("could not initialize /eventstore_buff mmap");
     }
@@ -24,7 +24,7 @@ EventStore::EventStore() {
 
 EventStore::~EventStore() {
 // Unmap the memory and close the file
-  if (munmap(ptr, size) == -1) {
+  if (munmap(ptr, shared_mem_size) == -1) {
     perror("munmap");
   }
 
@@ -43,4 +43,12 @@ SEQUENCE_ID EventStore::newEvent(char side, float limitPrice, char clientId) {
     eventStoreBuf->insert(std::make_pair(sequence, event));
 
     return sequence;
+}
+
+Event EventStore::get(SEQUENCE_ID id) {
+    return eventStoreBuf->at(id);
+}
+
+size_t EventStore::size() {
+    return eventStoreBuf->size();
 }

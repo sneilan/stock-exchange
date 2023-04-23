@@ -31,9 +31,11 @@ class EventStore {
     EventStore();
     ~EventStore();
     SEQUENCE_ID newEvent(char side, float limitPrice, char clientId);
+    Event get(SEQUENCE_ID id);
+    size_t size();
 
     private:
-    size_t size;
+    size_t shared_mem_size;
     void* ptr;
     std::unordered_map<SEQUENCE_ID, Event> *  eventStoreBuf;
     int fd;
