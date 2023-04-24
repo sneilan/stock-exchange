@@ -9,6 +9,7 @@ struct NewOrderEvent {
     // Stored in pennies
     // $10.05 = 1005
     PRICE limitPrice;
+    int quantity;
     char clientId;
     bool stale;
 };

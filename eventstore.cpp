@@ -13,11 +13,11 @@ EventStore::EventStore() {
         throw std::runtime_error("could not initialize /eventstore_buff mmap");
     }
 
-    eventStoreBuf = new (ptr) std::unordered_map<SEQUENCE_ID, Event>;
+    eventStoreBuf = new (ptr) std::unordered_map<SEQUENCE_ID, Order>;
 
     // @TODO Handle errors returned by ftruncate.
     // @TODO do we need this if we are not operating on a file?
-    ftruncate(fd, sizeof(Event) * EVENTSTORE_BUFLEN);
+    ftruncate(fd, sizeof(Order) * EVENTSTORE_BUFLEN);
 
     sequence = 0;
 }
@@ -31,22 +31,23 @@ EventStore::~EventStore() {
   close(fd);
 }
 
-SEQUENCE_ID EventStore::newEvent(char side, int limitPrice, char clientId) {
-    Event event;
-    event.clientId = clientId;
-    event.side = side;
-    event.limitPrice = limitPrice;
+SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity) {
+    Order order;
+    order.clientId = clientId;
+    order.side = side;
+    order.limitPrice = limitPrice;
+    order.quantity = quantity;
 
     sequence++;
-    event.sequence = sequence;
+    order.id = sequence;
 
-    eventStoreBuf->insert(std::make_pair(sequence, event));
+    eventStoreBuf->insert(std::make_pair(sequence, order));
 
     return sequence;
 }
 
-Event EventStore::get(SEQUENCE_ID id) {
-    return eventStoreBuf->at(id);
+Order * EventStore::get(SEQUENCE_ID id) {
+    return &eventStoreBuf->at(id);
 }
 
 size_t EventStore::size() {

@@ -64,6 +64,8 @@ void Gateway::run() {
         // @TODO parse prices from strings
         item.limitPrice = 569;
         item.side = buffer[6];
+        // @TODO fill in quantity later once we implement the socket system.
+        item.quantity = 100;
         this->put(item);
         // std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
         zmq_send(responder, "ack", 3, 0);

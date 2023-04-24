@@ -10,34 +10,23 @@
 #include "types.h"
 
 #define EVENTSTORE_BUFLEN 10000
-#define SEQUENCE_ID unsigned long long
 
-struct Event {
-    SEQUENCE_ID sequence;
-    char side;
-    PRICE limitPrice;
-    char clientId;
-    // Something else related to the event like if it's cancelled, new order, order modification.
-    // for now lets focus on sequences.
-    // And status of the order like accepted, matched, cancelled
-    // maybe even last modified date?
-    // lets also skip order modification as a feature for
-};
 
 class EventStore {
     public:
-    EventStore();
-    ~EventStore();
-    SEQUENCE_ID newEvent(char side, PRICE limitPrice, char clientId);
-    Event get(SEQUENCE_ID id);
-    size_t size();
+        EventStore();
+        ~EventStore();
+        SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity);
+        Order* get(SEQUENCE_ID id);
+        size_t size();
 
     private:
-    size_t shared_mem_size;
-    void* ptr;
-    std::unordered_map<SEQUENCE_ID, Event> *  eventStoreBuf;
-    int fd;
-    SEQUENCE_ID sequence;
+        size_t shared_mem_size;
+        void* ptr;
+        int fd;
+
+        SEQUENCE_ID sequence;
+        std::unordered_map<SEQUENCE_ID, Order> *  eventStoreBuf;
 };
 
 #endif
