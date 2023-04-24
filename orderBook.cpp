@@ -15,14 +15,15 @@ PriceLevel* Book::get(PRICE price) {
     return limitMap->at(price);
 }
 
+// @TODO concerns for when orders are matched should be handled potentially at this level?
 Node<Order *> * Book::insert(Order* order) {
     PriceLevel* level = limitMap->at(order->limitPrice);
     return level->addOrder(order);
 }
-
+// @TODO concerns for when orders are matched should be handled potentially at this level?
 Node<Order *> * PriceLevel::addOrder(Order* order) {
     totalVolume += order->quantity;
-    return orders.push_back(order);
+    return orders._push_back(order);
 }
 
 OrderBook::OrderBook() {

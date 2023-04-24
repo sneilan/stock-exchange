@@ -1,6 +1,8 @@
 #ifndef linked_list_h
 #define linked_list_h
 
+#include <stdexcept>
+
 template <typename T>
 struct Node {
     T data;
@@ -15,13 +17,101 @@ private:
     Node<T>* head;
     Node<T>* tail;
 public:
-    DoublyLinkedList() : head(nullptr), tail(nullptr) {}
-
-    Node<T> * push_back(T val);
+    DoublyLinkedList();
+    Node<T> * _push_back(T val);
     Node<T> * get_front();
     Node<T> * get_back();
     void pop_front();
     void remove(Node<T>* node);
 };
+
+template <typename T>
+DoublyLinkedList<T>::DoublyLinkedList() {
+    head = nullptr;
+    tail = nullptr;
+}
+
+template <typename T>
+Node<T> * DoublyLinkedList<T>::get_front() {
+    return head;
+}
+
+template <typename T>
+Node<T> * DoublyLinkedList<T>::get_back() {
+    return tail;
+}
+
+template <typename T>
+Node<T> * DoublyLinkedList<T>::_push_back(T val)
+{
+    Node<T> *newNode = new Node<T>(val);
+    if (head == nullptr)
+    {
+        head = newNode;
+        tail = newNode;
+    }
+    else
+    {
+        tail->next = newNode;
+        newNode->prev = tail;
+        tail = newNode;
+    }
+    return newNode;
+}
+
+template <typename T>
+void DoublyLinkedList<T>::pop_front()
+{
+    if (head == nullptr)
+    {
+        return;
+    }
+    Node<T> *nodeToRemove = head;
+
+    head = head->next;
+
+    if (head != nullptr)
+    {
+        head->prev = nullptr;
+    }
+    else
+    {
+        tail = nullptr;
+    }
+
+    delete nodeToRemove;
+}
+
+template <typename T>
+void DoublyLinkedList<T>::remove(Node<T> *node)
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+    if (node == head)
+    {
+        head = node->next;
+        if (head != nullptr)
+        {
+            head->prev = nullptr;
+        }
+    }
+    else if (node == tail)
+    {
+        tail = node->prev;
+        if (tail != nullptr)
+        {
+            tail->next = nullptr;
+        }
+    }
+    else
+    {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    delete node;
+}
 
 #endif

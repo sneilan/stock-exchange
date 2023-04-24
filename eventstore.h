@@ -16,7 +16,7 @@ class EventStore {
     public:
         EventStore();
         ~EventStore();
-        SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity);
+        SEQUENCE_ID newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity);
         Order* get(SEQUENCE_ID id);
         size_t size();
 
