@@ -43,15 +43,7 @@ class OrderBook {
 
     public:
         OrderBook();
-        void newOrder(Order * order) {
-            if (order->side == BUY) {
-                auto *ptr = buyBook->insert(order);
-                orderMap->insert(std::make_pair(order->id, ptr));
-            } else {
-                auto *ptr = sellBook->insert(order);
-                orderMap->insert(std::make_pair(order->id, ptr));
-            }
-        }
+        void newOrder(Order * order);
 };
 
 #endif

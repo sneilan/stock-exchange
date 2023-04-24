@@ -37,11 +37,13 @@ int main() {
             if (!item.stale) {
                 // Store the event in the event store
                 SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice, item.clientId, item.quantity);
+                // std::cout << "Sequence ID is now " << id << "\n";
+                // std::cout << "size is now " << eventStore->size() << "\n";
+                Order * order = eventStore->get(id);
+                std::cout << "price of order is " << order->limitPrice << "\n";
 
-                orderBook->newOrder(eventStore->get(id));
-                //std::cout << eventStore->get(id).clientId << "\n";
-                std::cout << eventStore->size() << "\n";
-                //std::cout << "Need to process order from " << item.clientId << " for " << item.limitPrice << " on side " << item.side;
+                orderBook->newOrder(order);
+                //std::cout << eventStore->get(id)->clientId << "\n";
             }
         }
     }

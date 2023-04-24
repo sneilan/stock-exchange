@@ -13,6 +13,7 @@ EventStore::EventStore() {
         throw std::runtime_error("could not initialize /eventstore_buff mmap");
     }
 
+    memset(ptr, 0, shared_mem_size);
     eventStoreBuf = new (ptr) std::unordered_map<SEQUENCE_ID, Order>;
 
     // @TODO Handle errors returned by ftruncate.

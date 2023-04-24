@@ -10,8 +10,10 @@
 
 Gateway::Gateway() {
     int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-    ftruncate(fd, sizeof(NewOrderEvent) * GATEWAY_BUFLEN);
-    gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * GATEWAY_BUFLEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    ftruncate(fd, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
+    gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    memset(gatewayRingBuf, 0, sizeof(NewOrderEvent) * GATEWAY_BUFLEN); // clear shared memory block
+
     // Initialize all orders to stale
     for (int i = 0; i < GATEWAY_BUFLEN; i++) {
         gatewayRingBuf[i].stale = true;
@@ -19,9 +21,8 @@ Gateway::Gateway() {
 }
 
 Gateway::~Gateway() throw() {
-    munmap(gatewayRingBuf, sizeof(NewOrderEvent) * GATEWAY_BUFLEN);
+    munmap(gatewayRingBuf, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
     shm_unlink(name);
-    std::cout << "Destructor called";
 }
 
 // @TODO instead of recreating item each time, pass in values perhaps?
@@ -31,15 +32,19 @@ void Gateway::put(NewOrderEvent item) {
     gatewayRingBuf[end].limitPrice = item.limitPrice;
     gatewayRingBuf[end].side = item.side;
     gatewayRingBuf[end].stale = false;
-    std::cout << gatewayRingBuf[end].limitPrice << "\n";
 
     end++;
+    // std::cout << "Ring buffer Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
 
     end %= GATEWAY_BUFLEN;
 }
 
 NewOrderEvent Gateway::get() {
+    // Copy what is in the ring buffer into a new structure.
     NewOrderEvent item = gatewayRingBuf[start];
+
+    // std::cout << "Ring buffer Order retrieved " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
+    // Mark the old copy of new order event in ring buffer as stale.
     gatewayRingBuf[start].stale = true;
     start++;
     start %= GATEWAY_BUFLEN;
@@ -62,12 +67,11 @@ void Gateway::run() {
         zmq_recv (responder, buffer, 7, 0);
         item.clientId = buffer[0];
         // @TODO parse prices from strings
-        item.limitPrice = 569;
+        item.limitPrice = 5001;
         item.side = buffer[6];
         // @TODO fill in quantity later once we implement the socket system.
         item.quantity = 100;
         this->put(item);
-        // std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
         zmq_send(responder, "ack", 3, 0);
     }
 }
