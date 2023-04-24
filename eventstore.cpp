@@ -31,7 +31,7 @@ EventStore::~EventStore() {
   close(fd);
 }
 
-SEQUENCE_ID EventStore::newEvent(char side, float limitPrice, char clientId) {
+SEQUENCE_ID EventStore::newEvent(char side, int limitPrice, char clientId) {
     Event event;
     event.clientId = clientId;
     event.side = side;

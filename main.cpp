@@ -6,6 +6,7 @@
 #include <zmq.h>
 #include "gateway.h"
 #include "eventstore.h"
+#include "orderBook.h"
 
 int main() {
     Gateway * gateway = new Gateway();
@@ -27,6 +28,8 @@ int main() {
     }
     else {
         // child
+        OrderBook* orderBook = new OrderBook();
+
         while (1) {
             // Constantly checking for new orders in the gateway ring buffer.
             // @TODO should I be allocating this?
@@ -34,6 +37,7 @@ int main() {
             if (!item.stale) {
                 // Store the event in the event store
                 SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice, item.clientId);
+
                 //std::cout << eventStore->get(id).clientId << "\n";
                 std::cout << eventStore->size() << "\n";
                 //std::cout << "Need to process order from " << item.clientId << " for " << item.limitPrice << " on side " << item.side;

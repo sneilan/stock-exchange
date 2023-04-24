@@ -1,10 +1,14 @@
 #ifndef _gateway_h
 #define _gateway_h
+
+#include "types.h"
 #define GATEWAY_BUFLEN 100
 
 struct NewOrderEvent {
     char side;
-    float limitPrice;
+    // Stored in pennies
+    // $10.05 = 1005
+    PRICE limitPrice;
     char clientId;
     bool stale;
 };

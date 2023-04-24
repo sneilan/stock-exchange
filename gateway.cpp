@@ -62,7 +62,7 @@ void Gateway::run() {
         zmq_recv (responder, buffer, 7, 0);
         item.clientId = buffer[0];
         // @TODO parse prices from strings
-        item.limitPrice = 5.69;
+        item.limitPrice = 569;
         item.side = buffer[6];
         this->put(item);
         // std::cout << "Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
