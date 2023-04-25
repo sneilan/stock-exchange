@@ -11,19 +11,23 @@
 #include "util/linked_list.h"
 
 class PriceLevel {
+    public:
+        Node<Order *> * addOrder(Order* order);
+        std::list<Order *> fillQuantity(PRICE price, int quantity);
+        void cancelOrder(Node<Order*> * node);
+
     private:
         // Prices are stored in pennies. $4.56 = 456.
         PRICE limitPrice;
         long totalVolume;
         DoublyLinkedList<Order*> orders;
-    public:
-        Node<Order *> * addOrder(Order* order);
-        std::list<Order *> fillQuantity(PRICE price, int quantity);
 };
 
 class Book {
-    public:
+    private:
         std::unordered_map<PRICE, PriceLevel*> * limitMap;
+
+    public:
         Book();
         PriceLevel* get(PRICE price);
         Node<Order*> * insert(Order* order);
@@ -31,6 +35,12 @@ class Book {
 };
 
 class OrderBook {
+    public:
+        OrderBook();
+
+        void newOrder(Order * order); // give a list of orders matched or none at all.
+        void cancelOrder(SEQUENCE_ID id);
+
     private:
         Book* buyBook;
         Book* sellBook;
@@ -41,12 +51,6 @@ class OrderBook {
         // so that they don't blow up the heap.
         // In a v2 consider implementing my own linked list so we don't need pointers to iterators.
         std::unordered_map<SEQUENCE_ID, Node<Order*> * >* orderMap;
-
-    public:
-        OrderBook();
-
-        void newOrder(Order * order); // give a list of orders matched or none at all.
-        void cancelOrder(SEQUENCE_ID id);
 };
 
 #endif

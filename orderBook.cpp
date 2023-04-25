@@ -24,12 +24,11 @@ void OrderBook::newOrder(Order * order) {
 void OrderBook::cancelOrder(SEQUENCE_ID id) {
     Node<Order *> * node = orderMap->at(id);
     Order * order = node->data;
-    int price = node->data->limitPrice;
 
     if (order->side == BUY) {
-
+        buyBook->cancelOrder(node);
     } else if (order->side == SELL) {
-
+        sellBook->cancelOrder(node);
     }
 }
 
@@ -59,6 +58,11 @@ Node<Order *> * Book::insert(Order* order) {
 
 void Book::cancelOrder(Node<Order*> * node) {
     PriceLevel * level = this->get(node->data->limitPrice);
+    level->cancelOrder(node);
+}
+
+void PriceLevel::cancelOrder(Node<Order*> * node) {
+    orders.remove(node);
 }
 
 // @TODO concerns for when orders are matched should be handled potentially at this level?
@@ -81,12 +85,14 @@ std::list<Order *> PriceLevel::fillQuantity(PRICE price, int requested_quantity)
 
         if (quantity_available > requested_quantity) {
             node->data->filled_quantity += requested_quantity;
+            totalVolume -= requested_quantity;
             requested_quantity = 0;
             // If we've filled the order, stop.
             return updated_orders;
         } else if (requested_quantity >= quantity_available) {
             node->data->filled_quantity += quantity_available;
             requested_quantity -= quantity_available;
+            totalVolume -= quantity_available;
             orders.remove(node);
         }
     }
