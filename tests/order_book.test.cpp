@@ -13,7 +13,7 @@ TEST_CASE("Hello world order book test.") {
     REQUIRE(orderBook->getVolume() == 100);
 
     orderBook->cancelOrder(order->id);
-    //REQUIRE(orderBook->getVolume() == 0);
+    REQUIRE(orderBook->getVolume() == 0);
 }
 
 TEST_CASE("Price levels - volume") {
