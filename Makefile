@@ -1,5 +1,5 @@
 CC = /usr/bin/clang++
-CFLAGS = -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` -lzmq
+CFLAGS = -std=c++14 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` -lzmq
 EXECUTABLE = main
 
 OBJS = eventstore.o orderBook.o gateway.o main.o
