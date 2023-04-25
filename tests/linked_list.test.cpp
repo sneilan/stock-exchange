@@ -2,17 +2,21 @@
 #include <catch2/catch_all.hpp>
 
 #include "../util/linked_list.h"
-#include <iostream>
 
+TEST_CASE("Linked list removes data") {
+    DoublyLinkedList<int> list;
+    list.push_back(5);
+    list.push_back(6);
+    list.push_back(7);
 
-int add(int a, int b) {
-    return a + b;
-}
+    REQUIRE(list.get_front()->data == 5);
+    REQUIRE(list.get_back()->data == 7);
 
-TEST_CASE("Addition works correctly") {
-    REQUIRE(add(2, 2) == 4);
-    REQUIRE(add(0, 0) == 0);
-    REQUIRE(add(-1, 1) == 0);
+    list.pop_front();
+    REQUIRE(list.get_front()->data == 6);
+
+    list.push_back(7);
+
 }
 
 int main(int argc, char* argv[]) {

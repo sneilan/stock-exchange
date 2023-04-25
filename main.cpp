@@ -6,7 +6,7 @@
 #include <zmq.h>
 #include "gateway.h"
 #include "eventstore.h"
-#include "orderBook.h"
+#include "order_book.h"
 
 int main() {
     Gateway * gateway = new Gateway();
