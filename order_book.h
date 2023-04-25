@@ -25,14 +25,16 @@ class PriceLevel {
 };
 
 class Book {
-    private:
-        std::unordered_map<PRICE, PriceLevel*> * limitMap;
-
     public:
         Book();
         PriceLevel* get(PRICE price);
         Node<Order*> * insert(Order* order);
         void cancelOrder(Node<Order*> * node);
+        int getVolume();
+
+    private:
+        std::unordered_map<PRICE, PriceLevel*> * limitMap;
+        int totalVolume = 0;
 };
 
 class OrderBook {
@@ -41,12 +43,14 @@ class OrderBook {
 
         void newOrder(Order * order); // give a list of orders matched or none at all.
         void cancelOrder(SEQUENCE_ID id);
+        int getVolume();
 
     private:
         Book* buyBook;
         Book* sellBook;
         PriceLevel* bestBid;
         PriceLevel* bestOffer;
+        int totalVolume = 0;
         // Create an unordered map of sequence ids to iterators
         // Then we can later implement a custom allocator to manage these iterators
         // so that they don't blow up the heap.

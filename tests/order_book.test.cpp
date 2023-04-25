@@ -7,13 +7,13 @@
 TEST_CASE("Hello world order book test.") {
     // Hello world order book test. 
     OrderBook* orderBook = new OrderBook();
-    Order * order = new Order();
-    order->limitPrice = 5000;
-    order->quantity = 100;
-    order->side = 'b';
-    order->id = 0;
+    Order * order = createDefaultOrder();
+
     orderBook->newOrder(order);
+    REQUIRE(orderBook->getVolume() == 100);
+
     orderBook->cancelOrder(order->id);
+    //REQUIRE(orderBook->getVolume() == 0);
 }
 
 TEST_CASE("Price levels - volume") {

@@ -8,7 +8,7 @@ Order * createDefaultOrder() {
     order->limitPrice = 5000;
     order->quantity = 100;
     order->side = 'b';
-    order->id = 0;
+    order->id = 1;
     return order;
 }
 

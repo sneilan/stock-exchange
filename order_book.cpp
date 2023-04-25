@@ -10,6 +10,8 @@ OrderBook::OrderBook() {
 }
 
 void OrderBook::newOrder(Order * order) {
+    totalVolume += order->unfilled_quantity();
+
     if (order->side == BUY) {
         std::cout << "Inserting new buy order for price " << order->limitPrice << "\n";
         auto *ptr = buyBook->insert(order);
@@ -23,6 +25,8 @@ void OrderBook::newOrder(Order * order) {
 
 void OrderBook::cancelOrder(SEQUENCE_ID id) {
     Node<Order *> * node = orderMap->at(id);
+    totalVolume -= node->data->unfilled_quantity();
+
     Order * order = node->data;
 
     if (order->side == BUY) {
@@ -30,6 +34,10 @@ void OrderBook::cancelOrder(SEQUENCE_ID id) {
     } else if (order->side == SELL) {
         sellBook->cancelOrder(node);
     }
+}
+
+int OrderBook::getVolume() {
+    return totalVolume;
 }
 
 Book::Book() {
@@ -58,10 +66,17 @@ Node<Order *> * Book::insert(Order* order) {
 
 void Book::cancelOrder(Node<Order*> * node) {
     PriceLevel * level = this->get(node->data->limitPrice);
+
+    totalVolume -= node->data->unfilled_quantity();
     level->cancelOrder(node);
 }
 
+int Book::getVolume() {
+    return totalVolume;
+}
+
 void PriceLevel::cancelOrder(Node<Order*> * node) {
+    totalVolume -= node->data->unfilled_quantity();
     orders.remove(node);
 }
 
