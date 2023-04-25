@@ -13,7 +13,7 @@
 class PriceLevel {
     public:
         Node<Order *> * addOrder(Order* order);
-        std::list<Order *> fillQuantity(int quantity);
+        std::list<Order *> fillOrder(Order* order);
         void cancelOrder(Node<Order*> * node);
         int getVolume();
         int getPrice();
@@ -53,7 +53,7 @@ class OrderBook {
         Book* buyBook;
         Book* sellBook;
         PriceLevel* bestBid;
-        PriceLevel* bestOffer;
+        PriceLevel* bestAsk;
         int totalVolume = 0;
         // Create an unordered map of sequence ids to iterators
         // Then we can later implement a custom allocator to manage these iterators

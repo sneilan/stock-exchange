@@ -12,4 +12,13 @@ Order * createDefaultOrder() {
     return order;
 }
 
+Order * orderQuantity(int quantity) {
+    Order * order = new Order();
+    order->limitPrice = 5000;
+    order->quantity = quantity;
+    order->side = 'b';
+    order->id = 1;
+    return order;
+}
+
 #endif

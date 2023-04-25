@@ -34,19 +34,19 @@ TEST_CASE("Price levels - volume") {
 
     REQUIRE(level->getVolume() == 200);
 
-    level->fillQuantity(50);
+    level->fillOrder(orderQuantity(50));
 
     REQUIRE(level->getVolume() == 150);
 
-    level->fillQuantity(25);
+    level->fillOrder(orderQuantity(25));
 
     REQUIRE(level->getVolume() == 125);
 
-    level->fillQuantity(30);
+    level->fillOrder(orderQuantity(30));
 
     REQUIRE(level->getVolume() == 95);
 
-    level->fillQuantity(95);
+    level->fillOrder(orderQuantity(95));
 
     REQUIRE(level->getVolume() == 0);
 }
@@ -60,18 +60,18 @@ TEST_CASE("Price levels - small quantities") {
     order2->id = 1;
     level->addOrder(order2);
 
-    std::list<Order *> updated_orders = level->fillQuantity(50);
+    std::list<Order *> updated_orders = level->fillOrder(orderQuantity(50));
 
     REQUIRE(updated_orders.size() == 1);
     REQUIRE(order->filled_quantity == 50);
     REQUIRE(order2->filled_quantity == 0);
 
-    std::list<Order *> updated_orders2 = level->fillQuantity(50);
+    std::list<Order *> updated_orders2 = level->fillOrder(orderQuantity(50));
     REQUIRE(updated_orders2.size() == 1);
     REQUIRE(order->filled_quantity == 100);
     REQUIRE(order2->filled_quantity == 0);
 
-    std::list<Order *> updated_orders3 = level->fillQuantity(50);
+    std::list<Order *> updated_orders3 = level->fillOrder(orderQuantity(50));
 
     REQUIRE(updated_orders3.size() == 1);
     REQUIRE(order->filled_quantity == 100);
@@ -84,7 +84,7 @@ TEST_CASE("Price levels - large quantities") {
         level->addOrder(createDefaultOrder());
     }
 
-    level->fillQuantity(500);
+    level->fillOrder(orderQuantity(500));
 
     REQUIRE(level->getVolume() == 500);
 }

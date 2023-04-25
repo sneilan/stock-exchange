@@ -5,17 +5,36 @@ OrderBook::OrderBook() {
     buyBook = new Book();
     sellBook = new Book();
     bestBid = nullptr;
-    bestOffer = nullptr;
+    bestAsk = nullptr;
 }
 
 std::list<Order *> OrderBook::newOrder(Order * order) {
     totalVolume += order->unfilled_quantity();
     std::list<Order *> updated_orders;
 
+    // When a new buy order comes in that becomes a bid.
     if (order->side == BUY) {
-        std::cout << "Inserting new buy order for price " << order->limitPrice << "\n";
-        auto *ptr = buyBook->insert(order);
-        orderMap->insert(std::make_pair(order->id, ptr));
+        // If there is an asking price & there are sellers in the market.
+        if (sellBook != nullptr) {
+            if (sellBook->getVolume() > 0) {
+                // Attempt to fill the order.
+                // @TODO report these filled asks to the users.
+                // @TODO should I be passing the whole order to fillQuantity so it can update the order?
+                std::list<Order *> filled_asks = bestAsk->fillOrder(order);
+            }
+        }
+
+        if (bestBid == nullptr) {
+            bestBid = buyBook->get(order->limitPrice);
+            auto *ptr = buyBook->insert(order);
+            orderMap->insert(std::make_pair(order->id, ptr));
+            // @TODO do I also return the users order itself?
+            return updated_orders;
+        }
+
+        // First try to fill the order at the best available offer.
+
+        // If there are any shares remaining, try to fill them at the next available price if volume > 0
 
         // If we run out of bids or whatever at this level, move best bid around.
         // if best bid becomes null b/c no orders then it's just whatever it is.
@@ -27,7 +46,6 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
           //  bestBid = buyBook->get(order->limitPrice);
         //}
     } else {
-        std::cout << "Inserting new sell order for price " << order->limitPrice << "\n";
         auto *ptr = sellBook->insert(order);
         orderMap->insert(std::make_pair(order->id, ptr));
 
@@ -44,7 +62,7 @@ PriceLevel* OrderBook::getBid() {
 }
 
 PriceLevel* OrderBook::getAsk() {
-    return bestOffer;
+    return bestAsk;
 }
 
 void OrderBook::cancelOrder(SEQUENCE_ID id) {
@@ -111,9 +129,11 @@ Node<Order *> * PriceLevel::addOrder(Order* order) {
 }
 
 // Returns a list of filled orders.
-std::list<Order *> PriceLevel::fillQuantity(int requested_quantity) {
+std::list<Order *> PriceLevel::fillOrder(Order* order) {
     // Keep popping orders off at price level until we have either filled quantity
     // or run out of orders.
+
+    int requested_quantity = order->unfilled_quantity();
 
     std::list<Order *> updated_orders;
     while (orders.get_front() != nullptr && requested_quantity > 0) {
@@ -127,7 +147,7 @@ std::list<Order *> PriceLevel::fillQuantity(int requested_quantity) {
             totalVolume -= requested_quantity;
             requested_quantity = 0;
             // If we've filled the order, stop.
-            return updated_orders;
+            break;
         } else if (requested_quantity >= quantity_available) {
             node->data->filled_quantity += quantity_available;
             requested_quantity -= quantity_available;
@@ -135,6 +155,8 @@ std::list<Order *> PriceLevel::fillQuantity(int requested_quantity) {
             orders.remove(node);
         }
     }
+
+    order->filled_quantity += (order->unfilled_quantity() - requested_quantity);
 
     return updated_orders;
 }
