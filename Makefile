@@ -25,14 +25,12 @@ $(EXECUTABLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXECUTABLE)
 
 ./tests/linked_list.test.o: ./tests/linked_list.test.cpp
-	$(CC) $(CFLAGS) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
+	$(CC) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
 
 $(TEST_EXECUTABLE): $(TEST_OBJS)
-	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
+	$(CC) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
 
 test: $(TEST_EXECUTABLE)
-#	$(CC) $(CFLAGS) ./tests/linked_list.test.cpp -c ./tests/linked_list.test.o
-#	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
 
 clean:
