@@ -16,6 +16,7 @@ class PriceLevel {
         std::list<Order *> fillQuantity(int quantity);
         void cancelOrder(Node<Order*> * node);
         int getVolume();
+        int getPrice();
 
     private:
         // Prices are stored in pennies. $4.56 = 456.
@@ -31,6 +32,7 @@ class Book {
         Node<Order*> * insert(Order* order);
         void cancelOrder(Node<Order*> * node);
         int getVolume();
+        void allocatePrices(int start, int end);
 
     private:
         std::unordered_map<PRICE, PriceLevel*> * limitMap;
@@ -41,9 +43,11 @@ class OrderBook {
     public:
         OrderBook();
 
-        void newOrder(Order * order); // give a list of orders matched or none at all.
+        std::list<Order *> newOrder(Order * order); // give a list of orders matched or none at all.
         void cancelOrder(SEQUENCE_ID id);
         int getVolume();
+        PriceLevel* getBid();
+        PriceLevel* getAsk();
 
     private:
         Book* buyBook;

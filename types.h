@@ -8,6 +8,14 @@
 #define SELL 's'
 
 #define SEQUENCE_ID unsigned long long
+#define SUBMITTED 0
+#define FILLED 1
+#define CANCELLED 2
+#define PARTIAL_FILL 3
+
+#define ONE_DOLLAR 100
+#define ONE_HUNDRED_DOLLARS (ONE_DOLLAR * 100)
+#define ONE_CENT 1
 
 struct Order {
     SEQUENCE_ID id;
@@ -21,7 +29,9 @@ struct Order {
     SIDE side;
     PRICE limitPrice;
     char clientId;
-    // status, created_at, updated_at etc.
+    int status = SUBMITTED;
+
+    // created_at, updated_at etc.
 };
 
 #endif

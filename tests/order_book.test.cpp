@@ -16,6 +16,10 @@ TEST_CASE("Hello world order book test.") {
     REQUIRE(orderBook->getVolume() == 0);
 }
 
+TEST_CASE("Adjusting best bid and ask.") {
+    // @TODO
+}
+
 TEST_CASE("Price levels - volume") {
     PriceLevel * level = new PriceLevel();
     REQUIRE(level->getVolume() == 0);
