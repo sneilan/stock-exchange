@@ -17,6 +17,7 @@ class PriceLevel {
         DoublyLinkedList<Order*> orders;
     public:
         Node<Order *> * addOrder(Order* order);
+        int PriceLevel::fillQuantity(PRICE price, int quantity);
 };
 
 class Book {

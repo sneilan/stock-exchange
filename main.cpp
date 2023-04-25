@@ -42,7 +42,10 @@ int main() {
                 Order * order = eventStore->get(id);
                 std::cout << "price of order is " << order->limitPrice << "\n";
 
+                // get response here & spool information to new ring buffer
+                // create new process that reads from new ring buffer & sends to clients.
                 orderBook->newOrder(order);
+
                 //std::cout << eventStore->get(id)->clientId << "\n";
             }
         }
