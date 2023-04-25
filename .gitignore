@@ -7,3 +7,4 @@ mmap_test
 *.o
 main
 socketTest
+tests/run_test

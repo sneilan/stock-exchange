@@ -4,6 +4,9 @@ EXECUTABLE = main
 
 OBJS = eventstore.o orderBook.o gateway.o main.o
 
+TEST_EXECUTABLE = ./tests/run_test
+TEST_OBJS = ./tests/linked_list.test.o
+
 all: $(EXECUTABLE)
 
 eventstore.o: eventstore.cpp
@@ -21,5 +24,16 @@ main.o: main.cpp
 $(EXECUTABLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXECUTABLE)
 
+./tests/linked_list.test.o: ./tests/linked_list.test.cpp
+	$(CC) $(CFLAGS) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
+
+$(TEST_EXECUTABLE): $(TEST_OBJS)
+	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
+
+test: $(TEST_EXECUTABLE)
+#	$(CC) $(CFLAGS) ./tests/linked_list.test.cpp -c ./tests/linked_list.test.o
+#	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
+	./$(TEST_EXECUTABLE)
+
 clean:
-	rm -f $(EXECUTABLE) $(OBJS)
+	rm -f $(EXECUTABLE) $(OBJS) $(TEST_OBJS) $(TEST_EXECUTABLE)
