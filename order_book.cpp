@@ -72,7 +72,7 @@ Node<Order *> * PriceLevel::addOrder(Order* order) {
 }
 
 // Returns a list of filled orders.
-std::list<Order *> PriceLevel::fillQuantity(PRICE price, int requested_quantity) {
+std::list<Order *> PriceLevel::fillQuantity(int requested_quantity) {
     // Keep popping orders off at price level until we have either filled quantity
     // or run out of orders.
 
@@ -98,4 +98,8 @@ std::list<Order *> PriceLevel::fillQuantity(PRICE price, int requested_quantity)
     }
 
     return updated_orders;
+}
+
+int PriceLevel::getVolume() {
+    return totalVolume;
 }

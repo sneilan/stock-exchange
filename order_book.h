@@ -13,8 +13,9 @@
 class PriceLevel {
     public:
         Node<Order *> * addOrder(Order* order);
-        std::list<Order *> fillQuantity(PRICE price, int quantity);
+        std::list<Order *> fillQuantity(int quantity);
         void cancelOrder(Node<Order*> * node);
+        int getVolume();
 
     private:
         // Prices are stored in pennies. $4.56 = 456.
