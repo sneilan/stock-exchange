@@ -6,6 +6,7 @@ OBJS = eventstore.o orderBook.o gateway.o main.o
 
 TEST_EXECUTABLE = ./tests/run_test
 TEST_OBJS = ./tests/linked_list.test.o
+TEST_FLAGS = -std=c++14 `pkg-config catch2 --cflags` `pkg-config catch2 --libs`
 
 all: $(EXECUTABLE)
 
@@ -25,10 +26,10 @@ $(EXECUTABLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXECUTABLE)
 
 ./tests/linked_list.test.o: ./tests/linked_list.test.cpp
-	$(CC) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
+	$(CC) $(TEST_FLAGS) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
 
 $(TEST_EXECUTABLE): $(TEST_OBJS)
-	$(CC) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
+	$(CC) $(TEST_FLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
 
 test: $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
