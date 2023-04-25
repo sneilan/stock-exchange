@@ -18,7 +18,7 @@ private:
     Node<T>* tail;
 public:
     DoublyLinkedList();
-    Node<T> * _push_back(T val);
+    Node<T> * push_back(T val);
     Node<T> * get_front();
     Node<T> * get_back();
     void pop_front();
@@ -42,7 +42,7 @@ Node<T> * DoublyLinkedList<T>::get_back() {
 }
 
 template <typename T>
-Node<T> * DoublyLinkedList<T>::_push_back(T val)
+Node<T> * DoublyLinkedList<T>::push_back(T val)
 {
     Node<T> *newNode = new Node<T>(val);
     if (head == nullptr)

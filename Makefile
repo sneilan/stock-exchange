@@ -4,6 +4,8 @@ EXECUTABLE = main
 
 OBJS = eventstore.o orderBook.o gateway.o main.o
 
+all: $(EXECUTABLE)
+
 eventstore.o: eventstore.cpp
 	$(CC) $(CFLAGS) -c eventstore.cpp
 
@@ -21,5 +23,3 @@ $(EXECUTABLE): $(OBJS)
 
 clean:
 	rm -f $(EXECUTABLE) $(OBJS)
-
-all: $(EXECUTABLE)

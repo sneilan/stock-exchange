@@ -1,6 +1,7 @@
 #ifndef order_book_h_
 #define order_book_h_
 #include <iostream>
+#include <algorithm>
 #include <unordered_map>
 #include <cmath>
 #include <list>
@@ -17,17 +18,16 @@ class PriceLevel {
         DoublyLinkedList<Order*> orders;
     public:
         Node<Order *> * addOrder(Order* order);
-        int PriceLevel::fillQuantity(PRICE price, int quantity);
+        std::list<Order *> fillQuantity(PRICE price, int quantity);
 };
 
 class Book {
-    private:
-        std::unordered_map<PRICE, PriceLevel*> * limitMap;
-
     public:
+        std::unordered_map<PRICE, PriceLevel*> * limitMap;
         Book();
         PriceLevel* get(PRICE price);
         Node<Order*> * insert(Order* order);
+        void cancelOrder(Node<Order*> * node);
 };
 
 class OrderBook {
@@ -44,7 +44,9 @@ class OrderBook {
 
     public:
         OrderBook();
-        void newOrder(Order * order);
+
+        void newOrder(Order * order); // give a list of orders matched or none at all.
+        void cancelOrder(SEQUENCE_ID id);
 };
 
 #endif

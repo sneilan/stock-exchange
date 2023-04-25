@@ -13,6 +13,11 @@ struct Order {
     SEQUENCE_ID id;
     int quantity;
     int filled_quantity;
+
+    int unfilled_quantity() {
+        return quantity - filled_quantity;
+    }
+
     SIDE side;
     PRICE limitPrice;
     char clientId;
