@@ -16,9 +16,4 @@ TEST_CASE("Linked list removes data") {
     REQUIRE(list.get_front()->data == 6);
 
     list.push_back(7);
-
-}
-
-int main(int argc, char* argv[]) {
-    return Catch::Session().run(argc, argv);
 }

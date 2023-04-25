@@ -12,7 +12,7 @@
 struct Order {
     SEQUENCE_ID id;
     int quantity;
-    int filled_quantity;
+    int filled_quantity = 0;
 
     int unfilled_quantity() {
         return quantity - filled_quantity;

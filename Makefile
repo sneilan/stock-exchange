@@ -5,8 +5,8 @@ EXECUTABLE = main
 OBJS = eventstore.o order_book.o gateway.o main.o
 
 TEST_EXECUTABLE = ./tests/run_test
-TEST_OBJS = ./tests/linked_list.test.o
-TEST_FLAGS = -std=c++14 `pkg-config catch2 --cflags` `pkg-config catch2 --libs`
+TEST_OBJS = ./tests/linked_list.test.o ./tests/order_book.test.o ./tests/main.test.o
+TEST_FLAGS = -std=c++14 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` `pkg-config catch2 --cflags` `pkg-config catch2 --libs` -lzmq
 
 all: $(EXECUTABLE)
 
@@ -28,8 +28,14 @@ $(EXECUTABLE): $(OBJS)
 ./tests/linked_list.test.o: ./tests/linked_list.test.cpp
 	$(CC) $(TEST_FLAGS) -c ./tests/linked_list.test.cpp -o ./tests/linked_list.test.o
 
+./tests/order_book.test.o: ./tests/order_book.test.cpp
+	$(CC) $(TEST_FLAGS) -c ./tests/order_book.test.cpp -o ./tests/order_book.test.o
+
+./tests/main.test.o: ./tests/main.test.cpp
+	$(CC) $(TEST_FLAGS) -c ./tests/main.test.cpp -o ./tests/main.test.o
+
 $(TEST_EXECUTABLE): $(TEST_OBJS)
-	$(CC) $(TEST_FLAGS) $(TEST_OBJS) -o $(TEST_EXECUTABLE)
+	$(CC) $(TEST_FLAGS) $(TEST_OBJS) order_book.o -o $(TEST_EXECUTABLE)
 
 test: $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
