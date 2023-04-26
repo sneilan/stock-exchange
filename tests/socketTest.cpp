@@ -13,6 +13,9 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include "../util/spdlog/spdlog.h"
 
+// Had some issues with spdlog levels. Will fix later.
+#define DEBUG spdlog::info
+
 class SocketServer
 {
 public:
@@ -64,7 +67,9 @@ public:
             perror("listen");
             exit(EXIT_FAILURE);
         }
+    }
 
+    void listenToSocket() {
         // accept the incoming connection
         addrlen = sizeof(address);
         spdlog::info("Waiting for connections ...");
@@ -111,7 +116,7 @@ public:
                 }
 
                 // inform user of socket number - used in send and receive commands
-                spdlog::debug("New connection , socket fd is %d , ip is : %s , port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                DEBUG("New connection , socket fd is %d , ip is : %s , port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
                 // send new connection greeting message
                 if (send(new_socket, message, strlen(message), 0) != strlen(message))
@@ -119,7 +124,7 @@ public:
                     perror("send");
                 }
 
-                spdlog::debug("Welcome message sent successfully");
+                DEBUG("Welcome message sent successfully");
 
                 // add new socket to array of sockets
                 for (i = 0; i < max_clients; i++)
@@ -128,7 +133,7 @@ public:
                     if (client_socket[i] == 0)
                     {
                         client_socket[i] = new_socket;
-                        spdlog::debug("Adding to list of sockets as {}", i);
+                        DEBUG("Adding to list of sockets as {}", i);
 
                         break;
                     }
@@ -149,7 +154,7 @@ public:
                         // Somebody disconnected , get his details and print
                         getpeername(sd, (struct sockaddr *)&address,
                                     (socklen_t *)&addrlen);
-                        spdlog::debug("Host disconnected , ip {} , port {}",
+                        DEBUG("Host disconnected , ip {} , port {}",
                                       inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
                         // Close the socket and mark as 0 in list for reuse
@@ -187,12 +192,15 @@ private:
 
     // a message
     char *message = "ECHO Daemon v1.0 \r\n";
+
+    
 };
 
 int main(int argc, char *argv[])
 {
     SocketServer server;
     server.bindSocket(8888);
+    server.listenToSocket();
 
     return 0;
 }
