@@ -8,42 +8,37 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     if (isOpposingOrderBookBlank(order)) {
         addOrder(order);
 
-        adjustBidAskIfNecessary(order);
+        adjustBidAskIfOrderIsBetterPrice(order);
 
         return updated_orders;
     }
 
-    // If this buy order is less than the current ask price.
-    // (user willing to buy at $5
-    // Insert into order book & return.
+    // If this order has not crossed the spread meaning
+    // if it's a buy order it's less than current ask and
+    // if a sell order greater than current bid.
     if (!orderCrossedSpread(order)) {
         addOrder(order);
 
         return updated_orders;
     }
 
-    // In this exchange implementation, you can only buy at the ask or higher
-    // or sell at the bid or lower. There are other ways to do this including
-    // Allowing users to trade between the spread but this is configurable.
+    // In this implementation, if you are willing to cross the spread, you get the trade.
+    // This is changeable to create different trading scenarios.
 
-    // If you are willing to buy at the ask, you will get the trade.
-    if (order->limitPrice >= bestAsk->getPrice()) {
-        // Iteratively attempt to fill the order until we can't.
-        // Then insert the rest of the order into the book.
-        while (order->unfilled_quantity() > 0) {
-            // @TODO update volume on orderBook.
-            updated_orders.merge(this->fillOrder(order));
+    // Iteratively attempt to fill the order until we can't.
+    // Then insert the rest of the order into the book.
+    while (order->unfilled_quantity() > 0) {
+        updated_orders.merge(this->fillOrder(order));
 
-            // If there are no more orders, return.
-            if (sellBook->getVolume() == 0) {
-                // @TODO should probably wrap bestAsk updates in a setter so we can report changes.
-                bestAsk = nullptr;
-                return updated_orders;
-            }
-
-            // Because we filled some orders, update the best ask if necessary.
-            updateBidAsk();
+        // If there are no more orders, return.
+        if (isOpposingOrderBookBlank(order)) {
+            // @TODO should probably wrap bestAsk updates in a setter so we can report changes.
+            bestAsk = nullptr;
+            return updated_orders;
         }
+
+        // Because we filled some orders, update the best ask if necessary.
+        setBidAskToReflectMarket();
     }
 
     return updated_orders;
@@ -60,6 +55,8 @@ void OrderBook::cancelOrder(SEQUENCE_ID id) {
     } else if (order->side == SELL) {
         sellBook->cancelOrder(node);
     }
+
+    orderMap->erase(id);
 }
 
 bool OrderBook::orderCrossedSpread(Order* order) {
@@ -70,7 +67,7 @@ bool OrderBook::orderCrossedSpread(Order* order) {
     }
 }
 
-void OrderBook::adjustBidAskIfNecessary(Order* order) {
+void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order* order) {
     if (order->side == BUY) {
         // If there are no sell orders & this is a higher bid, move up the bid.
         if (order->limitPrice > bestBid->getPrice()) {
@@ -80,6 +77,28 @@ void OrderBook::adjustBidAskIfNecessary(Order* order) {
         // If there are no buy orders & this is a lower ask, lower the ask
         if (order->limitPrice < bestAsk->getPrice()) {
             bestAsk = sellBook->get(order->limitPrice);
+        }
+    }
+}
+
+void OrderBook::setBidAskToReflectMarket() {
+    // If we ran out of orders at this price level,
+    // Find the next best selling price & make that the ask.
+    while (bestAsk->getVolume() == 0) {
+        PriceLevel * newBestAsk = sellBook->get(bestAsk->getPrice() + ONE_CENT);
+        // sell book get should return null ptr if we retrieve a bad price.
+        // or consider adding new prices automagically.
+        if (newBestAsk != nullptr && newBestAsk->getVolume() > 0) {
+            bestAsk = newBestAsk;
+        }
+    }
+
+    while (bestBid->getVolume() == 0) {
+        PriceLevel * newBestBid = buyBook->get(bestBid->getPrice() - ONE_CENT);
+        // sell book get should return null ptr if we retrieve a bad price.
+        // or consider adding new prices automagically.
+        if (newBestBid != nullptr && newBestBid->getVolume() > 0) {
+            bestBid = newBestBid;
         }
     }
 }
@@ -125,27 +144,7 @@ std::list<Order *> OrderBook::fillOrder(Order* order) {
     return updated_orders;
 }
 
-void OrderBook::updateBidAsk() {
-    // If we ran out of orders at this price level,
-    // Find the next best selling price & make that the ask.
-    while (bestAsk->getVolume() == 0) {
-        PriceLevel * newBestAsk = sellBook->get(bestAsk->getPrice() + ONE_CENT);
-        // sell book get should return null ptr if we retrieve a bad price.
-        // or consider adding new prices automagically.
-        if (newBestAsk != nullptr && newBestAsk->getVolume() > 0) {
-            bestAsk = newBestAsk;
-        }
-    }
 
-    while (bestBid->getVolume() == 0) {
-        PriceLevel * newBestBid = buyBook->get(bestBid->getPrice() - ONE_CENT);
-        // sell book get should return null ptr if we retrieve a bad price.
-        // or consider adding new prices automagically.
-        if (newBestBid != nullptr && newBestBid->getVolume() > 0) {
-            bestBid = newBestBid;
-        }
-    }
-}
 
 int OrderBook::getVolume() {
     return totalVolume;
