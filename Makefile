@@ -46,5 +46,11 @@ $(TEST_EXECUTABLE): $(TEST_OBJS)
 test: $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
 
+./tests/socketTest: ./tests/socketTest.cpp
+	$(CC) -std=c++14 -I./util ./tests/socketTest.cpp -o ./tests/socketTest
+
+socketTest: ./tests/socketTest
+	./tests/socketTest
+
 clean:
 	rm -f $(EXECUTABLE) $(OBJS) $(TEST_OBJS) $(TEST_EXECUTABLE)
