@@ -2,10 +2,10 @@
 
 Book::Book() {
     limitMap = new std::unordered_map<PRICE, PriceLevel*>();
-    this->allocatePrices(ONE_DOLLAR, ONE_HUNDRED_DOLLARS);
+    this->initPriceDataStructures(ONE_DOLLAR, ONE_HUNDRED_DOLLARS);
 }
 
-void Book::allocatePrices(int start, int end) {
+void Book::initPriceDataStructures(int start, int end) {
     for (int price = start; price < end; price += ONE_CENT) {
         PriceLevel * level = new PriceLevel();
         limitMap->insert(std::make_pair(price, level));
@@ -13,12 +13,19 @@ void Book::allocatePrices(int start, int end) {
 }
 
 std::list<Order *> Book::fillOrder(Order* order) {
+    int initial_quantity = order->unfilled_quantity();
+
     PriceLevel* level = limitMap->at(order->limitPrice);
-    return level->fillOrder(order);
+    std::list<Order *> updated_orders = level->fillOrder(order);
+
+    totalVolume -= (initial_quantity - order->unfilled_quantity());
+
+    return updated_orders;
 }
 
 Node<Order *> * Book::addOrder(Order* order) {
     totalVolume += order->unfilled_quantity();
+
     PriceLevel* level = limitMap->at(order->limitPrice);
     return level->addOrder(order);
 }

@@ -24,7 +24,13 @@ class OrderBook {
         PriceLevel* getBid();
         PriceLevel* getAsk();
         std::list<Order *> fillOrder(Order* order);
-        void updateBestAsk();
+        void updateBidAsk();
+        void addOrder(Order *);
+
+        // @TODO consider making these functions private.
+        bool isOpposingOrderBookBlank(Order* order);
+        void adjustBidAskIfNecessary(Order* order);
+        bool orderCrossedSpread(Order* order);
 
     private:
         Book* buyBook;
@@ -37,6 +43,7 @@ class OrderBook {
         // so that they don't blow up the heap.
         // In a v2 consider implementing my own linked list so we don't need pointers to iterators.
         std::unordered_map<SEQUENCE_ID, Node<Order*> * >* orderMap;
+
 };
 
 #endif

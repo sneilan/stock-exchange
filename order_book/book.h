@@ -19,7 +19,7 @@ class Book {
         Node<Order*> * addOrder(Order* order);
         void cancelOrder(Node<Order*> * node);
         int getVolume();
-        void allocatePrices(int start, int end);
+        void initPriceDataStructures(int start, int end);
         std::list<Order *> fillOrder(Order* order);
 
     private:
