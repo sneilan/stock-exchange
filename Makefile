@@ -6,7 +6,7 @@ OBJS = eventstore.o ./order_book/book.o ./order_book/price_level.o ./order_book/
 
 TEST_EXECUTABLE = ./tests/run_test
 TEST_OBJS = ./tests/linked_list.test.o ./tests/order_book.test.o ./tests/main.test.o
-TEST_FLAGS = -std=c++14 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` `pkg-config catch2 --cflags` `pkg-config catch2 --libs` -lzmq
+TEST_FLAGS = -std=c++14 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` `pkg-config catch2 --cflags` `pkg-config catch2 --libs` -I./util -lzmq
 
 all: $(EXECUTABLE)
 

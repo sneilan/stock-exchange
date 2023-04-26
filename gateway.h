@@ -1,7 +1,7 @@
 #ifndef _gateway_h
 #define _gateway_h
 
-#include "types.h"
+#include "./util/types.h"
 #define GATEWAY_BUFLEN 100
 
 struct NewOrderEvent {

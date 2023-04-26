@@ -7,7 +7,7 @@
 #include <list>
 #include <stdexcept>
 #include "../eventstore.h"
-#include "../types.h"
+#include "../util/types.h"
 #include "../util/linked_list.h"
 
 /* Keeps list of orders for each price */

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include <stdexcept>
-#include "types.h"
+#include "./util/types.h"
 
 #define EVENTSTORE_BUFLEN 10000
 
