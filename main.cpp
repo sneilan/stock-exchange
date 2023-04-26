@@ -7,12 +7,13 @@
 #include "gateway.h"
 #include "eventstore.h"
 #include "order_book/order_book.h"
+#include "util/spdlog/spdlog.h"
 
 int main() {
     Gateway * gateway = new Gateway();
     EventStore * eventStore = new EventStore();
 
-    std::cout << "Exchange starting\n";
+    spdlog::info("Exchange starting");
 
     pid_t c_pid = fork();
   
@@ -20,13 +21,13 @@ int main() {
         perror("fork");
         exit(EXIT_FAILURE);
     }
-    else if (c_pid > 0) {
+    
+    if (c_pid > 0) {
         // parent
         // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
         // @TODO should the loop to await data be at a higher level?
         gateway->run();
-    }
-    else {
+    } else {
         // child
         OrderBook* orderBook = new OrderBook();
 
@@ -39,7 +40,8 @@ int main() {
                 // std::cout << "Sequence ID is now " << id << "\n";
                 // std::cout << "size is now " << eventStore->size() << "\n";
                 Order * order = eventStore->get(id);
-                std::cout << "price of order is " << order->limitPrice << "\n";
+
+                spdlog::debug("Price of order is {}", item.limitPrice);
 
                 // get response here & spool information to new ring buffer
                 // create new process that reads from new ring buffer & sends to clients.
