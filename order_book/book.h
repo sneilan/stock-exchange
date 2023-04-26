@@ -16,10 +16,11 @@ class Book {
     public:
         Book();
         PriceLevel* get(PRICE price);
-        Node<Order*> * insert(Order* order);
+        Node<Order*> * addOrder(Order* order);
         void cancelOrder(Node<Order*> * node);
         int getVolume();
         void allocatePrices(int start, int end);
+        std::list<Order *> fillOrder(Order* order);
 
     private:
         std::unordered_map<PRICE, PriceLevel*> * limitMap;

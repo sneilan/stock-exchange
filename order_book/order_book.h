@@ -23,6 +23,8 @@ class OrderBook {
         int getVolume();
         PriceLevel* getBid();
         PriceLevel* getAsk();
+        std::list<Order *> fillOrder(Order* order);
+        void updateBestAsk();
 
     private:
         Book* buyBook;

@@ -12,9 +12,14 @@ void Book::allocatePrices(int start, int end) {
     }
 }
 
-Node<Order *> * Book::insert(Order* order) {
+std::list<Order *> Book::fillOrder(Order* order) {
     PriceLevel* level = limitMap->at(order->limitPrice);
+    return level->fillOrder(order);
+}
+
+Node<Order *> * Book::addOrder(Order* order) {
     totalVolume += order->unfilled_quantity();
+    PriceLevel* level = limitMap->at(order->limitPrice);
     return level->addOrder(order);
 }
 
