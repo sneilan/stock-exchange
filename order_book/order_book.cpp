@@ -20,7 +20,27 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
                 // Attempt to fill the order.
                 // @TODO report these filled asks to the users.
                 // @TODO should I be passing the whole order to fillQuantity so it can update the order?
+                // Operating on the ask directly causes an issue with updating open interest across the stack.
+                // before filling an order, is this order at the limit price or better? if not, 
+                // simply put into buy book & move on.
                 std::list<Order *> filled_asks = bestAsk->fillOrder(order);
+                // @TODO update Book / OrderBook volume.
+                // If there is still unfilled quantity, move the best ask around & try again.
+                if (order->unfilled_quantity() > 0) {
+                    if (sellBook->getVolume() > 0) {
+                        // Will there be sells below the bid price?
+                        // No because if you are selling below the bid price your order will be immediately filled anyway.
+                        PriceLevel * newBestAsk = sellBook->get(bestAsk->getPrice() + ONE_CENT);
+                        // sell book get should return null ptr if we retrieve a bad price.
+                        // or consider adding new prices automagically.
+                        if (newBestAsk != nullptr && newBestAsk->getVolume() > 0) {
+                            bestAsk = newBestAsk;
+                            // now that we have a new best ask, fill the order
+                        }
+                    } else {
+
+                    }
+                }
             }
         }
 
@@ -57,14 +77,6 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     return updated_orders;
 }
 
-PriceLevel* OrderBook::getBid() {
-    return bestBid;
-}
-
-PriceLevel* OrderBook::getAsk() {
-    return bestAsk;
-}
-
 void OrderBook::cancelOrder(SEQUENCE_ID id) {
     Node<Order *> * node = orderMap->at(id);
     totalVolume -= node->data->unfilled_quantity();
@@ -82,85 +94,10 @@ int OrderBook::getVolume() {
     return totalVolume;
 }
 
-Book::Book() {
-    limitMap = new std::unordered_map<PRICE, PriceLevel*>();
-    this->allocatePrices(ONE_DOLLAR, ONE_HUNDRED_DOLLARS);
+PriceLevel* OrderBook::getBid() {
+    return bestBid;
 }
 
-void Book::allocatePrices(int start, int end) {
-    for (int price = start; price < end; price += ONE_CENT) {
-        PriceLevel * level = new PriceLevel();
-        limitMap->insert(std::make_pair(price, level));
-    }
-}
-
-PriceLevel* Book::get(PRICE price) {
-    return limitMap->at(price);
-}
-
-Node<Order *> * Book::insert(Order* order) {
-    PriceLevel* level = limitMap->at(order->limitPrice);
-    return level->addOrder(order);
-}
-
-void Book::cancelOrder(Node<Order*> * node) {
-    PriceLevel * level = this->get(node->data->limitPrice);
-
-    totalVolume -= node->data->unfilled_quantity();
-    level->cancelOrder(node);
-}
-
-int Book::getVolume() {
-    return totalVolume;
-}
-
-void PriceLevel::cancelOrder(Node<Order*> * node) {
-    totalVolume -= node->data->unfilled_quantity();
-    orders.remove(node);
-}
-
-int PriceLevel::getPrice() {
-    return limitPrice;
-}
-
-Node<Order *> * PriceLevel::addOrder(Order* order) {
-    totalVolume += order->quantity;
-    return orders.push_back(order);
-}
-
-// Returns a list of filled orders.
-std::list<Order *> PriceLevel::fillOrder(Order* order) {
-    // Keep popping orders off at price level until we have either filled quantity
-    // or run out of orders.
-
-    int requested_quantity = order->unfilled_quantity();
-
-    std::list<Order *> updated_orders;
-    while (orders.get_front() != nullptr && requested_quantity > 0) {
-        Node<Order *> * node = orders.get_front();
-        int quantity_available = node->data->unfilled_quantity();
-
-        updated_orders.push_back(node->data);
-
-        if (quantity_available > requested_quantity) {
-            node->data->filled_quantity += requested_quantity;
-            totalVolume -= requested_quantity;
-            requested_quantity = 0;
-            // If we've filled the order, stop.
-            break;
-        } else if (requested_quantity >= quantity_available) {
-            node->data->filled_quantity += quantity_available;
-            requested_quantity -= quantity_available;
-            totalVolume -= quantity_available;
-            orders.remove(node);
-        }
-    }
-
-    order->filled_quantity += (order->unfilled_quantity() - requested_quantity);
-
-    return updated_orders;
-}
-
-int PriceLevel::getVolume() {
-    return totalVolume;
+PriceLevel* OrderBook::getAsk() {
+    return bestAsk;
 }

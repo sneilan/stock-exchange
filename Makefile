@@ -2,7 +2,7 @@ CC = /usr/bin/clang++
 CFLAGS = -std=c++14 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` -lzmq
 EXECUTABLE = main
 
-OBJS = eventstore.o order_book.o gateway.o main.o
+OBJS = eventstore.o ./order_book/book.o ./order_book/price_level.o ./order_book/order_book.o gateway.o main.o
 
 TEST_EXECUTABLE = ./tests/run_test
 TEST_OBJS = ./tests/linked_list.test.o ./tests/order_book.test.o ./tests/main.test.o
@@ -13,8 +13,14 @@ all: $(EXECUTABLE)
 eventstore.o: eventstore.cpp
 	$(CC) $(CFLAGS) -c eventstore.cpp
 
-order_book.o: order_book.cpp
-	$(CC) $(CFLAGS) -c order_book.cpp
+./order_book/order_book.o: ./order_book/order_book.cpp
+	$(CC) $(CFLAGS) -c ./order_book/order_book.cpp -o ./order_book/order_book.o
+
+./order_book/book.o: ./order_book/book.cpp
+	$(CC) $(CFLAGS) -c ./order_book/book.cpp -o ./order_book/book.o
+
+./order_book/price_level.o: ./order_book/price_level.cpp
+	$(CC) $(CFLAGS) -c ./order_book/price_level.cpp -o ./order_book/price_level.o
 
 gateway.o: gateway.cpp
 	$(CC) $(CFLAGS) -c gateway.cpp

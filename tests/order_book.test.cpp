@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 
-#include "../order_book.h"
+#include "../order_book/order_book.h"
 #include "helpers.h"
 
 TEST_CASE("Hello world order book test.") {

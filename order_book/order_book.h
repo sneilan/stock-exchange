@@ -6,38 +6,12 @@
 #include <cmath>
 #include <list>
 #include <stdexcept>
-#include "eventstore.h"
-#include "types.h"
-#include "util/linked_list.h"
-
-class PriceLevel {
-    public:
-        Node<Order *> * addOrder(Order* order);
-        std::list<Order *> fillOrder(Order* order);
-        void cancelOrder(Node<Order*> * node);
-        int getVolume();
-        int getPrice();
-
-    private:
-        // Prices are stored in pennies. $4.56 = 456.
-        PRICE limitPrice;
-        long totalVolume;
-        DoublyLinkedList<Order*> orders;
-};
-
-class Book {
-    public:
-        Book();
-        PriceLevel* get(PRICE price);
-        Node<Order*> * insert(Order* order);
-        void cancelOrder(Node<Order*> * node);
-        int getVolume();
-        void allocatePrices(int start, int end);
-
-    private:
-        std::unordered_map<PRICE, PriceLevel*> * limitMap;
-        int totalVolume = 0;
-};
+#include "../eventstore.h"
+#include "../types.h"
+#include "../util/linked_list.h"
+#include "order_book.h"
+#include "price_level.h"
+#include "book.h"
 
 class OrderBook {
     public:
