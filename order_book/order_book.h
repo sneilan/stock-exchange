@@ -13,6 +13,7 @@
 #include "price_level.h"
 #include "book.h"
 
+/* Main entry point for matching orders */
 class OrderBook {
     public:
         OrderBook();

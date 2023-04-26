@@ -10,6 +10,7 @@
 #include "../types.h"
 #include "../util/linked_list.h"
 
+/* Keeps list of orders for each price */
 class PriceLevel {
     public:
         Node<Order *> * addOrder(Order* order);

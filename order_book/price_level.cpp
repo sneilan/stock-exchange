@@ -1,20 +1,7 @@
 #include "price_level.h"
 
-void PriceLevel::cancelOrder(Node<Order*> * node) {
-    totalVolume -= node->data->unfilled_quantity();
-    orders.remove(node);
-}
-
-int PriceLevel::getPrice() {
-    return limitPrice;
-}
-
-Node<Order *> * PriceLevel::addOrder(Order* order) {
-    totalVolume += order->quantity;
-    return orders.push_back(order);
-}
-
 // Returns a list of filled orders.
+// Quantity of order is modified in place.
 std::list<Order *> PriceLevel::fillOrder(Order* order) {
     // Keep popping orders off at price level until we have either filled quantity
     // or run out of orders.
@@ -47,6 +34,20 @@ std::list<Order *> PriceLevel::fillOrder(Order* order) {
     return updated_orders;
 }
 
+void PriceLevel::cancelOrder(Node<Order*> * node) {
+    totalVolume -= node->data->unfilled_quantity();
+    orders.remove(node);
+}
+
+Node<Order *> * PriceLevel::addOrder(Order* order) {
+    totalVolume += order->quantity;
+    return orders.push_back(order);
+}
+
 int PriceLevel::getVolume() {
     return totalVolume;
+}
+
+int PriceLevel::getPrice() {
+    return limitPrice;
 }

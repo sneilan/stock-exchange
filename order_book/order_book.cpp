@@ -1,13 +1,6 @@
 #include "order_book.h"
 
-OrderBook::OrderBook() {
-    orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order*> * >();
-    buyBook = new Book();
-    sellBook = new Book();
-    bestBid = nullptr;
-    bestAsk = nullptr;
-}
-
+// Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order * order) {
     totalVolume += order->unfilled_quantity();
     std::list<Order *> updated_orders;
@@ -88,6 +81,14 @@ void OrderBook::cancelOrder(SEQUENCE_ID id) {
     } else if (order->side == SELL) {
         sellBook->cancelOrder(node);
     }
+}
+
+OrderBook::OrderBook() {
+    orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order*> * >();
+    buyBook = new Book();
+    sellBook = new Book();
+    bestBid = nullptr;
+    bestAsk = nullptr;
 }
 
 int OrderBook::getVolume() {

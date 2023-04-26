@@ -12,12 +12,9 @@ void Book::allocatePrices(int start, int end) {
     }
 }
 
-PriceLevel* Book::get(PRICE price) {
-    return limitMap->at(price);
-}
-
 Node<Order *> * Book::insert(Order* order) {
     PriceLevel* level = limitMap->at(order->limitPrice);
+    totalVolume += order->unfilled_quantity();
     return level->addOrder(order);
 }
 
@@ -30,4 +27,8 @@ void Book::cancelOrder(Node<Order*> * node) {
 
 int Book::getVolume() {
     return totalVolume;
+}
+
+PriceLevel* Book::get(PRICE price) {
+    return limitMap->at(price);
 }

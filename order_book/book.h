@@ -11,6 +11,7 @@
 #include "../util/linked_list.h"
 #include "price_level.h"
 
+/* Keeps a list of prices */
 class Book {
     public:
         Book();
