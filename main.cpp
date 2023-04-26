@@ -23,12 +23,13 @@ int main() {
     }
     
     if (c_pid > 0) {
-        // parent
+        // Parent
         // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
-        // @TODO should the loop to await data be at a higher level?
+        // @TODO Remove ZeroMQ and replace with raw sockets for a proper client-server comms
+        // Message brokers are the wrong solution but they get the job done for testing.
         gateway->run();
     } else {
-        // child
+        // Cshild
         OrderBook* orderBook = new OrderBook();
 
         while (1) {
@@ -37,17 +38,18 @@ int main() {
             if (!item.stale) {
                 // Store the event in the event store
                 SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice, item.clientId, item.quantity);
-                // std::cout << "Sequence ID is now " << id << "\n";
-                // std::cout << "size is now " << eventStore->size() << "\n";
+                spdlog::debug("Sequence ID is now", id);
+                spdlog::debug("Size is now", eventStore->size());
+
                 Order * order = eventStore->get(id);
 
                 spdlog::debug("Price of order is {}", item.limitPrice);
 
-                // get response here & spool information to new ring buffer
-                // create new process that reads from new ring buffer & sends to clients.
-                orderBook->newOrder(order);
+                // Get response here & spool information to new ring buffer
+                std::list<Order *> updated_orders = orderBook->newOrder(order);
 
-                //std::cout << eventStore->get(id)->clientId << "\n";
+                // @TODO send updated order information to the clients via another ring buffer.
+                // Another process will read from this ring buffer and send data to the client.
             }
         }
     }
