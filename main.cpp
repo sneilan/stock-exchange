@@ -32,7 +32,6 @@ int main() {
 
         while (1) {
             // Constantly checking for new orders in the gateway ring buffer.
-            // @TODO should I be allocating this?
             NewOrderEvent item = gateway->get();
             if (!item.stale) {
                 // Store the event in the event store
