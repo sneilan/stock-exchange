@@ -7,6 +7,7 @@
 #include <zmq.h>
 #include <csignal>
 #include "gateway.h"
+#include "util/spdlog/spdlog.h"
 
 Gateway::Gateway() {
     int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
@@ -34,7 +35,8 @@ void Gateway::put(NewOrderEvent item) {
     gatewayRingBuf[end].stale = false;
 
     end++;
-    // std::cout << "Ring buffer Order recieved from client " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
+
+    spdlog::debug("Ring buffer Order recieved from client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
 
     end %= GATEWAY_BUFLEN;
 }
@@ -43,7 +45,7 @@ NewOrderEvent Gateway::get() {
     // Copy what is in the ring buffer into a new structure.
     NewOrderEvent item = gatewayRingBuf[start];
 
-    // std::cout << "Ring buffer Order retrieved " << item.clientId << " for price " << item.limitPrice << " for side " << item.side << "\n";
+    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
     // Mark the old copy of new order event in ring buffer as stale.
     gatewayRingBuf[start].stale = true;
     start++;

@@ -37,15 +37,13 @@ int main() {
             NewOrderEvent item = gateway->get();
             if (!item.stale) {
                 // Store the event in the event store
+                // @TODO consider returning an Order* instead of sequence ID.
                 SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice, item.clientId, item.quantity);
-                spdlog::debug("Sequence ID is now", id);
-                spdlog::debug("Size is now", eventStore->size());
-
-                Order * order = eventStore->get(id);
-
-                spdlog::debug("Price of order is {}", item.limitPrice);
+                spdlog::debug("Sequence ID is now {} & size is now {}", id, eventStore->size());
 
                 // Get response here & spool information to new ring buffer
+                Order * order = eventStore->get(id);
+                // @TODO This is a call to the matching engine. newOrder name should be more descriptive.
                 std::list<Order *> updated_orders = orderBook->newOrder(order);
 
                 // @TODO send updated order information to the clients via another ring buffer.
