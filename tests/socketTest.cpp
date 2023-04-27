@@ -9,6 +9,7 @@
 #include <arpa/inet.h> //close
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include "../util/spdlog/spdlog.h"
@@ -21,7 +22,7 @@ class SocketServer
 public:
     SocketServer()
     {
-        timeout.tv_sec = 0;  
+        timeout.tv_sec = 0;
         timeout.tv_usec = 1; // set the timeout to 1 microseconds
 
         // initialise all client_socket[] to 0 so not checked
@@ -31,7 +32,8 @@ public:
         }
     }
 
-    void bindSocket(int PORT) {
+    void bindSocket(int PORT)
+    {
         // create a master socket
         if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
         {
@@ -69,7 +71,8 @@ public:
         }
     }
 
-    void listenToSocket() {
+    void listenToSocket()
+    {
         // accept the incoming connection
         addrlen = sizeof(address);
         spdlog::info("Waiting for connections ...");
@@ -97,6 +100,7 @@ public:
                     max_sd = sd;
             }
 
+            // I may need to 
             activity = select(max_sd + 1, &readfds, NULL, NULL, &timeout);
 
             if ((activity < 0) && (errno != EINTR))
@@ -116,7 +120,7 @@ public:
                 }
 
                 // inform user of socket number - used in send and receive commands
-                DEBUG("New connection , socket fd is %d , ip is : %s , port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                DEBUG("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
                 // send new connection greeting message
                 if (send(new_socket, message, strlen(message), 0) != strlen(message))
@@ -151,25 +155,62 @@ public:
                     // incoming message
                     if ((valread = read(sd, buffer, 1024)) == 0)
                     {
-                        // Somebody disconnected , get his details and print
+                        // Somebody disconnected , get the details and print
                         getpeername(sd, (struct sockaddr *)&address,
                                     (socklen_t *)&addrlen);
-                        DEBUG("Host disconnected , ip {} , port {}",
-                                      inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                        DEBUG("Host disconnected, ip {}, port {}",
+                              inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
                         // Close the socket and mark as 0 in list for reuse
                         close(sd);
                         client_socket[i] = 0;
+                    } else if (valread == -1) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            // The socket does not have any data to be read. Try again later.
+                            // @TODO may not be necesary if we are using non-blocking sockets
+                            // because we will only get data for sockets that have data.
+                            continue;
+                        } else {
+                            // handle other errors.
+                            continue;
+                        }
                     }
-
-                    // Echo back the message that came in
+                    // Echo back the message that came in to all clients.
                     else
                     {
+                        // Old code to send data to one client.
+                        // send(sd, buffer, strlen(buffer), 0);
+
                         // set the string terminating NULL byte on the end
                         // of the data read
                         buffer[valread] = '\0';
-                        send(sd, buffer, strlen(buffer), 0);
+                        for (int j = 0; j < max_clients; j++)
+                        {
+                            if (j == i)
+                            {
+                                continue;
+                            }
+                            send(client_socket[j], buffer, strlen(buffer), 0);
+                        }
                     }
+                }
+            }
+
+            // Constantly send the string "asdf" to all connected clients to test streaming data.
+            for (i = 0; i < max_clients; i++)
+            {
+                sd = client_socket[i];
+
+                // Something about FD_ISSET is not letting me send to the client.
+                // It's saying that after I send some data I can't send again.
+                // I think I need to check how the select statement is working.
+                if (FD_ISSET(sd, &readfds))
+                {
+                    const char *str = "asdf\n";
+                    char arr[6];
+                    strcpy(arr, str);
+                    // @TODO fix this so we don't call send in a blocking manner.
+                    send(sd, arr, strlen(arr), 0);
                 }
             }
         }
@@ -192,8 +233,6 @@ private:
 
     // a message
     char *message = "ECHO Daemon v1.0 \r\n";
-
-    
 };
 
 int main(int argc, char *argv[])
