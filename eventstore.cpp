@@ -14,6 +14,7 @@ EventStore::EventStore() {
     }
 
     memset(sharedMemPointer, 0, shared_mem_size);
+    // @TODO this is a memory leak.
     eventStoreBuf = new (sharedMemPointer) std::unordered_map<SEQUENCE_ID, Order>;
 
     // @TODO Handle errors returned by ftruncate.
