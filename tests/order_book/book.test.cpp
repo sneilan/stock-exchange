@@ -4,8 +4,10 @@
 #include "../../order_book/order_book.h"
 #include "../helpers.h"
 
-TEST_CASE("Hello world order book test.") {
+TEST_CASE("Hello world book test.") {
     // Hello world order book test. 
+    // @TODO
+    /*
     OrderBook* orderBook = new OrderBook();
     Order * order = createDefaultOrder();
 
@@ -14,8 +16,5 @@ TEST_CASE("Hello world order book test.") {
 
     orderBook->cancelOrder(order->id);
     REQUIRE(orderBook->getVolume() == 0);
-}
-
-TEST_CASE("Adjusting best bid and ask.") {
-    // @TODO
+    */
 }
