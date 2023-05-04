@@ -1,7 +1,6 @@
 .DS_Store
 .vscode/
 example.txt
-gateway
 *.dSYM/
 mmap_test
 *.o
