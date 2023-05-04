@@ -5,7 +5,7 @@
 #include "../helpers.h"
 
 TEST_CASE("Hello world order book test.") {
-    // Hello world order book test. 
+    // Hello world order book test.
     OrderBook* orderBook = new OrderBook();
     Order * order = createDefaultOrder();
 
