@@ -47,6 +47,7 @@ void SocketServer::listenToSocket()
 
             if (FD_ISSET(sd, &readfds))
             {
+                // @TODO handleErrors is also responsible for reading data from the client.
                 int valread = handleErrors(i, &readfds);
 
                 if (valread > 0)
@@ -209,7 +210,8 @@ int SocketServer::acceptNewConn(fd_set *readfds)
     return new_socket;
 }
 
-// @TODO make buffer a pointer to this
+// @TODO make buffer a pointer to this.
+// @TODO why is handleErrors also responsible for reading data from the client?
 int SocketServer::handleErrors(int i, fd_set *readfds)
 {
     int valread;
@@ -229,8 +231,11 @@ int SocketServer::handleErrors(int i, fd_set *readfds)
         close(sd);
         client_socket[i] = 0;
     }
+
+    /*
     else if (valread == -1)
     {
+        // @TODO do not return 3x. This is terrible.
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             // The socket does not have any data to be read. Try again later.
@@ -244,6 +249,7 @@ int SocketServer::handleErrors(int i, fd_set *readfds)
             return valread;
         }
     }
+    */
 
     return valread;
 }

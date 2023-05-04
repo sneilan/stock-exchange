@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <cstring>
 #include <sys/stat.h>
-// #include <zmq.h>
 #include <csignal>
 #include "gateway.h"
 #include "../util/spdlog/spdlog.h"
@@ -55,28 +54,22 @@ NewOrderEvent Gateway::get() {
 }
 
 void Gateway::run() {
-    NewOrderEvent item;
-    char buffer[7];
-
-    /*
-    while (1) {
-        // clientId: 0-9, limitPrice: xx.xx, side: b or s
-        // 0xx.xxb
-        std::string str = std::string(buffer);
-        zmq_recv (responder, buffer, 7, 0);
-        item.clientId = buffer[0];
-        // @TODO parse prices from strings
-        item.limitPrice = 5001;
-        item.side = buffer[6];
-        // @TODO fill in quantity later once we implement the socket system.
-        item.quantity = 100;
-        this->put(item);
-        zmq_send(responder, "ack2", 3, 0);
-    }
-    */
+    // NewOrderEvent item;
+    // char buffer[7];
 
     SocketServer server;
     server.bindSocket(8888);
-    // @TODO provide event handlers
+    /* 
+    // @TODO
+    Socket server should have the following events
+     1) New connection
+     2) Disconnect
+     3) Reading data from client
+    Expose the following methods
+     1) Sending data to a client
+     2) Getting a list of open clients.
+     3) Force closing a client connection
+    Something else can handle parsing data from clients.
+    */
     server.listenToSocket();
 }
