@@ -1,4 +1,4 @@
-// from https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/
+// Modified from https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/
 // Example code: A simple server side code, which echos back the received message.
 // Handle multiple socket connections with select and fd_set on Linux
 #include <stdio.h>
@@ -26,7 +26,7 @@ public:
         timeout.tv_usec = 1; // set the timeout to 1 microseconds
 
         // initialise all client_socket[] to 0 so not checked
-        for (i = 0; i < max_clients; i++)
+        for (int i = 0; i < max_clients; i++)
         {
             client_socket[i] = 0;
         }
@@ -43,6 +43,7 @@ public:
 
         // set master socket to allow multiple connections ,
         // this is just a good habit, it will work without this
+        int opt = 1;
         if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
                        sizeof(opt)) < 0)
         {
@@ -74,42 +75,35 @@ public:
     void listenToSocket()
     {
         // accept the incoming connection
-        addrlen = sizeof(address);
+        int addrlen = sizeof(address);
+        int max_sd_read = 0;
+        int max_sd_write = 0;
+
         spdlog::info("Waiting for connections ...");
         while (1)
         {
-            // clear the socket set
-            FD_ZERO(&readfds);
+            // A function that takes two inputs
+            // 1) A bitmap socket set.
+            // 2) An array of client sockets client_socket
+            // Returns, the max socket number that we should look at.
 
-            // add master socket to set
-            FD_SET(master_socket, &readfds);
-            max_sd = master_socket;
+            // @TODO This is wayy too long of a name.
+            // This could be two functions. One to initialize the file descriptor bitmap
+            // and one function to get the max_sd. Then the name will be shorter.
+            int max_sd = syncSocketBitmapAndReturnHighestSocket(&readfds, client_socket);
+            syncSocketBitmapAndReturnHighestSocket(&writefds, client_socket);
 
-            // add child sockets to set
-            for (i = 0; i < max_clients; i++)
-            {
-                // socket descriptor
-                sd = client_socket[i];
-
-                // if valid socket descriptor then add to read list
-                if (sd > 0)
-                    FD_SET(sd, &readfds);
-
-                // highest file descriptor number, need it for the select function
-                if (sd > max_sd)
-                    max_sd = sd;
-            }
-
-            // I may need to 
-            activity = select(max_sd + 1, &readfds, NULL, NULL, &timeout);
+            int activity = select(max_sd + 1, &readfds, &writefds, NULL, &timeout);
 
             if ((activity < 0) && (errno != EINTR))
             {
                 printf("select error");
             }
 
+            int new_socket = 0;
             // If something happened on the master socket ,
             // then its an incoming connection
+            // @TODO this should be a function.
             if (FD_ISSET(master_socket, &readfds))
             {
                 if ((new_socket = accept(master_socket,
@@ -131,7 +125,7 @@ public:
                 DEBUG("Welcome message sent successfully");
 
                 // add new socket to array of sockets
-                for (i = 0; i < max_clients; i++)
+                for (int i = 0; i < max_clients; i++)
                 {
                     // if position is empty
                     if (client_socket[i] == 0)
@@ -145,9 +139,10 @@ public:
             }
 
             // else its some IO operation on some other socket
-            for (i = 0; i < max_clients; i++)
+            for (int i = 0; i < max_clients; i++)
             {
-                sd = client_socket[i];
+                int sd = client_socket[i];
+                int valread;
 
                 if (FD_ISSET(sd, &readfds))
                 {
@@ -197,14 +192,14 @@ public:
             }
 
             // Constantly send the string "asdf" to all connected clients to test streaming data.
-            for (i = 0; i < max_clients; i++)
+            for (int i = 0; i < max_clients; i++)
             {
-                sd = client_socket[i];
+                int sd = client_socket[i];
 
                 // Something about FD_ISSET is not letting me send to the client.
                 // It's saying that after I send some data I can't send again.
                 // I think I need to check how the select statement is working.
-                if (FD_ISSET(sd, &readfds))
+                if (FD_ISSET(sd, &writefds))
                 {
                     const char *str = "asdf\n";
                     char arr[6];
@@ -216,17 +211,18 @@ public:
         }
     }
 
+
 private:
-    int opt = 1;
-    int master_socket, addrlen, new_socket, client_socket[30],
-        max_clients = 30, activity, i, valread, sd;
-    int max_sd;
+    int master_socket, client_socket[30], max_clients = 30;
     struct sockaddr_in address;
 
     char buffer[1025]; // data buffer of 1K
 
-    // set of socket descriptors
+    // set of socket descriptors for sockets with data to be read.
     fd_set readfds;
+    // set of socket descriptors for sockets that can be written to.
+    fd_set writefds;
+
     // @TODO create a socket descriptor set of sockets to be written to
     // and maybe ones with errors.
 
@@ -235,6 +231,32 @@ private:
 
     // a message
     char *message = "ECHO Daemon v1.0 \r\n";
+
+    int syncSocketBitmapAndReturnHighestSocket(fd_set * fds, int * client_socket) {
+        // clear the socket set
+        FD_ZERO(fds);
+
+        // add master socket to set
+        FD_SET(master_socket, fds);
+        int max_sd = master_socket;
+
+        // add child sockets to set
+        for (int i = 0; i < max_clients; i++)
+        {
+            // socket descriptor
+            int sd = client_socket[i];
+
+            // if valid socket descriptor then add to read list
+            if (sd > 0)
+                FD_SET(sd, fds);
+
+            // highest file descriptor number, need it for the select function
+            if (sd > max_sd)
+                max_sd = sd;
+        }
+
+        return max_sd;
+    }
 };
 
 int main(int argc, char *argv[])

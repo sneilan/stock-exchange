@@ -3,6 +3,12 @@
 
 #include <stdexcept>
 
+// Needed internal implementation of linked list instead of std::list
+// because if you have multiple iterators on std::list and you delete nodes
+// from one of the iterators, the other iterators get invalidated.
+// I needed a way to maintain pointers to orders, delete orders w/o invalidating
+// my other pointers to orders.
+
 template <typename T>
 struct Node {
     T data;
