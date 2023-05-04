@@ -3,8 +3,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstring>
-#include <zmq.h>
-#include "gateway.h"
+#include "gateway/gateway.h"
 #include "eventstore.h"
 #include "order_book/order_book.h"
 #include "util/spdlog/spdlog.h"

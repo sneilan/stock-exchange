@@ -158,7 +158,6 @@ private:
     // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
     struct timeval timeout;
 
-    // a message
     char *message = "ECHO Daemon v1.0 \r\n";
 
     int getMaxClientID(int (*client_socket)[MAX_CLIENTS])
