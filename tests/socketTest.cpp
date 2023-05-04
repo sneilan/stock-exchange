@@ -1,6 +1,3 @@
-// Modified from https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/
-// Example code: A simple server side code, which echos back the received message.
-// Handle multiple socket connections with select and fd_set on Linux
 #include <stdio.h>
 #include <string.h> //strlen
 #include <stdlib.h>
@@ -17,16 +14,19 @@
 // Had some issues with spdlog levels. Will fix later.
 #define DEBUG spdlog::info
 
+#define MAX_CLIENTS 30
+#define TIMEOUT_MICROSECONDS 1
+
 class SocketServer
 {
 public:
     SocketServer()
     {
         timeout.tv_sec = 0;
-        timeout.tv_usec = 1; // set the timeout to 1 microseconds
+        timeout.tv_usec = TIMEOUT_MICROSECONDS;
 
         // initialise all client_socket[] to 0 so not checked
-        for (int i = 0; i < max_clients; i++)
+        for (int i = 0; i < MAX_CLIENTS; i++)
         {
             client_socket[i] = 0;
         }
@@ -76,102 +76,52 @@ public:
     {
         // accept the incoming connection
         int addrlen = sizeof(address);
-        int max_sd_read = 0;
-        int max_sd_write = 0;
 
         spdlog::info("Waiting for connections ...");
         while (1)
         {
-            // A function that takes two inputs
-            // 1) A bitmap socket set.
-            // 2) An array of client sockets client_socket
-            // Returns, the max socket number that we should look at.
+            // set of socket descriptors for sockets with data to be read.
+            fd_set readfds;
+            // set of socket descriptors for sockets that can be written to.
+            fd_set writefds;
 
-            // @TODO This is wayy too long of a name.
-            // This could be two functions. One to initialize the file descriptor bitmap
-            // and one function to get the max_sd. Then the name will be shorter.
-            int max_sd = syncSocketBitmapAndReturnHighestSocket(&readfds, client_socket);
-            syncSocketBitmapAndReturnHighestSocket(&writefds, client_socket);
+            int max_sd = getMaxClientID(&client_socket);
+            initFDSet(&readfds, &client_socket);
+            initFDSet(&writefds, &client_socket);
 
             int activity = select(max_sd + 1, &readfds, &writefds, NULL, &timeout);
 
             if ((activity < 0) && (errno != EINTR))
             {
-                printf("select error");
+                spdlog::error("select error");
             }
 
-            int new_socket = 0;
-            // If something happened on the master socket ,
-            // then its an incoming connection
-            // @TODO this should be a function.
-            if (FD_ISSET(master_socket, &readfds))
-            {
-                if ((new_socket = accept(master_socket,
-                                         (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-                {
-                    perror("accept");
-                    exit(EXIT_FAILURE);
-                }
+            int new_socket = acceptNewConn(&readfds);
 
+            if (new_socket > 0)
+            {
                 // inform user of socket number - used in send and receive commands
                 DEBUG("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
                 // send new connection greeting message
                 if (send(new_socket, message, strlen(message), 0) != strlen(message))
                 {
-                    perror("send");
+                    spdlog::error("send");
                 }
 
                 DEBUG("Welcome message sent successfully");
-
-                // add new socket to array of sockets
-                for (int i = 0; i < max_clients; i++)
-                {
-                    // if position is empty
-                    if (client_socket[i] == 0)
-                    {
-                        client_socket[i] = new_socket;
-                        DEBUG("Adding to list of sockets as {}", i);
-
-                        break;
-                    }
-                }
             }
 
             // else its some IO operation on some other socket
-            for (int i = 0; i < max_clients; i++)
+            for (int i = 0; i < MAX_CLIENTS; i++)
             {
                 int sd = client_socket[i];
-                int valread;
 
                 if (FD_ISSET(sd, &readfds))
                 {
-                    // Check if it was for closing , and also read the
-                    // incoming message
-                    if ((valread = read(sd, buffer, 1024)) == 0)
-                    {
-                        // Somebody disconnected , get the details and print
-                        getpeername(sd, (struct sockaddr *)&address,
-                                    (socklen_t *)&addrlen);
-                        DEBUG("Host disconnected, ip {}, port {}",
-                              inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                    int valread = handleErrors(i, &readfds);
 
-                        // Close the socket and mark as 0 in list for reuse
-                        close(sd);
-                        client_socket[i] = 0;
-                    } else if (valread == -1) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            // The socket does not have any data to be read. Try again later.
-                            // @TODO may not be necesary if we are using non-blocking sockets
-                            // because we will only get data for sockets that have data.
-                            continue;
-                        } else {
-                            // handle other errors.
-                            continue;
-                        }
-                    }
-                    // Echo back the message that came in to all clients.
-                    else
+                    if (valread > 0)
                     {
                         // Old code to send data to one client.
                         // send(sd, buffer, strlen(buffer), 0);
@@ -179,26 +129,20 @@ public:
                         // set the string terminating NULL byte on the end
                         // of the data read
                         buffer[valread] = '\0';
-                        for (int j = 0; j < max_clients; j++)
+                        for (int j = 0; j < MAX_CLIENTS; j++)
                         {
                             if (j == i)
                             {
                                 continue;
                             }
+
                             send(client_socket[j], buffer, strlen(buffer), 0);
                         }
                     }
                 }
-            }
 
-            // Constantly send the string "asdf" to all connected clients to test streaming data.
-            for (int i = 0; i < max_clients; i++)
-            {
-                int sd = client_socket[i];
-
-                // Something about FD_ISSET is not letting me send to the client.
-                // It's saying that after I send some data I can't send again.
-                // I think I need to check how the select statement is working.
+                /*
+                // Constantly send the string "asdf" to all connected clients to test streaming data.
                 if (FD_ISSET(sd, &writefds))
                 {
                     const char *str = "asdf\n";
@@ -207,24 +151,16 @@ public:
                     // @TODO fix this so we don't call send in a blocking manner.
                     send(sd, arr, strlen(arr), 0);
                 }
+                */
             }
         }
     }
 
-
 private:
-    int master_socket, client_socket[30], max_clients = 30;
+    int master_socket, client_socket[MAX_CLIENTS];
     struct sockaddr_in address;
 
     char buffer[1025]; // data buffer of 1K
-
-    // set of socket descriptors for sockets with data to be read.
-    fd_set readfds;
-    // set of socket descriptors for sockets that can be written to.
-    fd_set writefds;
-
-    // @TODO create a socket descriptor set of sockets to be written to
-    // and maybe ones with errors.
 
     // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
     struct timeval timeout;
@@ -232,30 +168,111 @@ private:
     // a message
     char *message = "ECHO Daemon v1.0 \r\n";
 
-    int syncSocketBitmapAndReturnHighestSocket(fd_set * fds, int * client_socket) {
-        // clear the socket set
-        FD_ZERO(fds);
-
-        // add master socket to set
-        FD_SET(master_socket, fds);
+    int getMaxClientID(int (*client_socket)[MAX_CLIENTS])
+    {
+        // Return the largest client socket id of all client sockets.
         int max_sd = master_socket;
 
-        // add child sockets to set
-        for (int i = 0; i < max_clients; i++)
+        for (int i = 0; i < MAX_CLIENTS; i++)
         {
-            // socket descriptor
-            int sd = client_socket[i];
-
-            // if valid socket descriptor then add to read list
-            if (sd > 0)
-                FD_SET(sd, fds);
-
-            // highest file descriptor number, need it for the select function
+            int sd = (*client_socket)[i];
             if (sd > max_sd)
                 max_sd = sd;
         }
 
         return max_sd;
+    }
+
+    int initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS])
+    {
+        // clear the socket set
+        FD_ZERO(fds);
+
+        // add master socket to set
+        FD_SET(master_socket, fds);
+
+        // add child sockets to set
+        for (int i = 0; i < MAX_CLIENTS; i++)
+        {
+            // socket descriptor
+            int sd = (*client_socket)[i];
+
+            // if valid socket descriptor then add to read list
+            if (sd > 0)
+                FD_SET(sd, fds);
+        }
+    }
+
+    int acceptNewConn(fd_set *readfds)
+    {
+        int new_socket = 0;
+        int addrlen = sizeof(address);
+
+        if (FD_ISSET(master_socket, readfds))
+        {
+            if ((new_socket = accept(master_socket,
+                                     (struct sockaddr *)&address,
+                                     (socklen_t *)&addrlen)) < 0)
+            {
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
+
+            // add new socket to array of sockets
+            for (int i = 0; i < MAX_CLIENTS; i++)
+            {
+                // if position is empty
+                if (client_socket[i] == 0)
+                {
+                    client_socket[i] = new_socket;
+                    DEBUG("Adding to list of sockets as {}", i);
+
+                    break;
+                }
+            }
+        }
+
+        return new_socket;
+    }
+
+    // @TODO make buffer a pointer to this
+    int handleErrors(int i, fd_set *readfds)
+    {
+        int valread;
+        int addrlen = sizeof(address);
+        int sd = client_socket[i];
+
+        // Check if it was for closing , and also read the
+        // incoming message
+        if ((valread = read(sd, buffer, 1024)) == 0)
+        {
+            // Somebody disconnected , get the details and print
+            getpeername(sd, (struct sockaddr *)&address,
+                        (socklen_t *)&addrlen);
+            DEBUG("Host disconnected, ip {}, port {}",
+                  inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+
+            // Close the socket and mark as 0 in list for reuse
+            close(sd);
+            client_socket[i] = 0;
+        }
+        else if (valread == -1)
+        {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // The socket does not have any data to be read. Try again later.
+                // @TODO may not be necesary if we are using non-blocking sockets
+                // because we will only get data for sockets that have data.
+                return valread;
+            }
+            else
+            {
+                // @TODO handle other errors here
+                return valread;
+            }
+        }
+
+        return valread;
     }
 };
 
