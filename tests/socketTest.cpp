@@ -227,6 +227,8 @@ private:
 
     // set of socket descriptors
     fd_set readfds;
+    // @TODO create a socket descriptor set of sockets to be written to
+    // and maybe ones with errors.
 
     // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
     struct timeval timeout;

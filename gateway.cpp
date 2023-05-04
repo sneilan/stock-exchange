@@ -55,8 +55,8 @@ NewOrderEvent Gateway::get() {
 
 void Gateway::run() {
     //  Socket to talk to clients
-    void *context = zmq_ctx_new ();
-    void *responder = zmq_socket (context, ZMQ_REP);
+    auto * context = zmq_ctx_new ();
+    auto * responder = zmq_socket (context, ZMQ_REP);
     int rc = zmq_bind (responder, "tcp://*:5555");
     assert (rc == 0);
 
@@ -74,6 +74,6 @@ void Gateway::run() {
         // @TODO fill in quantity later once we implement the socket system.
         item.quantity = 100;
         this->put(item);
-        zmq_send(responder, "ack", 3, 0);
+        zmq_send(responder, "ack2", 3, 0);
     }
 }
