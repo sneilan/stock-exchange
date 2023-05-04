@@ -1,12 +1,12 @@
 CC = /usr/bin/clang++
-CFLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` -I./util -lzmq
+CFLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes -I./util
 EXECUTABLE = main
 
-OBJS = eventstore.o ./order_book/book.o ./order_book/price_level.o ./order_book/order_book.o gateway.o main.o
+OBJS = eventstore.o ./order_book/book.o ./order_book/price_level.o ./order_book/order_book.o ./gateway/gateway.o ./gateway/socket.o main.o
 
 TEST_EXECUTABLE = ./tests/run_test
 TEST_OBJS = ./tests/linked_list.test.o ./tests/helpers.o ./tests/order_book/book.test.o ./tests/order_book/price_level.test.o ./tests/order_book/order_book.test.o ./tests/main.test.o
-TEST_FLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes `pkg-config libzmq --cflags` `pkg-config libzmq --libs` `pkg-config catch2 --cflags` `pkg-config catch2 --libs` -I./util -lzmq
+TEST_FLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes `pkg-config catch2 --cflags` `pkg-config catch2 --libs` -I./util
 
 all: $(EXECUTABLE)
 
@@ -22,8 +22,11 @@ eventstore.o: eventstore.cpp
 ./order_book/price_level.o: ./order_book/price_level.cpp
 	$(CC) $(CFLAGS) -c ./order_book/price_level.cpp -o ./order_book/price_level.o
 
-gateway.o: gateway.cpp
-	$(CC) $(CFLAGS) -c gateway.cpp
+./gateway/gateway.o: ./gateway/gateway.cpp
+	$(CC) $(CFLAGS) -c ./gateway/gateway.cpp -o ./gateway/gateway.o
+
+./gateway/socket.o: ./gateway/socket.cpp
+	$(CC) $(CFLAGS) -c ./gateway/socket.cpp -o ./gateway/socket.o
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
