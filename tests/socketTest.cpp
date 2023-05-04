@@ -131,17 +131,11 @@ public:
                         buffer[valread] = '\0';
                         for (int j = 0; j < MAX_CLIENTS; j++)
                         {
-                            if (j == i)
-                            {
-                                continue;
-                            }
-
                             send(client_socket[j], buffer, strlen(buffer), 0);
                         }
                     }
                 }
 
-                /*
                 // Constantly send the string "asdf" to all connected clients to test streaming data.
                 if (FD_ISSET(sd, &writefds))
                 {
@@ -151,7 +145,6 @@ public:
                     // @TODO fix this so we don't call send in a blocking manner.
                     send(sd, arr, strlen(arr), 0);
                 }
-                */
             }
         }
     }
