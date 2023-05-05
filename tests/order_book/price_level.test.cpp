@@ -64,11 +64,14 @@ TEST_CASE("Price levels - small quantities") {
 
 TEST_CASE("Price levels - large quantities") {
     PriceLevel * level = new PriceLevel();
+    // Create 1000 orders
     for (int i = 0; i < 10; i += 1) {
         level->addOrder(createDefaultOrder());
     }
 
-    level->fillOrder(orderQuantity(500));
+    // Fill 500 of them.
+    std::list<Order * > updated_orders = level->fillOrder(orderQuantity(500));
+    REQUIRE(updated_orders.size() == 5);
 
     REQUIRE(level->getVolume() == 500);
 }

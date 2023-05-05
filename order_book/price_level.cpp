@@ -2,6 +2,7 @@
 
 // Returns a list of filled orders.
 // Quantity of order is modified in place.
+// Order is expected to be for opposite side.
 std::list<Order *> PriceLevel::fillOrder(Order* order) {
     // Keep popping orders off at price level until we have either filled quantity
     // or run out of orders.
