@@ -16,7 +16,7 @@ std::list<Order *> Book::fillOrder(Order* order) {
     int initial_quantity = order->unfilled_quantity();
 
     PriceLevel* level = limitMap->at(order->limitPrice);
-    std::list<Order *> updated_orders = level->fillOrder(order);
+    std::list<Order* > updated_orders = level->fillOrder(order);
 
     totalVolume -= (initial_quantity - order->unfilled_quantity());
 
