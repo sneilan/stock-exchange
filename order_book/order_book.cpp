@@ -1,14 +1,22 @@
 #include "order_book.h"
+#include "../util/spdlog/spdlog.h"
+
+#define DEBUG spdlog::info
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order * order) {
-    totalVolume += order->unfilled_quantity();
     std::list<Order *> updated_orders;
 
+    DEBUG("Called newOrder");
+
     if (isOpposingOrderBookBlank(order)) {
+        DEBUG("Called isOpposingOrderBookBlank");
+
         addOrder(order);
+        DEBUG("Called addOrder1");
 
         adjustBidAskIfOrderIsBetterPrice(order);
+        DEBUG("Called adjustBidAskIfOrderIsBetterPrice");
 
         return updated_orders;
     }
@@ -68,15 +76,25 @@ bool OrderBook::orderCrossedSpread(Order* order) {
 }
 
 void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order* order) {
+    DEBUG("adjustBidAskIfOrderIsBetterPrice called");
+
     if (order->side == BUY) {
+        DEBUG("adjustBidAskIfOrderIsBetterPrice BUY");
         // If there are no sell orders & this is a higher bid, move up the bid.
-        if (order->limitPrice > bestBid->getPrice()) {
+        if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
+            DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for BUY true");
+            
             bestBid = buyBook->get(order->limitPrice);
+            DEBUG("adjustBidAskIfOrderIsBetterPrice set bestBid");
         }
     } else if (order->side == SELL) {
+        DEBUG("adjustBidAskIfOrderIsBetterPrice SELL");
         // If there are no buy orders & this is a lower ask, lower the ask
-        if (order->limitPrice < bestAsk->getPrice()) {
+        if (bestAsk == nullptr || order->limitPrice < bestAsk->getPrice()) {
+            DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for SELL true");
+
             bestAsk = sellBook->get(order->limitPrice);
+            DEBUG("adjustBidAskIfOrderIsBetterPrice set bestAsk");
         }
     }
 }
@@ -112,17 +130,23 @@ bool OrderBook::isOpposingOrderBookBlank(Order* order) {
 }
 
 void OrderBook::addOrder(Order* order) {
+    DEBUG("Now inside addOrder");
+
     totalVolume += order->unfilled_quantity();
+    DEBUG("addOrder totalVolume updated");
 
     if (order->side == BUY) {
         buyBook->addOrder(order);
+        DEBUG("buyBook->addOrder(order); called");
     } else if (order->side == SELL) {
         sellBook->addOrder(order);
+        DEBUG("sellBook->addOrder(order); called");
     }
 }
 
 OrderBook::OrderBook() {
     orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order*> * >();
+    // @TOOD the book should not care about the min / max prices.
     buyBook = new Book();
     sellBook = new Book();
     bestBid = nullptr;
