@@ -6,13 +6,14 @@
 
 TEST_CASE("Hello world order book test.") {
     // Hello world order book test.
-    /*
     OrderBook* orderBook = new OrderBook();
-    Order * order = createDefaultOrder();
 
+    Order * order = createDefaultOrder();
     orderBook->newOrder(order);
+
     REQUIRE(orderBook->getVolume() == 100);
 
+    /*
     orderBook->cancelOrder(order->id);
     REQUIRE(orderBook->getVolume() == 0);
     */
