@@ -27,6 +27,15 @@ public:
     void bindSocket(int PORT);
     void listenToSocket();
 
+    // events that will be called.
+    // @TODO to be implemented by gateway class.
+    // Gateway should subclass the SocketServer and become a kind of SocketServer.
+    void newClient(int client_id);
+    void disconnected(int client_id);
+    void readMessage(int client_id, char* message);
+    void sendMessage(int client_id, char* message);
+    void forceDisconnect(int client_id);
+
 private:
     int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
     int handleErrors(int i, fd_set *readfds);
