@@ -53,7 +53,7 @@ $(EXECUTABLE): $(OBJS)
 	$(CC) $(TEST_FLAGS) -c ./tests/main.test.cpp -o ./tests/main.test.o
 
 $(TEST_EXECUTABLE): $(TEST_OBJS)
-	$(CC) $(TEST_FLAGS) $(TEST_OBJS) order_book.o -o $(TEST_EXECUTABLE)
+	$(CC) $(TEST_FLAGS) $(TEST_OBJS) ./order_book/price_level.o ./order_book/book.o ./order_book/order_book.o -o $(TEST_EXECUTABLE)
 
 test: $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
