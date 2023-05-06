@@ -6,12 +6,16 @@
 #define DEFAULT_QUANTITY 100
 #define DEFAULT_SIDE 'b'
 
+// Create a logical sequence clock for testing purposes
+int sequence_id = 1;
+
 Order * createDefaultOrder() {
     Order * order = new Order();
     order->limitPrice = DEFAULT_PRICE;
     order->quantity = DEFAULT_QUANTITY;
     order->side = DEFAULT_SIDE;
-    order->id = 1;
+    order->id = sequence_id;
+    sequence_id++;
     return order;
 }
 
@@ -20,6 +24,7 @@ Order * orderQuantity(int quantity) {
     order->limitPrice = DEFAULT_PRICE;
     order->quantity = quantity;
     order->side = DEFAULT_SIDE;
-    order->id = 1;
+    order->id = sequence_id;
+    sequence_id++;
     return order;
 }
