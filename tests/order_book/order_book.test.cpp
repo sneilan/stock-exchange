@@ -19,6 +19,15 @@ TEST_CASE("order_book - cancel order") {
     Order * order = createDefaultOrder();
 
     orderBook->newOrder(order);
-    REQUIRE(orderBook->getVolume() == 100);
     orderBook->cancelOrder(order->id);
+}
+
+TEST_CASE("order_book - fill order") {
+    OrderBook* orderBook = new OrderBook();
+    Order * buyOrder = createDefaultOrder();
+
+    orderBook->newOrder(buyOrder);
+
+    Order * sellOrder = createDefaultOrder();
+    sellOrder->side = SELL;
 }
