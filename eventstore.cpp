@@ -43,7 +43,7 @@ SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int
     sequence++;
     order.id = sequence;
 
-    eventStoreBuf->insert(std::make_pair(sequence, order));
+    eventStoreBuf->emplace(sequence, order);
 
     return sequence;
 }
