@@ -8,7 +8,7 @@ Book::Book() {
 void Book::initPriceDataStructures(int start, int end) {
     for (int price = start; price < end; price += ONE_CENT) {
         PriceLevel * level = new PriceLevel();
-        limitMap->insert(std::make_pair(price, level));
+        limitMap->emplace(price, level);
     }
 }
 

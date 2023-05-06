@@ -135,13 +135,16 @@ void OrderBook::addOrder(Order* order) {
     totalVolume += order->unfilled_quantity();
     DEBUG("addOrder totalVolume updated");
 
+    Node<Order*> * node;
     if (order->side == BUY) {
-        buyBook->addOrder(order);
+        node = buyBook->addOrder(order);
         DEBUG("buyBook->addOrder(order); called");
     } else if (order->side == SELL) {
-        sellBook->addOrder(order);
+        node = sellBook->addOrder(order);
         DEBUG("sellBook->addOrder(order); called");
     }
+
+    orderMap->emplace(order->id, node);
 }
 
 OrderBook::OrderBook() {
