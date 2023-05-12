@@ -13,6 +13,7 @@
 /* Keeps list of orders for each price */
 class PriceLevel {
     public:
+        PriceLevel(PRICE price);
         Node<Order *> * addOrder(Order* order);
         std::list<Order *> fillOrder(Order* order);
         void cancelOrder(Node<Order*> * node);

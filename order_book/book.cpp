@@ -7,7 +7,7 @@ Book::Book() {
 
 void Book::initPriceDataStructures(int start, int end) {
     for (int price = start; price < end; price += ONE_CENT) {
-        PriceLevel * level = new PriceLevel();
+        PriceLevel * level = new PriceLevel(price);
         limitMap->emplace(price, level);
     }
 }

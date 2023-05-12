@@ -10,7 +10,7 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     DEBUG("Called newOrder");
 
     if (isOpposingOrderBookBlank(order)) {
-        DEBUG("Called isOpposingOrderBookBlank");
+        DEBUG("Called isOpposingOrderBookBlank1");
 
         addOrder(order);
         DEBUG("Called addOrder1");
@@ -25,7 +25,10 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     // if it's a buy order it's less than current ask and
     // if a sell order greater than current bid.
     if (!orderCrossedSpread(order)) {
+        DEBUG("orderCrossedSpread returned false");
+
         addOrder(order);
+        DEBUG("Called addOrder2");
 
         return updated_orders;
     }
@@ -37,6 +40,7 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     // Then insert the rest of the order into the book.
     while (order->unfilled_quantity() > 0) {
         updated_orders.merge(this->fillOrder(order));
+        DEBUG("Called fillOrder");
 
         // If there are no more orders, return.
         if (isOpposingOrderBookBlank(order)) {
@@ -79,13 +83,13 @@ void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order* order) {
     DEBUG("adjustBidAskIfOrderIsBetterPrice called");
 
     if (order->side == BUY) {
-        DEBUG("adjustBidAskIfOrderIsBetterPrice BUY");
+        // DEBUG("adjustBidAskIfOrderIsBetterPrice BUY");
         // If there are no sell orders & this is a higher bid, move up the bid.
         if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
-            DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for BUY true");
+            // DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for BUY true");
             
             bestBid = buyBook->get(order->limitPrice);
-            DEBUG("adjustBidAskIfOrderIsBetterPrice set bestBid");
+            // DEBUG("adjustBidAskIfOrderIsBetterPrice set bestBid");
         }
     } else if (order->side == SELL) {
         DEBUG("adjustBidAskIfOrderIsBetterPrice SELL");
@@ -130,18 +134,18 @@ bool OrderBook::isOpposingOrderBookBlank(Order* order) {
 }
 
 void OrderBook::addOrder(Order* order) {
-    DEBUG("Now inside addOrder");
+    // DEBUG("Now inside addOrder");
 
     totalVolume += order->unfilled_quantity();
-    DEBUG("addOrder totalVolume updated");
+    // DEBUG("addOrder totalVolume updated");
 
     Node<Order*> * node;
     if (order->side == BUY) {
         node = buyBook->addOrder(order);
-        DEBUG("buyBook->addOrder(order); called");
+        // DEBUG("buyBook->addOrder(order); called");
     } else if (order->side == SELL) {
         node = sellBook->addOrder(order);
-        DEBUG("sellBook->addOrder(order); called");
+        // DEBUG("sellBook->addOrder(order); called");
     }
 
     orderMap->emplace(order->id, node);
@@ -170,8 +174,6 @@ std::list<Order *> OrderBook::fillOrder(Order* order) {
     totalVolume -= (initialQuantity - order->unfilled_quantity());
     return updated_orders;
 }
-
-
 
 int OrderBook::getVolume() {
     return totalVolume;
