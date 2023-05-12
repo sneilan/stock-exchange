@@ -26,7 +26,7 @@ TEST_CASE("order_book - cancel order") {
     orderBook->cancelOrder(order->id);
 }
 
-TEST_CASE("order_book - new orders should set bid/ask price") {
+TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
     OrderBook* orderBook = new OrderBook();
 
     // Making a buy order w/ no sell order should immediately set bid.

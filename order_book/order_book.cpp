@@ -30,6 +30,9 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
         addOrder(order);
         DEBUG("Called addOrder2");
 
+        adjustBidAskIfOrderIsBetterPrice(order);
+        DEBUG("Called adjustBidAskIfOrderIsBetterPrice2");
+
         return updated_orders;
     }
 

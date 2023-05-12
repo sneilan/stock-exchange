@@ -9,7 +9,6 @@
 #include "../eventstore.h"
 #include "../util/types.h"
 #include "../util/linked_list.h"
-#include "order_book.h"
 #include "price_level.h"
 #include "book.h"
 
