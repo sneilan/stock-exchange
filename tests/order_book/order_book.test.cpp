@@ -44,7 +44,6 @@ TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
     REQUIRE(orderBook->getAsk()->getPrice() == sellOrder->limitPrice);
 }
 
-/*
 TEST_CASE("order_book - match order") {
     OrderBook* orderBook = new OrderBook();
 
@@ -58,4 +57,3 @@ TEST_CASE("order_book - match order") {
 
     REQUIRE(orderBook->getVolume() == 0);
 }
-*/
