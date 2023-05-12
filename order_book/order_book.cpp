@@ -1,7 +1,7 @@
 #include "order_book.h"
 #include "../util/spdlog/spdlog.h"
 
-#define DEBUG spdlog::info
+#define DEBUG spdlog::debug
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order * order) {

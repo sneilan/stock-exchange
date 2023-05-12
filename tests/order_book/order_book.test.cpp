@@ -24,6 +24,8 @@ TEST_CASE("order_book - cancel order") {
 
     orderBook->newOrder(order);
     orderBook->cancelOrder(order->id);
+
+    REQUIRE(orderBook->getVolume() == 0);
 }
 
 TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
