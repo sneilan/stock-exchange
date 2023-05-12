@@ -57,3 +57,31 @@ TEST_CASE("order_book - match order") {
 
     REQUIRE(orderBook->getVolume() == 0);
 }
+
+TEST_CASE("order_book - buy orders with higher prices should move bid up") {
+    OrderBook* orderBook = new OrderBook();
+
+    Order * buyOrder = createDefaultOrder();
+    orderBook->newOrder(buyOrder);
+    REQUIRE(orderBook->getBid()->getPrice() == buyOrder->limitPrice);
+
+    Order * buyOrderHigher = createDefaultOrder();
+    buyOrderHigher->limitPrice = buyOrder->limitPrice + 100;
+    orderBook->newOrder(buyOrderHigher);
+    REQUIRE(orderBook->getBid()->getPrice() == buyOrderHigher->limitPrice);
+}
+
+TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
+    OrderBook* orderBook = new OrderBook();
+
+    Order * sellOrder = createDefaultOrder();
+    sellOrder->side = SELL;
+    orderBook->newOrder(sellOrder);
+    REQUIRE(orderBook->getAsk()->getPrice() == sellOrder->limitPrice);
+
+    Order * sellOrderLower = createDefaultOrder();
+    sellOrderLower->side = SELL;
+    sellOrderLower->limitPrice = sellOrder->limitPrice - 100;
+    orderBook->newOrder(sellOrderLower);
+    REQUIRE(orderBook->getAsk()->getPrice() == sellOrderLower->limitPrice);
+}
