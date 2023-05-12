@@ -4,11 +4,12 @@
 #include "../../order_book/order_book.h"
 #include "../helpers.h"
 
-TEST_CASE("Price levels - fillOrder, getVolume") {
-    PriceLevel * level = new PriceLevel();
+TEST_CASE("Price levels - filling full orders") {
+    Order * order = createDefaultOrder();
+    PriceLevel * level = new PriceLevel(order->limitPrice);
+
     REQUIRE(level->getVolume() == 0);
 
-    Order * order = createDefaultOrder();
     level->addOrder(order);
 
     REQUIRE(level->getVolume() == 100);
@@ -23,9 +24,10 @@ TEST_CASE("Price levels - fillOrder, getVolume") {
     REQUIRE(level->getVolume() == 0);
 }
 
-TEST_CASE("Price levels - partial fillOrder") {
-    PriceLevel * level = new PriceLevel();
+TEST_CASE("Price levels - filling partial orders") {
     Order * order = createDefaultOrder();
+    PriceLevel * level = new PriceLevel(order->limitPrice);
+
     level->addOrder(order);
 
     Order * order2 = createDefaultOrder();

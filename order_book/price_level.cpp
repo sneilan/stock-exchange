@@ -52,3 +52,7 @@ int PriceLevel::getVolume() {
 int PriceLevel::getPrice() {
     return limitPrice;
 }
+
+PriceLevel::PriceLevel(PRICE price) {
+    limitPrice = price;
+}

@@ -23,16 +23,15 @@ class OrderBook {
         int getVolume();
         PriceLevel* getBid();
         PriceLevel* getAsk();
-        std::list<Order *> fillOrder(Order* order);
-        void setBidAskToReflectMarket();
-        void addOrder(Order *);
 
-        // @TODO consider making these functions private.
+    private:
+        void addOrder(Order *);
+        std::list<Order *> fillOrder(Order* order);
         bool isOpposingOrderBookBlank(Order* order);
         void adjustBidAskIfOrderIsBetterPrice(Order* order);
         bool orderCrossedSpread(Order* order);
+        void setBidAskToReflectMarket();
 
-    private:
         Book* buyBook;
         Book* sellBook;
         PriceLevel* bestBid;
