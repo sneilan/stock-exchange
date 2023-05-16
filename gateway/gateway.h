@@ -2,6 +2,7 @@
 #define _gateway_h
 
 #include "../util/types.h"
+#include "socket.h"
 #define GATEWAY_BUFLEN 100
 
 struct NewOrderEvent {
@@ -14,7 +15,7 @@ struct NewOrderEvent {
     bool stale;
 };
 
-class Gateway {
+class Gateway : public SocketServer {
   public:
     // Constructor
     Gateway();
@@ -23,6 +24,12 @@ class Gateway {
     // Public member function
     void put(NewOrderEvent item);
     NewOrderEvent get();
+
+    void newClient(int client_id);
+    void disconnected(int client_id);
+    void readMessage(int client_id, char* message);
+    void sendMessage(int client_id, char* message);
+    void forceDisconnect(int client_id);
 
     // a loop that starts a zeromq server and waits for incoming orders
     // Then parsers & puts incoming orders into the ring buffer managed by gateway.

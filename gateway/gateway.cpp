@@ -10,20 +10,40 @@
 #include "socket.h"
 
 Gateway::Gateway() {
-    int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-    ftruncate(fd, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
-    gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    memset(gatewayRingBuf, 0, sizeof(NewOrderEvent) * GATEWAY_BUFLEN); // clear shared memory block
+  int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+  ftruncate(fd, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
+  gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  memset(gatewayRingBuf, 0, sizeof(NewOrderEvent) * GATEWAY_BUFLEN); // clear shared memory block
 
-    // Initialize all orders to stale
-    for (int i = 0; i < GATEWAY_BUFLEN; i++) {
-        gatewayRingBuf[i].stale = true;
-    }
+  // Initialize all orders to stale
+  for (int i = 0; i < GATEWAY_BUFLEN; i++) {
+    gatewayRingBuf[i].stale = true;
+  }
 }
 
 Gateway::~Gateway() throw() {
     munmap(gatewayRingBuf, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
     shm_unlink(name);
+}
+
+NewOrderEvent Gateway::get() {
+    // Copy what is in the ring buffer into a new structure.
+    NewOrderEvent item = gatewayRingBuf[start];
+
+    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
+    // Mark the old copy of new order event in ring buffer as stale.
+    gatewayRingBuf[start].stale = true;
+    start++;
+    start %= GATEWAY_BUFLEN;
+    return item;
+}
+
+void Gateway::newClient(int client_id) {
+
+}
+
+void Gateway::disconnected(int client_id) {
+
 }
 
 // @TODO instead of recreating item each time, pass in values perhaps?
@@ -41,24 +61,19 @@ void Gateway::put(NewOrderEvent item) {
     end %= GATEWAY_BUFLEN;
 }
 
-NewOrderEvent Gateway::get() {
-    // Copy what is in the ring buffer into a new structure.
-    NewOrderEvent item = gatewayRingBuf[start];
+void Gateway::readMessage(int client_id, char* message) {
 
-    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
-    // Mark the old copy of new order event in ring buffer as stale.
-    gatewayRingBuf[start].stale = true;
-    start++;
-    start %= GATEWAY_BUFLEN;
-    return item;
+}
+
+void Gateway::sendMessage(int client_id, char* message) {
+
+}
+
+void Gateway::forceDisconnect(int client_id) {
+
 }
 
 void Gateway::run() {
-    // NewOrderEvent item;
-    // char buffer[7];
-
-    SocketServer server;
-    server.bindSocket(8888);
     /* 
     // @TODO
     Socket server should have the following events
@@ -71,5 +86,7 @@ void Gateway::run() {
      3) Force closing a client connection
     Something else can handle parsing data from clients.
     */
-    server.listenToSocket();
+
+    bindSocket(8888);
+    listenToSocket();
 }

@@ -1,4 +1,5 @@
 #include "socket.h"
+#include <unistd.h>
 
 void SocketServer::listenToSocket()
 {
@@ -52,16 +53,17 @@ void SocketServer::listenToSocket()
 
                 if (valread > 0)
                 {
-                    // Old code to send data to one client.
-                    // send(sd, buffer, strlen(buffer), 0);
-
                     // set the string terminating NULL byte on the end
                     // of the data read
                     buffer[valread] = '\0';
+                    readMessage(i, buffer);
+
+                    /*
                     for (int j = 0; j < MAX_CLIENTS; j++)
                     {
                         send(client_socket[j], buffer, strlen(buffer), 0);
                     }
+                    */
                 } else {
                     // handleErrors unsets readfds but we also need to unset writefds
                     // @TODO this is weird because I expect handleErrors to handle all sorts of things
@@ -200,7 +202,8 @@ int SocketServer::acceptNewConn(fd_set *readfds)
             if (client_socket[i] == 0)
             {
                 client_socket[i] = new_socket;
-                DEBUG("Adding to list of sockets as {}", i);
+                newClient(i);
+                DEBUG("Registering new client {}", i);
 
                 break;
             }
@@ -224,12 +227,13 @@ int SocketServer::handleErrors(int i, fd_set *readfds)
     {
         // Somebody disconnected , get the details and print
         getpeername(sd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-        DEBUG("Host disconnected, ip {}, port {}",
-              inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
         // Close the socket and mark as 0 in list for reuse
         close(sd);
         client_socket[i] = 0;
+        disconnected(i);
+        DEBUG("Host disconnected, ip {}, port {}, client {}",
+              inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
     }
 
     /*
