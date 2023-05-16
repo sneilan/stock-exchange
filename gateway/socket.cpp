@@ -33,12 +33,14 @@ void SocketServer::listenToSocket()
             DEBUG("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
             // send new connection greeting message
+            /*
             if (send(new_socket, message, strlen(message), 0) != strlen(message))
             {
                 spdlog::error("send");
             }
+            */
 
-            DEBUG("Welcome message sent successfully");
+            // DEBUG("Welcome message sent successfully");
         }
 
         // else its some IO operation on some other socket
@@ -160,7 +162,7 @@ int SocketServer::getMaxClientID(int (*client_socket)[MAX_CLIENTS])
     return max_sd;
 }
 
-int SocketServer::initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS])
+void SocketServer::initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS])
 {
     // clear the socket set
     FD_ZERO(fds);
@@ -211,6 +213,47 @@ int SocketServer::acceptNewConn(fd_set *readfds)
     }
 
     return new_socket;
+}
+
+bool SocketServer::sendMessage(int socket_client_id, char* message) {
+  if (send(socket_client_id, message, strlen(message), 0) != strlen(message))
+  {
+    return false;
+    spdlog::error("send");
+  }
+
+  return true;
+
+  // fd_set writefds;
+
+  // int max_sd = getMaxClientID(&client_socket);
+  // initFDSet(&writefds, &client_socket);
+
+  // int activity = select(max_sd + 1, NULL, &writefds, NULL, &timeout);
+
+  // if ((activity < 0) && (errno != EINTR))
+  // {
+  //   spdlog::error("select error");
+  // }
+
+  // // Constantly send the string "asdf" to all connected clients to test streaming data.
+  // if (FD_ISSET(client_id, &writefds))
+  // {
+  //   const char *str = "asdf\n";
+  //   char arr[6];
+  //   strcpy(arr, str);
+  //   // @TODO fix this so we don't call send in a blocking manner.
+  //   int num_sent = send(client_id, arr, strlen(arr), 0);
+
+  //   if (num_sent == -1) {
+  //     DEBUG("Could not send data to {}", client_id);
+  //     close(client_id);
+  //     client_socket[client_id] = 0;
+  //     return false;
+  //   }
+  // }
+
+  // return true;
 }
 
 // @TODO make buffer a pointer to this.
