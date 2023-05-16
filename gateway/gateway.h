@@ -2,6 +2,7 @@
 #define _gateway_h
 
 #include "../util/types.h"
+#include "proto/incoming_order.pb.h"
 #include "socket.h"
 #define GATEWAY_BUFLEN 100
 
@@ -17,12 +18,9 @@ struct NewOrderEvent {
 
 class Gateway : public SocketServer {
   public:
-    // Constructor
     Gateway();
     ~Gateway() throw();
 
-    // Public member function
-    void put(NewOrderEvent item);
     NewOrderEvent get();
 
     void newClient(int client_id);
@@ -35,6 +33,7 @@ class Gateway : public SocketServer {
     // Then parsers & puts incoming orders into the ring buffer managed by gateway.
     void run();
   private:
+    void put(IncomingOrder item);
     const char * name = "/gateway_ring_buf";
     int end = 0;       /* write index */
     int start = 0;     /* read index */

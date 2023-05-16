@@ -30,17 +30,18 @@ public:
     // events that will be called.
     // @TODO to be implemented by gateway class.
     // Gateway should subclass the SocketServer and become a kind of SocketServer.
-    void newClient(int client_id);
-    void disconnected(int client_id);
-    void readMessage(int client_id, char* message);
-    void sendMessage(int client_id, char* message);
-    void forceDisconnect(int client_id);
+    void newClient(int client_id) {};
+    void disconnected(int client_id) {};
+    void readMessage(int client_id, char* message) {};
+    void forceDisconnect(int client_id) {};
 
+    // Does not need to be implemented by subclass.
+    bool sendMessage(int socket_client_id, char* message);
 private:
     int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
     int handleErrors(int i, fd_set *readfds);
     int acceptNewConn(fd_set *readfds);
-    int initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
+    void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
 
     int master_socket, client_socket[MAX_CLIENTS];
     struct sockaddr_in address;
@@ -49,8 +50,6 @@ private:
 
     // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
     struct timeval timeout;
-
-    char *message = "ECHO Daemon v1.0 \r\n";
 };
 
 #endif

@@ -48,20 +48,31 @@ void Gateway::disconnected(int client_id) {
 
 // @TODO instead of recreating item each time, pass in values perhaps?
 // one less copy per call.
-void Gateway::put(NewOrderEvent item) {
-    gatewayRingBuf[end].clientId = item.clientId;
-    gatewayRingBuf[end].limitPrice = item.limitPrice;
-    gatewayRingBuf[end].side = item.side;
+void Gateway::put(IncomingOrder item) {
+    gatewayRingBuf[end].clientId = item.clientid();
+    gatewayRingBuf[end].limitPrice = item.limitprice();
+    gatewayRingBuf[end].side = item.side()[0];
     gatewayRingBuf[end].stale = false;
 
     end++;
 
-    spdlog::debug("Ring buffer Order recieved from client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
+    spdlog::debug("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
 
     end %= GATEWAY_BUFLEN;
 }
 
-void Gateway::readMessage(int client_id, char* message) {
+void Gateway::readMessage(int socket_client_id, char* message) {
+  IncomingOrder incomingOrder;
+
+  if (!incomingOrder.ParseFromString(message)) {
+    std::cerr << "Failed to parse incoming order." << std::endl;
+    return;
+  }
+
+  int limitPrice = incomingOrder.limitprice();
+  std::string side = incomingOrder.side();
+  int clientId = incomingOrder.clientid();
+  int quantity = incomingOrder.quantity();
 
 }
 
