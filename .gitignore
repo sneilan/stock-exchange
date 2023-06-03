@@ -7,3 +7,6 @@ mmap_test
 main
 socketTest
 tests/run_test
+.venv
+__pycache__
+

@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <csignal>
 #include "gateway.h"
-#include "../util/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 #include "socket.h"
 
 Gateway::Gateway() {
@@ -39,11 +39,11 @@ NewOrderEvent Gateway::get() {
 }
 
 void Gateway::newClient(int client_id) {
-
+  spdlog::info("New client {}", client_id);
 }
 
 void Gateway::disconnected(int client_id) {
-
+  spdlog::info("Client disconnected {}", client_id);
 }
 
 // @TODO instead of recreating item each time, pass in values perhaps?
@@ -56,7 +56,7 @@ void Gateway::put(IncomingOrder item) {
 
     end++;
 
-    spdlog::debug("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
+    spdlog::info("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
 
     end %= GATEWAY_BUFLEN;
 }
@@ -64,8 +64,9 @@ void Gateway::put(IncomingOrder item) {
 void Gateway::readMessage(int socket_client_id, char* message) {
   IncomingOrder incomingOrder;
 
+  spdlog::info("Read message from {}", socket_client_id);
   if (!incomingOrder.ParseFromString(message)) {
-    std::cerr << "Failed to parse incoming order." << std::endl;
+    spdlog::info("Failed to parse incoming order.");
     return;
   }
 
@@ -74,9 +75,10 @@ void Gateway::readMessage(int socket_client_id, char* message) {
   int clientId = incomingOrder.clientid();
   int quantity = incomingOrder.quantity();
 
+  put(incomingOrder);
 }
 
-void Gateway::sendMessage(int client_id, char* message) {
+void Gateway::sendMessage(int socket_client_id, char* message) {
 
 }
 

@@ -1,5 +1,5 @@
 #include "order_book.h"
-#include "../util/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #define DEBUG spdlog::debug
 
