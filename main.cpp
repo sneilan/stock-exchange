@@ -6,7 +6,7 @@
 #include "gateway/gateway.h"
 #include "eventstore.h"
 #include "order_book/order_book.h"
-#include "util/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 int main() {
     Gateway * gateway = new Gateway();

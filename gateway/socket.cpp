@@ -76,7 +76,9 @@ void SocketServer::listenToSocket()
             }
 
             // Constantly send the string "asdf" to all connected clients to test streaming data.
-            if (FD_ISSET(sd, &writefds))
+            
+      /*
+      if (FD_ISSET(sd, &writefds))
             {
                 const char *str = "asdf\n";
                 char arr[6];
@@ -91,6 +93,7 @@ void SocketServer::listenToSocket()
                     continue;
                 }
             }
+            */
         }
     }
 }

@@ -1,13 +1,27 @@
-import zmq
+import socket
+import sys
+import gateway.proto.incoming_order_pb2 as incoming_order
 
-context = zmq.Context()
-socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:5555")
+host = 'localhost'
+port = 8888
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((host, port))
+
+# send/receive data here.
+message = incoming_order.IncomingOrder()
+message.limitPrice = 100
+message.side = "b"
+message.clientId = 123
+message.quantity = 10
+# print(message.SerializeToString())
 
 while True:
-    # Client id 9 (allowed ids 0-9)
-    # for limit price 55.55 (prices in format of xx.xx)
-    # order side b = buy (s = sell)
-    socket.send_string('855.55b')
-    response = socket.recv()
-    print(f"Received response: {response.decode()}")
+    char = sys.stdin.read(1)
+    sock.sendall(message.SerializeToString())
+    if char == 'b':
+        break
+    # response = sock.recv(1024)
+
+sock.close()
+

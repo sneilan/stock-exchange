@@ -1,12 +1,12 @@
 CC = /usr/bin/clang++
-CFLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes -I./util `pkg-config --cflags --libs protobuf`
+CFLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes -I./util `pkg-config --cflags --libs protobuf` `pkg-config --cflags --libs spdlog`
 EXECUTABLE = main
 
 OBJS = eventstore.o ./order_book/book.o ./order_book/price_level.o ./order_book/order_book.o ./gateway/gateway.o ./gateway/socket.o ./gateway/proto/incoming_order.o main.o
 
 TEST_EXECUTABLE = ./tests/run_test
 TEST_OBJS = ./tests/linked_list.test.o ./tests/helpers.o ./tests/order_book/book.test.o ./tests/order_book/price_level.test.o ./tests/order_book/order_book.test.o ./tests/main.test.o
-TEST_FLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes `pkg-config catch2 --cflags` `pkg-config catch2 --libs` `pkg-config --cflags --libs protobuf` -I./util
+TEST_FLAGS = -std=c++20 -fcolor-diagnostics -fansi-escape-codes `pkg-config catch2 --cflags` `pkg-config catch2 --libs` `pkg-config --cflags --libs protobuf` `pkg-config --cflags --libs spdlog` -I./util
 
 all: $(EXECUTABLE)
 
