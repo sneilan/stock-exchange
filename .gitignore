@@ -9,4 +9,11 @@ socketTest
 tests/run_test
 .venv
 __pycache__
+.cache
+.cmake
+CMakeCache.txt
+CMakeFiles
+test
+compile_commands.json
+cmake_install.cmake
 
