@@ -4,7 +4,7 @@
 #include "../../order_book/order_book.h"
 #include "../helpers.h"
 
-#include "../util/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #define DEBUG spdlog::info
 

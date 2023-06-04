@@ -9,7 +9,7 @@
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
-#include "../util/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 // Had some issues with spdlog levels. Will fix later.
 #define DEBUG spdlog::info
@@ -268,6 +268,7 @@ private:
     }
 };
 
+/*
 int main(int argc, char *argv[])
 {
     SocketServer server;
@@ -276,3 +277,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
