@@ -20,10 +20,10 @@ message.quantity = 10
 
 while True:
     sock.sendall(message.SerializeToString())
-    if message.side == 'b':
-        message.side = 's'
-    else:
-        message.side = 'b'
+    # if message.side == 'b':
+    #     message.side = 's'
+    # else:
+    #     message.side = 'b'
     char = sys.stdin.read(1)
     if char == 'b':
         break
