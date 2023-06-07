@@ -23,6 +23,9 @@ TEST_CASE("order_book - cancel order") {
     Order * order = createDefaultOrder();
 
     orderBook->newOrder(order);
+
+    REQUIRE(orderBook->getVolume() == 100);
+
     orderBook->cancelOrder(order->id);
 
     REQUIRE(orderBook->getVolume() == 0);

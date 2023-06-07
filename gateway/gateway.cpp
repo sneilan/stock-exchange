@@ -64,6 +64,7 @@ void Gateway::put(IncomingOrder item) {
     gatewayRingBuf[end].clientId = item.clientid();
     gatewayRingBuf[end].limitPrice = item.limitprice();
     gatewayRingBuf[end].side = item.side()[0];
+    gatewayRingBuf[end].quantity = item.quantity();
     gatewayRingBuf[end].stale = false;
 
     end++;
@@ -81,11 +82,6 @@ void Gateway::readMessage(int client_id, char* message) {
     spdlog::info("Failed to parse incoming order.");
     return;
   }
-
-  // int limitPrice = incomingOrder.limitprice();
-  // std::string side = incomingOrder.side();
-  // int clientId = incomingOrder.clientid();
-  // int quantity = incomingOrder.quantity();
 
   put(incomingOrder);
 
