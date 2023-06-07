@@ -30,13 +30,13 @@ public:
     // events that will be called.
     // @TODO to be implemented by gateway class.
     // Gateway should subclass the SocketServer and become a kind of SocketServer.
-    void newClient(int client_id) {};
-    void disconnected(int client_id) {};
-    void readMessage(int client_id, char* message) {};
-    void forceDisconnect(int client_id) {};
+    virtual void newClient(int client_id) = 0;
+    virtual void disconnected(int client_id) = 0;
+    virtual void readMessage(int client_id, char* message) = 0;
 
     // Does not need to be implemented by subclass.
     bool sendMessage(int socket_client_id, char* message);
+    void forceDisconnect(int client_id);
 private:
     int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
     int handleErrors(int i, fd_set *readfds);

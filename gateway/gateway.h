@@ -23,11 +23,11 @@ class Gateway : public SocketServer {
 
     NewOrderEvent get();
 
-    void newClient(int client_id);
-    void disconnected(int client_id);
-    void readMessage(int client_id, char* message);
-    void sendMessage(int client_id, char* message);
-    void forceDisconnect(int client_id);
+    void newClient(int client_id) override;
+    void disconnected(int client_id) override;
+    void readMessage(int client_id, char* message) override;
+    // void sendMessage(int client_id, char* message);
+    // void forceDisconnect(int client_id);
 
     // a loop that starts a zeromq server and waits for incoming orders
     // Then parsers & puts incoming orders into the ring buffer managed by gateway.

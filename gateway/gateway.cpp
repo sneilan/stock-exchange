@@ -40,6 +40,8 @@ NewOrderEvent Gateway::get() {
 
 void Gateway::newClient(int client_id) {
   spdlog::info("New client {}", client_id);
+  bool asdf = sendMessage(client_id, "aaaa");
+  spdlog::info("Ret value {}", asdf);
 }
 
 void Gateway::disconnected(int client_id) {
@@ -70,21 +72,21 @@ void Gateway::readMessage(int socket_client_id, char* message) {
     return;
   }
 
-  int limitPrice = incomingOrder.limitprice();
-  std::string side = incomingOrder.side();
-  int clientId = incomingOrder.clientid();
-  int quantity = incomingOrder.quantity();
+  // int limitPrice = incomingOrder.limitprice();
+  // std::string side = incomingOrder.side();
+  // int clientId = incomingOrder.clientid();
+  // int quantity = incomingOrder.quantity();
 
   put(incomingOrder);
 }
 
-void Gateway::sendMessage(int socket_client_id, char* message) {
+// void Gateway::sendMessage(int socket_client_id, char* message) {
 
-}
+// }
 
-void Gateway::forceDisconnect(int client_id) {
+// void Gateway::forceDisconnect(int client_id) {
 
-}
+// }
 
 void Gateway::run() {
     /* 

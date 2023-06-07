@@ -7,6 +7,8 @@ port = 8888
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((host, port))
+response = sock.recv(1024)
+print(response)
 
 # send/receive data here.
 message = incoming_order.IncomingOrder()
@@ -17,11 +19,10 @@ message.quantity = 10
 # print(message.SerializeToString())
 
 while True:
-    char = sys.stdin.read(1)
     sock.sendall(message.SerializeToString())
+    char = sys.stdin.read(1)
     if char == 'b':
         break
-    # response = sock.recv(1024)
 
 sock.close()
 
