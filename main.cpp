@@ -13,6 +13,7 @@ int main() {
     EventStore * eventStore = new EventStore();
 
     spdlog::info("Exchange starting");
+    spdlog::set_level(spdlog::level::debug);
 
     pid_t c_pid = fork();
   

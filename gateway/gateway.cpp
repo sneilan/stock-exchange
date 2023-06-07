@@ -30,7 +30,9 @@ NewOrderEvent Gateway::get() {
     // Copy what is in the ring buffer into a new structure.
     NewOrderEvent item = gatewayRingBuf[start];
 
-    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
+    if (!item.stale) {
+      spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {}", item.clientId, item.limitPrice, item.side);
+    }
     // Mark the old copy of new order event in ring buffer as stale.
     gatewayRingBuf[start].stale = true;
     start++;

@@ -14,9 +14,6 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <spdlog/spdlog.h>
 
-// Had some issues with spdlog levels. Will fix later.
-#define DEBUG spdlog::info
-
 #define MAX_CLIENTS 30
 #define TIMEOUT_MICROSECONDS 1
 
