@@ -4,7 +4,7 @@
 void SocketServer::listenToSocket()
 {
     // accept the incoming connection
-    int addrlen = sizeof(address);
+    // int addrlen = sizeof(address);
 
     spdlog::info("Waiting for connections ...");
     while (1)
@@ -30,7 +30,7 @@ void SocketServer::listenToSocket()
         if (new_socket > 0)
         {
             // inform user of socket number - used in send and receive commands
-            DEBUG("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+            spdlog::debug("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
             // send new connection greeting message
             /*
@@ -120,7 +120,7 @@ void SocketServer::bindSocket(int PORT)
     // create a master socket
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
-        DEBUG("socket failed");
+        spdlog::debug("socket failed");
         exit(EXIT_FAILURE);
     }
 
@@ -130,8 +130,8 @@ void SocketServer::bindSocket(int PORT)
     if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
                    sizeof(opt)) < 0)
     {
-        DEBUG("setsockopt");
-        exit(EXIT_FAILURE);
+      spdlog::debug("setsockopt");
+      exit(EXIT_FAILURE);
     }
 
     // type of socket created
@@ -142,7 +142,7 @@ void SocketServer::bindSocket(int PORT)
     // bind the socket to localhost port 8888
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        DEBUG("bind failed");
+        spdlog::debug("bind failed");
         exit(EXIT_FAILURE);
     }
 
@@ -150,7 +150,7 @@ void SocketServer::bindSocket(int PORT)
     // try to specify maximum of 3 pending connections for the master socket
     if (listen(master_socket, 3) < 0)
     {
-        DEBUG("listen failure");
+        spdlog::debug("listen failure");
         exit(EXIT_FAILURE);
     }
 }
@@ -201,7 +201,7 @@ int SocketServer::acceptNewConn(fd_set *readfds)
                                  (struct sockaddr *)&address,
                                  (socklen_t *)&addrlen)) < 0)
         {
-            DEBUG("accept");
+            spdlog::debug("accept");
             exit(EXIT_FAILURE);
         }
 
@@ -213,7 +213,7 @@ int SocketServer::acceptNewConn(fd_set *readfds)
             {
                 client_socket[i] = new_socket;
                 newClient(i);
-                DEBUG("Registering new client {}", i);
+                spdlog::debug("Registering new client {}", i);
 
                 break;
             }
@@ -284,7 +284,7 @@ int SocketServer::handleErrors(int i, fd_set *readfds)
         close(sd);
         client_socket[i] = 0;
         disconnected(i);
-        DEBUG("Host disconnected, ip {}, port {}, client {}",
+        spdlog::debug("Host disconnected, ip {}, port {}, client {}",
               inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
     }
 

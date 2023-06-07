@@ -38,7 +38,5 @@ class Gateway : public SocketServer {
     int end = 0;       /* write index */
     int start = 0;     /* read index */
     NewOrderEvent* gatewayRingBuf;
-    void *socket;
-    void *context;
 };
 #endif
