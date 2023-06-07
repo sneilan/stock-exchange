@@ -218,12 +218,13 @@ int SocketServer::acceptNewConn(fd_set *readfds)
     return new_socket;
 }
 
-bool SocketServer::sendMessage(int socket_client_id, char* message) {
-  if (send(socket_client_id, message, strlen(message), 0) != strlen(message))
+bool SocketServer::sendMessage(int client_id, const char* message) {
+  if (send(client_socket[client_id], message, strlen(message), 0) != strlen(message))
   {
-    return false;
     spdlog::error("send");
+    return false;
   }
+  spdlog::info("sent message {} to client {}", message, client_id);
 
   return true;
 
