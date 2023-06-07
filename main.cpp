@@ -25,8 +25,6 @@ int main() {
     if (c_pid > 0) {
         // Parent
         // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
-        // @TODO Remove ZeroMQ and replace with raw sockets for a proper client-server comms
-        // Message brokers are the wrong solution but they get the job done for testing.
         gateway->run();
     } else {
         // Cshild
@@ -45,6 +43,7 @@ int main() {
                 Order * order = eventStore->get(id);
                 // @TODO This is a call to the matching engine. newOrder name should be more descriptive.
                 std::list<Order *> updated_orders = orderBook->newOrder(order);
+                spdlog::debug("Order book volume is now {}", orderBook->getVolume());
 
                 // @TODO send updated order information to the clients via another ring buffer.
                 // Another process will read from this ring buffer and send data to the client.
