@@ -110,6 +110,11 @@ SocketServer::SocketServer()
     }
 }
 
+void SocketServer::forceDisconnect(int client_id) {
+  close(client_socket[client_id]);
+  client_socket[client_id] = 0;
+}
+
 void SocketServer::bindSocket(int PORT)
 {
     // create a master socket

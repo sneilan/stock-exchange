@@ -64,10 +64,10 @@ void Gateway::put(IncomingOrder item) {
     end %= GATEWAY_BUFLEN;
 }
 
-void Gateway::readMessage(int socket_client_id, char* message) {
+void Gateway::readMessage(int client_id, char* message) {
   IncomingOrder incomingOrder;
 
-  spdlog::info("Read message from {}", socket_client_id);
+  spdlog::info("Read message from {}", client_id);
   if (!incomingOrder.ParseFromString(message)) {
     spdlog::info("Failed to parse incoming order.");
     return;
@@ -79,15 +79,11 @@ void Gateway::readMessage(int socket_client_id, char* message) {
   // int quantity = incomingOrder.quantity();
 
   put(incomingOrder);
+
+
+  const char * msg = "order received";
+  sendMessage(client_id, msg);
 }
-
-// void Gateway::sendMessage(int socket_client_id, char* message) {
-
-// }
-
-// void Gateway::forceDisconnect(int client_id) {
-
-// }
 
 void Gateway::run() {
     /* 
