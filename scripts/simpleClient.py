@@ -24,11 +24,11 @@ while True:
     #     message.side = 's'
     # else:
     #     message.side = 'b'
+    response = sock.recv(1024)
+    print(response)
     char = sys.stdin.read(1)
     if char == 'b':
         break
-    response = sock.recv(1024)
-    print(response)
 
 sock.close()
 

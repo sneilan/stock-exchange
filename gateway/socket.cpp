@@ -1,5 +1,5 @@
 #include "socket.h"
-#include <unistd.h>
+
 
 void SocketServer::listenToSocket()
 {
@@ -25,23 +25,8 @@ void SocketServer::listenToSocket()
             spdlog::error("select error");
         }
 
-        int new_socket = acceptNewConn(&readfds);
-
-        if (new_socket > 0)
-        {
-            // inform user of socket number - used in send and receive commands
-            spdlog::debug("New connection , socket fd is {} , ip is : {} , port : {}", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-
-            // send new connection greeting message
-            /*
-            if (send(new_socket, message, strlen(message), 0) != strlen(message))
-            {
-                spdlog::error("send");
-            }
-            */
-
-            // DEBUG("Welcome message sent successfully");
-        }
+        // non-blocking accept new connection call.
+        acceptNewConn(&readfds);
 
         // else its some IO operation on some other socket
         for (int i = 0; i < MAX_CLIENTS; i++)
@@ -58,14 +43,9 @@ void SocketServer::listenToSocket()
                     // set the string terminating NULL byte on the end
                     // of the data read
                     buffer[valread] = '\0';
+                    spdlog::info("Calling readMessage from client_id {}", i);
                     readMessage(i, buffer);
-
-                    /*
-                    for (int j = 0; j < MAX_CLIENTS; j++)
-                    {
-                        send(client_socket[j], buffer, strlen(buffer), 0);
-                    }
-                    */
+                    memset(buffer, 0, sizeof(buffer));
                 } else {
                     // handleErrors unsets readfds but we also need to unset writefds
                     // @TODO this is weird because I expect handleErrors to handle all sorts of things
@@ -74,26 +54,6 @@ void SocketServer::listenToSocket()
                     FD_CLR(sd, &writefds);
                 }
             }
-
-            // Constantly send the string "asdf" to all connected clients to test streaming data.
-            
-      /*
-      if (FD_ISSET(sd, &writefds))
-            {
-                const char *str = "asdf\n";
-                char arr[6];
-                strcpy(arr, str);
-                // @TODO fix this so we don't call send in a blocking manner.
-                int num_sent = send(sd, arr, strlen(arr), 0);
-
-                if (num_sent == -1) {
-                    DEBUG("Could not send data to {}", sd);
-                    close(sd);
-                    client_socket[i] = 0;
-                    continue;
-                }
-            }
-            */
         }
     }
 }
@@ -142,8 +102,8 @@ void SocketServer::bindSocket(int PORT)
     // bind the socket to localhost port 8888
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        spdlog::debug("bind failed");
-        exit(EXIT_FAILURE);
+      spdlog::debug("bind failed");
+      exit(EXIT_FAILURE);
     }
 
     spdlog::info("Listener on port {}", PORT);
@@ -190,7 +150,7 @@ void SocketServer::initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS])
     }
 }
 
-int SocketServer::acceptNewConn(fd_set *readfds)
+void SocketServer::acceptNewConn(fd_set *readfds)
 {
     int new_socket = 0;
     int addrlen = sizeof(address);
@@ -219,8 +179,6 @@ int SocketServer::acceptNewConn(fd_set *readfds)
             }
         }
     }
-
-    return new_socket;
 }
 
 bool SocketServer::sendMessage(int client_id, const char* message) {
@@ -232,37 +190,6 @@ bool SocketServer::sendMessage(int client_id, const char* message) {
   spdlog::info("sent message {} to client {}", message, client_id);
 
   return true;
-
-  // fd_set writefds;
-
-  // int max_sd = getMaxClientID(&client_socket);
-  // initFDSet(&writefds, &client_socket);
-
-  // int activity = select(max_sd + 1, NULL, &writefds, NULL, &timeout);
-
-  // if ((activity < 0) && (errno != EINTR))
-  // {
-  //   spdlog::error("select error");
-  // }
-
-  // // Constantly send the string "asdf" to all connected clients to test streaming data.
-  // if (FD_ISSET(client_id, &writefds))
-  // {
-  //   const char *str = "asdf\n";
-  //   char arr[6];
-  //   strcpy(arr, str);
-  //   // @TODO fix this so we don't call send in a blocking manner.
-  //   int num_sent = send(client_id, arr, strlen(arr), 0);
-
-  //   if (num_sent == -1) {
-  //     DEBUG("Could not send data to {}", client_id);
-  //     close(client_id);
-  //     client_socket[client_id] = 0;
-  //     return false;
-  //   }
-  // }
-
-  // return true;
 }
 
 // @TODO make buffer a pointer to this.
@@ -287,6 +214,7 @@ int SocketServer::handleErrors(int i, fd_set *readfds)
         spdlog::debug("Host disconnected, ip {}, port {}, client {}",
               inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
     }
+    spdlog::debug("Read valread {} bytes from client_id {}", valread, i);
 
     /*
     else if (valread == -1)
