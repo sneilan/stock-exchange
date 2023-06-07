@@ -40,7 +40,8 @@ NewOrderEvent Gateway::get() {
 
 void Gateway::newClient(int client_id) {
   spdlog::info("New client {}", client_id);
-  bool asdf = sendMessage(client_id, "aaaa");
+  const char * msg = "aaa";
+  bool asdf = sendMessage(client_id, msg);
   spdlog::info("Ret value {}", asdf);
 }
 

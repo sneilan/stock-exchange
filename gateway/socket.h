@@ -35,7 +35,7 @@ public:
     virtual void readMessage(int client_id, char* message) = 0;
 
     // Does not need to be implemented by subclass.
-    bool sendMessage(int socket_client_id, char* message);
+    bool sendMessage(int socket_client_id, const char* message);
     void forceDisconnect(int client_id);
 private:
     int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
