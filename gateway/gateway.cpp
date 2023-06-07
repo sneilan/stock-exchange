@@ -35,6 +35,9 @@ NewOrderEvent Gateway::get() {
     }
     // Mark the old copy of new order event in ring buffer as stale.
     gatewayRingBuf[start].stale = true;
+
+    // @TODO proper lmax algo does not increment start until another process tells it to.
+    // See https://martinfowler.com/articles/lmax.html
     start++;
     start %= GATEWAY_BUFLEN;
     return item;
