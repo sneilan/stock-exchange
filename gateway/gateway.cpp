@@ -45,9 +45,13 @@ NewOrderEvent Gateway::get() {
 
 void Gateway::newClient(int client_id) {
   spdlog::info("New client {}", client_id);
-  const char * msg = "aaa";
-  bool asdf = sendMessage(client_id, msg);
-  spdlog::info("Ret value {}", asdf);
+  const char * msg = "Welcome new client";
+  if (!sendMessage(client_id, msg)) {
+    // @TODO perhaps sendMessage can handle what happens if a client disconnects
+    // Then call our disconnected handler and let us know so we don't have to do
+    // an error handling pattern everywhere.
+    forceDisconnect(client_id);
+  }
 }
 
 void Gateway::disconnected(int client_id) {
@@ -84,7 +88,6 @@ void Gateway::readMessage(int client_id, char* message) {
   // int quantity = incomingOrder.quantity();
 
   put(incomingOrder);
-
 
   const char * msg = "order received";
   sendMessage(client_id, msg);
