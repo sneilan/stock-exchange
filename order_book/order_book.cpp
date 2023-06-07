@@ -140,7 +140,7 @@ void OrderBook::addOrder(Order* order) {
     // DEBUG("Now inside addOrder");
 
     totalVolume += order->unfilled_quantity();
-    // DEBUG("addOrder totalVolume updated");
+    spdlog::debug("totalVolume is now {}", totalVolume);
 
     Node<Order*> * node;
     if (order->side == BUY) {
