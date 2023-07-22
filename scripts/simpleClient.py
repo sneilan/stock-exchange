@@ -26,9 +26,9 @@ while True:
         message.side = 'b'
     response = sock.recv(1024)
     print(response)
-    char = sys.stdin.read(1)
-    if char == 'b':
-        break
+    # char = sys.stdin.read(1)
+    # if char == 'b':
+    #     break
 
 sock.close()
 

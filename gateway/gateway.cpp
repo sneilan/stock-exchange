@@ -1,19 +1,8 @@
-#include <iostream>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <cstring>
-#include <sys/stat.h>
-#include <csignal>
 #include "gateway.h"
-#include <spdlog/spdlog.h>
-#include "socket.h"
 
 Gateway::Gateway() {
-  int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-  ftruncate(fd, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
-  gatewayRingBuf = (NewOrderEvent*)mmap( NULL, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  memset(gatewayRingBuf, 0, sizeof(NewOrderEvent) * GATEWAY_BUFLEN); // clear shared memory block
+  mmap_info = init_mmap(name, get_mmap_size());
+  gatewayRingBuf = (NewOrderEvent*)mmap_info->location;
 
   // Initialize all orders to stale
   for (int i = 0; i < GATEWAY_BUFLEN; i++) {
@@ -22,8 +11,7 @@ Gateway::Gateway() {
 }
 
 Gateway::~Gateway() throw() {
-    munmap(gatewayRingBuf, sizeof(NewOrderEvent) * (GATEWAY_BUFLEN));
-    shm_unlink(name);
+  mark_mmap_for_deletion(name, get_mmap_size());
 }
 
 NewOrderEvent Gateway::get() {
@@ -56,6 +44,10 @@ void Gateway::newClient(int client_id) {
 
 void Gateway::disconnected(int client_id) {
   spdlog::info("Client disconnected {}", client_id);
+}
+
+int Gateway::get_mmap_size() {
+  return sizeof(NewOrderEvent) * (GATEWAY_BUFLEN);
 }
 
 // @TODO instead of recreating item each time, pass in values perhaps?

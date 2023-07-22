@@ -1,9 +1,19 @@
 #ifndef _gateway_h
 #define _gateway_h
 
+#include <iostream>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <cstring>
+#include <sys/stat.h>
+#include <csignal>
+#include <spdlog/spdlog.h>
+#include "socket.h"
 #include "../util/types.h"
 #include "proto/incoming_order.pb.h"
-#include "socket.h"
+#include "../util/mmap_wrapper.h"
+
 #define GATEWAY_BUFLEN 100
 
 struct NewOrderEvent {
@@ -35,8 +45,10 @@ class Gateway : public SocketServer {
   private:
     void put(IncomingOrder item);
     const char * name = "/gateway_ring_buf";
+    MMap_Info* mmap_info;
     int end = 0;       /* write index */
     int start = 0;     /* read index */
     NewOrderEvent* gatewayRingBuf;
+    int get_mmap_size();
 };
 #endif

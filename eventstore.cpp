@@ -1,57 +1,50 @@
 #include "eventstore.h"
+#include "util/mmap_wrapper.h"
 
 EventStore::EventStore() {
-    const char * name = "/eventstore_buff";
+  // Initialize object pool
+  
+  // mmap_info = 
 
-    int sharedMemFd = shm_open(name, O_CREAT | O_RDWR, 0666);
-    //size = sizeof(std::unordered_map<SEQUENCE_ID, Event>);
+  object_pool = new ObjectPool<Order>(MAX_OPEN_ORDERS);
 
-    ftruncate(sharedMemFd, shared_mem_size);
+  mmap_info = init_mmap(name, shared_mem_size);
+  event_store_buf = new (mmap_info->location) std::unordered_map<SEQUENCE_ID, Order*>;
+ 
+  sequence = 0;
+}
 
-    void * sharedMemPointer = mmap(nullptr, shared_mem_size, PROT_READ | PROT_WRITE, MAP_SHARED, sharedMemFd, 0);
-    if (sharedMemPointer == MAP_FAILED) {
-        throw std::runtime_error("could not initialize /eventstore_buff mmap");
-    }
-
-    memset(sharedMemPointer, 0, shared_mem_size);
-    // @TODO this is a memory leak.
-    eventStoreBuf = new (sharedMemPointer) std::unordered_map<SEQUENCE_ID, Order>;
-
-    // @TODO Handle errors returned by ftruncate.
-    // @TODO do we need this if we are not operating on a file?
-    ftruncate(sharedMemFd, sizeof(Order) * EVENTSTORE_BUFLEN);
-
-    sequence = 0;
+int EventStore::mmap_size() {
+  return shared_mem_size;
 }
 
 EventStore::~EventStore() {
-// Unmap the memory and close the file
-  if (munmap(sharedMemPointer, shared_mem_size) == -1) {
-    perror("munmap");
-  }
-
-  close(sharedMemFd);
+  mark_mmap_for_deletion(name, mmap_size());
 }
 
 SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity) {
-    Order order;
-    order.clientId = clientId;
-    order.side = side;
-    order.limitPrice = limitPrice;
-    order.quantity = quantity;
+  Order* order = object_pool->allocate();
+  order->clientId = clientId;
+  order->side = side;
+  order->limitPrice = limitPrice;
+  order->quantity = quantity;
 
-    sequence++;
-    order.id = sequence;
+  sequence++;
+  order->id = sequence;
 
-    eventStoreBuf->emplace(sequence, order);
+  event_store_buf->emplace(sequence, order);
 
-    return sequence;
+  return sequence;
+}
+
+void EventStore::remove(SEQUENCE_ID id) {
+  event_store_buf->erase(id);
 }
 
 Order * EventStore::get(SEQUENCE_ID id) {
-    return &eventStoreBuf->at(id);
+  return event_store_buf->at(id);
 }
 
 size_t EventStore::size() {
-    return eventStoreBuf->size();
+  return event_store_buf->size();
 }
