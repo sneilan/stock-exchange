@@ -16,7 +16,7 @@ struct MMap_Info {
 
 MMap_Info * init_mmap(const char * name, int size); 
 MMap_Info * open_mmap(const char * name, int size);
-void mark_mmap_for_deletion(const char * name, int size);
+void mark_mmap_for_deletion(const char * name, void * location, int size);
 void close_mmap(void * location, int size, int fd);
 
 #endif

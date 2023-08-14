@@ -18,7 +18,7 @@ int EventStore::mmap_size() {
 }
 
 EventStore::~EventStore() {
-  mark_mmap_for_deletion(name, mmap_size());
+  mark_mmap_for_deletion(name, mmap_info->location, mmap_size());
 }
 
 
