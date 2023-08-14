@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-message IncomingOrder {
-  int32 limitPrice = 1;
-  string side = 2;
-  int32 clientId = 3;
-  int32 quantity = 4;
-}
-

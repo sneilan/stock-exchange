@@ -52,12 +52,12 @@ int Gateway::get_mmap_size() {
 
 // @TODO instead of recreating item each time, pass in values perhaps?
 // one less copy per call.
-void Gateway::put(IncomingOrder item) {
-    gatewayRingBuf[end].clientId = item.clientid();
-    gatewayRingBuf[end].limitPrice = item.limitprice();
-    gatewayRingBuf[end].side = item.side()[0];
-    gatewayRingBuf[end].quantity = item.quantity();
-    gatewayRingBuf[end].stale = false;
+void Gateway::put(char* item) {
+    // gatewayRingBuf[end].clientId = item.clientid();
+    // gatewayRingBuf[end].limitPrice = item.limitprice();
+    // gatewayRingBuf[end].side = item.side()[0];
+    // gatewayRingBuf[end].quantity = item.quantity();
+    // gatewayRingBuf[end].stale = false;
 
     end++;
 
@@ -67,15 +67,16 @@ void Gateway::put(IncomingOrder item) {
 }
 
 void Gateway::readMessage(int client_id, char* message) {
-  IncomingOrder incomingOrder;
+  // IncomingOrder incomingOrder;
 
   spdlog::info("Read message from {}", client_id);
-  if (!incomingOrder.ParseFromString(message)) {
+
+  // if (!incomingOrder.ParseFromString(message)) {
     spdlog::info("Failed to parse incoming order.");
     return;
-  }
+  // }
 
-  put(incomingOrder);
+  // put(incomingOrder);
 
   const char * msg = "order received";
   sendMessage(client_id, msg);
