@@ -25,3 +25,4 @@ target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(test PRIVATE Catch2::Catch2)
 
+
