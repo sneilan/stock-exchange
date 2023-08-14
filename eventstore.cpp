@@ -22,6 +22,7 @@ EventStore::~EventStore() {
   mark_mmap_for_deletion(name, mmap_size());
 }
 
+
 SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity) {
   Order* order = object_pool->allocate();
   order->clientId = clientId;
