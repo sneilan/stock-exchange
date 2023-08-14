@@ -61,7 +61,7 @@ void Gateway::put(char* item) {
 
     end++;
 
-    spdlog::info("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
+    // spdlog::info("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
 
     end %= GATEWAY_BUFLEN;
 }
