@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include <stdexcept>
+#include <cstring>
 
 struct MMap_Info {
   int fd;

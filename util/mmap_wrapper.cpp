@@ -13,7 +13,7 @@ MMap_Info * init_mmap(const char * name, int size) {
     throw std::runtime_error("could not initialize mmap");
   }
 
-  memset(location, 0, size);
+  memset((wchar_t *)location, 0, size);
 
   MMap_Info * info = new MMap_Info();
   info->location = location;

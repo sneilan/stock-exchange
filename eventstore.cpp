@@ -1,5 +1,4 @@
 #include "eventstore.h"
-#include "util/mmap_wrapper.h"
 
 EventStore::EventStore() {
   // Initialize object pool
