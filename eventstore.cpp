@@ -6,7 +6,7 @@ EventStore::EventStore() {
   
   // mmap_info = 
 
-  object_pool = new ObjectPool<Order>(MAX_OPEN_ORDERS);
+  object_pool = new ObjectPool<Order>(MAX_OPEN_ORDERS, "pool_name3", "free_space_name3");
 
   mmap_info = init_mmap(name, shared_mem_size);
   event_store_buf = new (mmap_info->location) std::unordered_map<SEQUENCE_ID, Order*>;

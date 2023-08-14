@@ -17,7 +17,7 @@ TEST_CASE("Basic allocation test.") {
 };
 
 TEST_CASE("Allocate and free randomly") {
-  ObjectPool<int> allocator(10);
+  ObjectPool<int> allocator(10, "pool_name", "free_space_name");
 
   int * a = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 1);
@@ -46,7 +46,7 @@ TEST_CASE("Allocate and free randomly") {
 };
 
 TEST_CASE("Crash if we allocate more than we allow") {
-  ObjectPool<int> allocator(1);
+  ObjectPool<int> allocator(1, "pool_name2", "free_space_name2");
   allocator.allocate();
   REQUIRE_THROWS(allocator.allocate());
 };
