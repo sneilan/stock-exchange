@@ -13,14 +13,26 @@ MMap_Info * init_mmap(const char * name, int size) {
     throw std::runtime_error("could not initialize mmap");
   }
 
-  memset((wchar_t *)location, 0, size);
+  new (location) char[size];
 
+  memset(location, 0, size);
+
+  // This is allocated w/o a destructor as it is assumed
+  // program will instantiate an mmap once.
   MMap_Info * info = new MMap_Info();
+
   info->location = location;
   info->fd = fd;
+  info->name = name;
+  info->size = size;
 
   return info;
 };
+
+void delete_mmap(MMap_Info * info) {
+  munmap(info->location, info->size);
+  shm_unlink(info->name);
+}
 
 MMap_Info * open_mmap(const char * name, int size) {
   int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
@@ -31,19 +43,18 @@ MMap_Info * open_mmap(const char * name, int size) {
     throw std::runtime_error("could not initialize mmap");
   }
 
+  // This is allocated w/o a destructor as it is assumed
+  // program will instantiate an mmap once.
   MMap_Info * info = new MMap_Info();
   info->location = location;
   info->fd = fd;
+  info->name = name;
+  info->size = size;
 
   return info;
 }
 
-void mark_mmap_for_deletion(const char * name, void * location, int size) {
-  munmap(location, size);
-  shm_unlink(name);
-}
-
-void close_mmap(void * location, int size, int fd) {
-  munmap(location, size);
-  close(fd);
+void close_mmap(MMap_Info * info) {
+  munmap(info->location, info->size);
+  close(info->fd);
 }

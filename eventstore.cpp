@@ -1,11 +1,7 @@
 #include "eventstore.h"
 
 EventStore::EventStore() {
-  // Initialize object pool
-  
-  // mmap_info = 
-
-  object_pool = new ObjectPool<Order>(MAX_OPEN_ORDERS, "pool_name3", "free_space_name3");
+  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, "pool_name3", true);
 
   mmap_info = init_mmap(name, shared_mem_size);
   event_store_buf = new (mmap_info->location) std::unordered_map<SEQUENCE_ID, Order*>;
@@ -18,7 +14,7 @@ int EventStore::mmap_size() {
 }
 
 EventStore::~EventStore() {
-  mark_mmap_for_deletion(name, mmap_info->location, mmap_size());
+  delete_mmap(mmap_info);
 }
 
 

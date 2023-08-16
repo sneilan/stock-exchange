@@ -3,21 +3,22 @@
 
 #include "../../util/object_pool.h"
 
-const char * pool_name = "/object_pool";
-const char * free_space_name = "/free_space";
+const char * pool_name = "/object_pool222";
 
 TEST_CASE("Basic allocation test.") {
-  ObjectPool<int> allocator(10, pool_name, free_space_name);
+  MMapObjectPool<int> allocator(10, pool_name, true);
 
   int * a = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 1);
 
   allocator.free(a);
   REQUIRE(allocator.num_obj_stored() == 0);
+
+  allocator.cleanup();
 };
 
 TEST_CASE("Allocate and free randomly") {
-  ObjectPool<int> allocator(10, "pool_name", "free_space_name");
+  MMapObjectPool<int> allocator(10, "pool_name", true);
 
   int * a = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 1);
@@ -43,11 +44,15 @@ TEST_CASE("Allocate and free randomly") {
   a = allocator.allocate();
   REQUIRE(allocator.num_random_free_spaces() == 0);
   REQUIRE(allocator.num_obj_stored() == 3);
+
+  allocator.cleanup();
 };
 
 TEST_CASE("Crash if we allocate more than we allow") {
-  ObjectPool<int> allocator(1, "pool_name2", "free_space_name2");
+  MMapObjectPool<int> allocator(1, "pool_name2", true);
   allocator.allocate();
   REQUIRE_THROWS(allocator.allocate());
+
+  allocator.cleanup();
 };
 

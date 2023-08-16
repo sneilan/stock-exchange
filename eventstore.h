@@ -34,7 +34,7 @@ private:
 
   SEQUENCE_ID sequence;
   std::unordered_map<SEQUENCE_ID, Order*>* event_store_buf;
-  ObjectPool<Order>* object_pool;
+  MMapObjectPool<Order>* object_pool;
 };
 
 #endif

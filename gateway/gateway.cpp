@@ -11,7 +11,7 @@ Gateway::Gateway() {
 }
 
 Gateway::~Gateway() throw() {
-  mark_mmap_for_deletion(name, mmap_info->location, get_mmap_size());
+  delete_mmap(mmap_info);
 }
 
 NewOrderEvent Gateway::get() {
