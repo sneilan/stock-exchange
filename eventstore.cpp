@@ -6,10 +6,6 @@ EventStore::EventStore() {
   sequence = 0;
 }
 
-int EventStore::mmap_size() {
-  return shared_mem_size;
-}
-
 EventStore::~EventStore() {
   delete_mmap(mmap_info);
 }

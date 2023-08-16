@@ -24,13 +24,9 @@ public:
   size_t size();
 
 private:
-  // This determines upper bound on number of orders we can store.
-  size_t shared_mem_size = 100000;
-
   // Location of shared memory block where we store orders.
   MMap_Info * mmap_info;
   const char * name = "/eventstore_buf";
-  int mmap_size();
 
   SEQUENCE_ID sequence;
   // std::unordered_map<SEQUENCE_ID, Order*>* event_store_buf;
