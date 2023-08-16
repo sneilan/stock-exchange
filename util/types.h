@@ -1,6 +1,7 @@
 #ifndef types_h
 #define types_h
 
+#include <cstdint>
 #define PRICE int
 
 #define SIDE char
@@ -30,6 +31,9 @@ struct Order {
     PRICE limitPrice;
     char clientId;
     int status = SUBMITTED;
+
+    int64_t created_at;
+    int64_t updated_at;
 
     // created_at, updated_at etc.
 };

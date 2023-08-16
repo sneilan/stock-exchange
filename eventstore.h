@@ -33,7 +33,7 @@ private:
   int mmap_size();
 
   SEQUENCE_ID sequence;
-  std::unordered_map<SEQUENCE_ID, Order*>* event_store_buf;
+  // std::unordered_map<SEQUENCE_ID, Order*>* event_store_buf;
   MMapObjectPool<Order>* object_pool;
 };
 
