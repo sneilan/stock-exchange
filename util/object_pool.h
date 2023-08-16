@@ -9,6 +9,9 @@
 // Compiler needs access to all source to generate code for template https://stackoverflow.com/a/1353981/761726
 // http://www.parashift.com/c++-faq-lite/templates-defn-vs-decl.html
 
+#define IS_CONTROLLER true
+#define IS_CLIENT false
+
 template <typename T>
 class MMapObjectPool {
 private:
@@ -25,10 +28,10 @@ private:
   bool is_controller;
 public:
   MMapObjectPool(int max_num_obj, const char * pool_name, bool _is_controller);
-  // allocate should return an offset
-  // or there should be a function that given the pointer from allocate, returns the offset
-  // that can be passed into a ring buffer for use in other processes.
+  ~MMapObjectPool();
   T* allocate();
+  int pointer_to_offset(T* pointer);
+  T* offset_to_pointer(int offset);
   void free(T* obj);
   int num_obj_stored();
   int num_random_free_spaces();
@@ -45,6 +48,11 @@ void MMapObjectPool<T>::cleanup() {
 }
 
 template <typename T>
+MMapObjectPool<T>::~MMapObjectPool() {
+  cleanup();
+}
+
+template <typename T>
 int MMapObjectPool<T>::num_obj_stored() {
   return cur_num_obj;
 }
@@ -52,6 +60,16 @@ int MMapObjectPool<T>::num_obj_stored() {
 template <typename T>
 int MMapObjectPool<T>::num_random_free_spaces() {
   return num_free_spaces;
+}
+
+template <typename T>
+int MMapObjectPool<T>::pointer_to_offset(T* pointer) {
+  return pointer - (T*)mmap_info->location;
+}
+
+template <typename T>
+T* MMapObjectPool<T>::offset_to_pointer(int offset) {
+  return (T*)mmap_info->location + offset;
 }
 
 template <typename T>
