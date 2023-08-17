@@ -82,6 +82,8 @@ TEST_CASE("Can processes share object pool") {
   if (c_pid > 0) {
     // parent. Will continue testing.
     REQUIRE(allocator.pointer_to_offset(a) == 1);
+    int status;
+    waitpid(c_pid, &status, 0);
   } else {
     // child
     MMapObjectPool<int> client_allocator(10, pool_name, IS_CLIENT);
