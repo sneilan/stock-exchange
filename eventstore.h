@@ -29,7 +29,7 @@ private:
   const char * name = "/eventstore_buf";
 
   SEQUENCE_ID sequence;
-  // std::unordered_map<SEQUENCE_ID, Order*>* event_store_buf;
+  std::unordered_map<SEQUENCE_ID, ORDER_MMAP_OFFSET> event_store;
   MMapObjectPool<Order>* object_pool;
 };
 

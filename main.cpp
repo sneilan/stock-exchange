@@ -10,10 +10,9 @@
 
 int main() {
   Gateway * gateway = new Gateway();
-  EventStore * eventStore = new EventStore();
 
   spdlog::info("Exchange starting");
-  spdlog::set_level(spdlog::level::debug);
+  spdlog::set_level(spdlog::level::info);
 
   pid_t c_pid = fork();
 
@@ -27,6 +26,7 @@ int main() {
     // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
     gateway->run();
   } else {
+    EventStore * eventStore = new EventStore();
     // Child
     OrderBook* orderBook = new OrderBook();
 
@@ -40,7 +40,7 @@ int main() {
         spdlog::debug("Sequence ID is now {} & size is now {}", id, eventStore->size());
 
         // Get response here & spool information to new ring buffer
-        Order * order = eventStore->get(id);
+        Order* order = eventStore->get(id);
         // @TODO This is a call to the matching engine. newOrder name should be more descriptive.
         std::list<Order *> updated_orders = orderBook->newOrder(order);
         spdlog::debug("Order book volume is now {}", orderBook->getVolume());

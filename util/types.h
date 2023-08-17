@@ -9,6 +9,7 @@
 #define SELL 's'
 
 #define SEQUENCE_ID unsigned long long
+#define ORDER_MMAP_OFFSET int
 #define SUBMITTED 0
 #define FILLED 1
 #define CANCELLED 2

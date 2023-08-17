@@ -85,9 +85,9 @@ TEST_CASE("Can processes share object pool") {
   } else {
     // child
     MMapObjectPool<int> client_allocator(10, pool_name, IS_CLIENT);
-    int * b = allocator.offset_to_pointer(a_offset);
+    int * b = client_allocator.offset_to_pointer(a_offset);
     REQUIRE(*b == 5);
-    REQUIRE(allocator.pointer_to_offset(b) == 1);
+    REQUIRE(client_allocator.pointer_to_offset(b) == 1);
     client_allocator.cleanup();
     exit(0);
   }

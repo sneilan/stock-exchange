@@ -21,23 +21,22 @@ SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int
   order->id = sequence;
   sequence++;
 
-  // @TODO implement hash map so we can index orders by id.
-  // Then when traders want to update / cancel an order, they can give us the id
-  // and we can map it to an order.
+  ORDER_MMAP_OFFSET offset = object_pool->pointer_to_offset(order);
+
+  event_store.emplace(sequence, offset);
+
   return sequence;
 }
 
 void EventStore::remove(SEQUENCE_ID id) {
-
-  // event_store_buf->erase(id);
+  event_store.erase(id);
 }
 
-Order * EventStore::get(SEQUENCE_ID id) {
-  return 0;
-  // return event_store_buf->at(id);
+Order* EventStore::get(SEQUENCE_ID id) {
+  ORDER_MMAP_OFFSET offset = event_store.at(id);
+  return object_pool->offset_to_pointer(offset);
 }
 
 size_t EventStore::size() {
-  return 0;
-  // return event_store_buf->size();
+  return event_store.size();
 }
