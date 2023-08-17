@@ -13,3 +13,7 @@ make
 brew install catch2 # or apt-get / yum / whatever for your platform.
 make test
 ```
+
+## Notes to Self
+Check out https://github.com/upandey3/MatchingEngine
+
