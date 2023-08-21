@@ -50,33 +50,24 @@ int Gateway::get_mmap_size() {
   return sizeof(NewOrderEvent) * (GATEWAY_BUFLEN);
 }
 
-// @TODO instead of recreating item each time, pass in values perhaps?
-// one less copy per call.
-void Gateway::put(char* item) {
-    // gatewayRingBuf[end].clientId = item.clientid();
-    // gatewayRingBuf[end].limitPrice = item.limitprice();
-    // gatewayRingBuf[end].side = item.side()[0];
-    // gatewayRingBuf[end].quantity = item.quantity();
-    // gatewayRingBuf[end].stale = false;
-
-    end++;
-
-    // spdlog::info("Ring buffer Order recieved from client {} for price {} for side {}", item.clientid(), item.limitprice(), item.side()[0]);
-
-    end %= GATEWAY_BUFLEN;
-}
-
 void Gateway::readMessage(int client_id, char* message) {
-  // IncomingOrder incomingOrder;
-
   spdlog::info("Read message from {}", client_id);
 
-  // if (!incomingOrder.ParseFromString(message)) {
-    spdlog::info("Failed to parse incoming order.");
-    return;
-  // }
+  gatewayRingBuf[end].clientId = ((NewOrderEvent*)message)->clientId;
+  gatewayRingBuf[end].limitPrice = ((NewOrderEvent*)message)->limitPrice;
+  gatewayRingBuf[end].side = ((NewOrderEvent*)message)->side;
+  gatewayRingBuf[end].quantity = ((NewOrderEvent*)message)->quantity;
+  gatewayRingBuf[end].stale = false;
 
-  // put(incomingOrder);
+  end++;
+
+  spdlog::info("Ring buffer Order recieved from client {} for price {} for side {}",
+    gatewayRingBuf[end].clientId,
+    gatewayRingBuf[end].limitPrice,
+    gatewayRingBuf[end].side
+  );
+
+  end %= GATEWAY_BUFLEN;
 
   const char * msg = "order received";
   sendMessage(client_id, msg);

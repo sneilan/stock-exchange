@@ -20,23 +20,22 @@
 #define ONE_CENT 1
 
 struct Order {
-    SEQUENCE_ID id;
+    char clientId;
     int quantity;
+    SIDE side;
+    PRICE limitPrice;
+
+    SEQUENCE_ID id;
     int filled_quantity = 0;
 
     int unfilled_quantity() {
         return quantity - filled_quantity;
     }
 
-    SIDE side;
-    PRICE limitPrice;
-    char clientId;
     int status = SUBMITTED;
 
     int64_t created_at;
-    int64_t updated_at;
-
-    // created_at, updated_at etc.
+    // int64_t updated_at;
 };
 
 #endif

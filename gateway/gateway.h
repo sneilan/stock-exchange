@@ -43,7 +43,6 @@ class Gateway : public SocketServer {
     // Then parsers & puts incoming orders into the ring buffer managed by gateway.
     void run();
   private:
-    void put(char * item);
     const char * name = "/gateway_ring_buf";
     MMap_Info* mmap_info;
     int end = 0;       /* write index */

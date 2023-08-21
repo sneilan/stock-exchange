@@ -1,6 +1,5 @@
 import socket
 import sys
-import gateway.proto.incoming_order_pb2 as incoming_order
 
 host = 'localhost'
 port = 8888
@@ -10,8 +9,19 @@ sock.connect((host, port))
 response = sock.recv(1024)
 print(response)
 
-# send/receive data here.
-message = incoming_order.IncomingOrder()
+message = bytearray()
+# buy
+message.append()
+# sell
+
+
+    char side;
+    // Stored in pennies
+    // $10.05 = 1005
+    PRICE limitPrice;
+    int quantity;
+    char clientId;
+
 message.limitPrice = 100
 message.side = "b"
 message.clientId = 123
