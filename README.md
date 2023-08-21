@@ -11,6 +11,12 @@ make
 ## Tests
 ```
 brew install catch2 # or apt-get / yum / whatever for your platform.
+# for ubuntu/debian/popos
+sudo apt install libspdlog-dev
+# install Catch2 from https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md#installing-catch2-from-git-repository
+# (I use the git clone version)
+cmake .
+make
 make test
 ```
 
