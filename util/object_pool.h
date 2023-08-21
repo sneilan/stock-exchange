@@ -4,6 +4,7 @@
 #include "mmap_wrapper.h"
 #include <stdexcept>
 #include <spdlog/spdlog.h>
+#include <sys/wait.h>
 
 // Note to self, template classes must reside entirely in header files
 // Compiler needs access to all source to generate code for template https://stackoverflow.com/a/1353981/761726

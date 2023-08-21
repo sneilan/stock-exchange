@@ -12,21 +12,22 @@ print(response)
 
 def get_side(side):
     return bytes(side, 'ascii')
-side = get_side('b')
+
+side = 'b'
 
 while True:
-    side = 'b'
     price = 500
     quantity = 1
     message = pack(
         'ciic',
-        get_side,
+        get_side(side),
         price,
         quantity,
         bytes('0', 'ascii')
     )
 
     sock.sendall(message)
+
     if side == 'b':
         side = 's'
     else:
@@ -35,9 +36,9 @@ while True:
     response = sock.recv(1024)
     print(response)
 
-    char = sys.stdin.read(1)
-    if char == 'b':
-        break
+    # char = sys.stdin.read(1)
+    # if char == 'b':
+    #     break
 
 sock.close()
 
