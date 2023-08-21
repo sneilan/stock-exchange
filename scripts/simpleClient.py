@@ -8,6 +8,7 @@ port = 8888
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((host, port))
 response = sock.recv(1024)
+import random
 print(response)
 
 def get_side(side):
@@ -16,14 +17,14 @@ def get_side(side):
 side = 'b'
 
 while True:
-    price = 500
-    quantity = 1
+    price = random.randrange(100, 1000)
+    quantity = random.randrange(100, 200, 10)
     message = pack(
         'ciic',
         get_side(side),
         price,
         quantity,
-        bytes('0', 'ascii')
+        bytes(str(random.randrange(0, 9)), 'ascii')
     )
 
     sock.sendall(message)
