@@ -1,5 +1,6 @@
 import socket
 import sys
+from struct import pack
 
 host = 'localhost'
 port = 8888
@@ -9,36 +10,34 @@ sock.connect((host, port))
 response = sock.recv(1024)
 print(response)
 
-message = bytearray()
-# buy
-message.append()
-# sell
-
-
-    char side;
-    // Stored in pennies
-    // $10.05 = 1005
-    PRICE limitPrice;
-    int quantity;
-    char clientId;
-
-message.limitPrice = 100
-message.side = "b"
-message.clientId = 123
-message.quantity = 10
-# print(message.SerializeToString())
+def get_side(side):
+    return bytes(side, 'ascii')
+side = get_side('b')
 
 while True:
-    sock.sendall(message.SerializeToString())
-    if message.side == 'b':
-        message.side = 's'
+    side = 'b'
+    price = 500
+    quantity = 1
+    message = pack(
+        'ciic',
+        get_side,
+        price,
+        quantity,
+        bytes('0', 'ascii')
+    )
+
+    sock.sendall(message)
+    if side == 'b':
+        side = 's'
     else:
-        message.side = 'b'
+        side = 'b'
+
     response = sock.recv(1024)
     print(response)
-    # char = sys.stdin.read(1)
-    # if char == 'b':
-    #     break
+
+    char = sys.stdin.read(1)
+    if char == 'b':
+        break
 
 sock.close()
 
