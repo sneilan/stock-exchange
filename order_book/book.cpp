@@ -12,10 +12,11 @@ void Book::initPriceDataStructures(int start, int end) {
     }
 }
 
-std::list<Order *> Book::fillOrder(Order* order) {
+std::list<Order *> Book::fillOrder(Order* order, PriceLevel* level) {
     int initial_quantity = order->unfilled_quantity();
 
-    PriceLevel* level = limitMap->at(order->limitPrice);
+    // here is the bug. we need to fill prices at best bid / ask
+    // PriceLevel* level = limitMap->at(order->limitPrice);
     std::list<Order* > updated_orders = level->fillOrder(order);
 
     totalVolume -= (initial_quantity - order->unfilled_quantity());

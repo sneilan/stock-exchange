@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 from struct import pack
 
 host = 'localhost'
@@ -17,8 +18,15 @@ def get_side(side):
 side = 'b'
 
 while True:
+    # char = sys.stdin.read(1)
+    # if char == 'b':
+    #     break
+    time.sleep(1)
+
     price = random.randrange(100, 1000)
     quantity = random.randrange(100, 200, 10)
+    # price = 100
+    # quantity = 100
     message = pack(
         'ciic',
         get_side(side),
@@ -36,10 +44,6 @@ while True:
 
     response = sock.recv(1024)
     print(response)
-
-    # char = sys.stdin.read(1)
-    # if char == 'b':
-    #     break
 
 sock.close()
 

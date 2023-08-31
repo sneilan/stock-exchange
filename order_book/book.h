@@ -20,7 +20,7 @@ class Book {
         Node<Order*> * addOrder(Order* order);
         // Given an order from the other side, attempt to fill it using
         // orders from this book.
-        std::list<Order *> fillOrder(Order* order);
+        std::list<Order *> fillOrder(Order* order, PriceLevel* level);
 
         void cancelOrder(Node<Order*> * node);
         int getVolume();

@@ -90,3 +90,27 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
     orderBook->newOrder(sellOrderLower);
     REQUIRE(orderBook->getAsk()->getPrice() == sellOrderLower->limitPrice);
 }
+
+TEST_CASE("order_book - odd lots") {
+    OrderBook* orderBook = new OrderBook();
+
+    // Order * order1 = customOrder(100, 100, 'b');
+    // orderBook->newOrder(order1);
+    // Order * order2 = customOrder(300, 100, 's');
+    // orderBook->newOrder(order2);
+    // Order * order3 = customOrder(200, 100, 'b');
+    // orderBook->newOrder(order3);
+    // Order * order4 = customOrder(150, 100, 's');
+    // orderBook->newOrder(order4);
+
+
+    Order * order1 = customOrder(100, 100, 'b');
+    orderBook->newOrder(order1);
+    Order * order2 = customOrder(110, 100, 's');
+    orderBook->newOrder(order2);
+    Order * order3 = customOrder(105, 100, 'b');
+    orderBook->newOrder(order3);
+    Order * order4 = customOrder(103, 100, 's');
+    orderBook->newOrder(order4);
+
+}

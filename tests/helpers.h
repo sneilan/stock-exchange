@@ -4,6 +4,7 @@
 #include "../order_book/order_book.h"
 
 Order * createDefaultOrder();
+Order * customOrder(int price, int quantity, char side);
 
 Order * orderQuantity(int quantity);
 

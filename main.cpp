@@ -7,12 +7,14 @@
 #include "eventstore.h"
 #include "order_book/order_book.h"
 #include <spdlog/spdlog.h>
+#include <linux/prctl.h>
+#include <sys/prctl.h>
 
 int main() {
   Gateway * gateway = new Gateway();
 
   spdlog::info("Exchange starting");
-  spdlog::set_level(spdlog::level::info);
+  spdlog::set_level(spdlog::level::debug);
 
   pid_t c_pid = fork();
 
@@ -24,8 +26,10 @@ int main() {
   if (c_pid > 0) {
     // Parent
     // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
+    prctl(PR_SET_NAME, "exchangeGateway", NULL, NULL, NULL);
     gateway->run();
   } else {
+    prctl(PR_SET_NAME, "exchangeMatchingEngine", NULL, NULL, NULL);
     EventStore * eventStore = new EventStore();
     // Child
     OrderBook* orderBook = new OrderBook();
@@ -41,9 +45,11 @@ int main() {
 
         // Get response here & spool information to new ring buffer
         Order* order = eventStore->get(id);
+        spdlog::debug("Grabbed order {}", (long)order);
         // @TODO This is a call to the matching engine. newOrder name should be more descriptive.
         std::list<Order *> updated_orders = orderBook->newOrder(order);
         spdlog::debug("Order book volume is now {}", orderBook->getVolume());
+        spdlog::debug("Orders updated are size {}", updated_orders.size());
 
         // @TODO send updated order information to the clients via another ring buffer.
         // Another process will read from this ring buffer and send data to the client.

@@ -27,6 +27,8 @@ class OrderBook {
         void addOrder(Order *);
         std::list<Order *> fillOrder(Order* order);
         bool isOpposingOrderBookBlank(Order* order);
+        int opposingOrderVolume(Order* order);
+        int bookOrderVolume(Order* order);
         void adjustBidAskIfOrderIsBetterPrice(Order* order);
         bool orderCrossedSpread(Order* order);
         void setBidAskToReflectMarket();

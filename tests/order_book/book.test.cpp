@@ -35,10 +35,11 @@ TEST_CASE("Book test - fill order") {
     Order * oppositeOrder = orderQuantity(50);
     REQUIRE(order->limitPrice == oppositeOrder->limitPrice);
     REQUIRE(book.get(oppositeOrder->limitPrice)->getVolume() == 100);
+    PriceLevel * level = book.get(oppositeOrder->limitPrice);
 
-    std::list<Order *> updated_orders = book.fillOrder(oppositeOrder);
+    std::list<Order *> updated_orders = book.fillOrder(oppositeOrder, level);
 
     REQUIRE(book.getVolume() == 50);
 
-    REQUIRE(book.fillOrder(orderQuantity(5)).size() == 1);
+    REQUIRE(book.fillOrder(orderQuantity(5), level).size() == 1);
 }

@@ -3,189 +3,265 @@
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order * order) {
-    std::list<Order *> updated_orders;
+  std::list<Order *> updated_orders;
 
-    spdlog::debug("Called newOrder");
+  spdlog::info("Called newOrder on Order {} side {} price {} quantity {}", order->id, order->side, order->limitPrice, order->unfilled_quantity());
 
-    if (isOpposingOrderBookBlank(order)) {
-        spdlog::debug("Called isOpposingOrderBookBlank1");
+  if (isOpposingOrderBookBlank(order)) {
+    spdlog::debug("isOpposingOrderBookBlank returned true");
 
-        addOrder(order);
-        spdlog::debug("Called addOrder1");
+    addOrder(order);
+    spdlog::debug("addOrder called by isOpposingOrderBookBlank");
 
-        adjustBidAskIfOrderIsBetterPrice(order);
-        spdlog::debug("Called adjustBidAskIfOrderIsBetterPrice");
+    adjustBidAskIfOrderIsBetterPrice(order);
+    spdlog::debug("adjustBidAskIfOrderIsBetterPrice called by isOpposingOrderBookBlank");
 
-        return updated_orders;
-    }
-
-    // If this order has not crossed the spread meaning
-    // if it's a buy order it's less than current ask and
-    // if a sell order greater than current bid.
-    if (!orderCrossedSpread(order)) {
-        spdlog::debug("orderCrossedSpread returned false");
-
-        addOrder(order);
-        spdlog::debug("Called addOrder2");
-
-        adjustBidAskIfOrderIsBetterPrice(order);
-        spdlog::debug("Called adjustBidAskIfOrderIsBetterPrice2");
-
-        return updated_orders;
-    }
-
-    // In this implementation, if you are willing to cross the spread, you get the trade.
-    // This is changeable to create different trading scenarios.
-
-    // Iteratively attempt to fill the order until we can't.
-    // Then insert the rest of the order into the book.
-    while (order->unfilled_quantity() > 0) {
-        updated_orders.merge(this->fillOrder(order));
-        spdlog::debug("Called fillOrder");
-
-        // If there are no more orders, return.
-        if (isOpposingOrderBookBlank(order)) {
-            // @TODO should probably wrap bestAsk updates in a setter so we can report changes.
-            bestAsk = nullptr;
-            return updated_orders;
-        }
-
-        // Because we filled some orders, update the best ask if necessary.
-        setBidAskToReflectMarket();
-    }
+    spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
+    spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
 
     return updated_orders;
+  }
+
+  // If this order has not crossed the spread meaning
+  // if it's a buy order it's less than current ask and
+  // if a sell order greater than current bid.
+  if (!orderCrossedSpread(order)) {
+    spdlog::debug("orderCrossedSpread returned false");
+
+    addOrder(order);
+    spdlog::debug("addOrder called by orderCrossedSpread");
+
+    adjustBidAskIfOrderIsBetterPrice(order);
+    spdlog::debug("adjustBidAskIfOrderIsBetterPrice called by orderCrossedSpread");
+
+    spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
+    spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
+
+    return updated_orders;
+  }
+
+  // In this implementation, if you are willing to cross the spread, you get the trade.
+  // This is changeable to create different trading scenarios.
+
+  // Iteratively attempt to fill the order until we can't.
+  // Then insert the rest of the order into the book.
+  spdlog::debug("unfilledQuantity on order is {}", order->unfilled_quantity());
+  spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
+  spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
+  while (order->unfilled_quantity() > 0) {
+    updated_orders.merge(this->fillOrder(order));
+    spdlog::debug("Called fillOrder");
+
+    spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
+    spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
+
+    // If there are no more orders, return.
+    if (isOpposingOrderBookBlank(order)) {
+      // @TODO should probably wrap bestAsk updates in a setter so we can report changes.
+      bestAsk = nullptr;
+      return updated_orders;
+    }
+
+    // Because we filled some orders, update the best ask if necessary.
+    setBidAskToReflectMarket();
+  }
+
+  return updated_orders;
 }
 
 void OrderBook::cancelOrder(SEQUENCE_ID id) {
-    Node<Order *> * node = orderMap->at(id);
-    totalVolume -= node->data->unfilled_quantity();
+  Node<Order *> * node = orderMap->at(id);
+  totalVolume -= node->data->unfilled_quantity();
 
-    Order * order = node->data;
+  Order * order = node->data;
 
-    if (order->side == BUY) {
-        buyBook->cancelOrder(node);
-    } else if (order->side == SELL) {
-        sellBook->cancelOrder(node);
-    }
+  if (order->side == BUY) {
+    buyBook->cancelOrder(node);
+  } else if (order->side == SELL) {
+    sellBook->cancelOrder(node);
+  }
 
-    orderMap->erase(id);
+  orderMap->erase(id);
 }
 
 bool OrderBook::orderCrossedSpread(Order* order) {
-    if (order->side == BUY) {
-        return order->limitPrice >= bestAsk->getPrice();
-    }
+  if (order->side == BUY) {
+    return order->limitPrice >= bestAsk->getPrice();
+  }
 
-    // Order is sell side.
-    return order->limitPrice <= bestBid->getPrice();
+  // Order is sell side.
+  return order->limitPrice <= bestBid->getPrice();
 }
 
 void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order* order) {
-    spdlog::debug("adjustBidAskIfOrderIsBetterPrice called");
+  spdlog::debug("adjustBidAskIfOrderIsBetterPrice called for order id {}", order->id);
+  // spdlog::debug("adjustBidAskIfOrderIsBetterPrice bid {}/{} ask {}/{}",
+  //               bestBid->getPrice(),
+  //               bestBid->getVolume(),
+  //               bestAsk->getPrice(),
+  //               bestAsk->getVolume());
 
-    if (order->side == BUY) {
-        // DEBUG("adjustBidAskIfOrderIsBetterPrice BUY");
-        // If there are no sell orders & this is a higher bid, move up the bid.
-        if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
-            // DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for BUY true");
-            
-            bestBid = buyBook->get(order->limitPrice);
-            // DEBUG("adjustBidAskIfOrderIsBetterPrice set bestBid");
-        }
-    } else if (order->side == SELL) {
-        spdlog::debug("adjustBidAskIfOrderIsBetterPrice SELL");
-        // If there are no buy orders & this is a lower ask, lower the ask
-        if (bestAsk == nullptr || order->limitPrice < bestAsk->getPrice()) {
-            spdlog::debug("adjustBidAskIfOrderIsBetterPrice comparison for SELL true");
+  if (order->side == BUY) {
+    // DEBUG("adjustBidAskIfOrderIsBetterPrice BUY");
+    // If there are no sell orders & this is a higher bid, move up the bid.
+    if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
+      // DEBUG("adjustBidAskIfOrderIsBetterPrice comparison for BUY true");
 
-            bestAsk = sellBook->get(order->limitPrice);
-            spdlog::debug("adjustBidAskIfOrderIsBetterPrice set bestAsk");
-        }
+      bestBid = buyBook->get(order->limitPrice);
+      spdlog::debug("adjustBidAskIfOrderIsBetterPrice set bid to {}/{}", bestBid->getPrice(), bestBid->getVolume());
     }
+  } else if (order->side == SELL) {
+    // If there are no buy orders & this is a lower ask, lower the ask
+    if (bestAsk == nullptr || order->limitPrice < bestAsk->getPrice()) {
+      // spdlog::debug("adjustBidAskIfOrderIsBetterPrice comparison for SELL true");
+
+      bestAsk = sellBook->get(order->limitPrice);
+      spdlog::debug("adjustBidAskIfOrderIsBetterPrice set ask to {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
+    }
+  }
 }
 
 void OrderBook::setBidAskToReflectMarket() {
-    // If we ran out of orders at this price level,
-    // Find the next best selling price & make that the ask.
-    while (bestAsk->getVolume() == 0) {
-        PriceLevel * newBestAsk = sellBook->get(bestAsk->getPrice() + ONE_CENT);
-        // sell book get should return null ptr if we retrieve a bad price.
-        // or consider adding new prices automagically.
-        if (newBestAsk != nullptr && newBestAsk->getVolume() > 0) {
-            bestAsk = newBestAsk;
-        }
+  spdlog::debug("setBidAskToReflectMarket called. bid is {}/{}. ask is {}/{}",
+                bestBid->getPrice(),
+                bestBid->getVolume(),
+                bestAsk->getPrice(),
+                bestAsk->getVolume());
+
+  // If we ran out of orders at this price level,
+  // Find the next best selling price & make that the ask.
+  while (bestAsk->getVolume() == 0) {
+    int nextPrice = bestAsk->getPrice() + ONE_CENT;
+
+    if (nextPrice > ONE_HUNDRED_DOLLARS) {
+      bestAsk = nullptr;
+      spdlog::debug("setBidAskToReflectMarket set ask to null/null");
+      return;
     }
 
-    while (bestBid->getVolume() == 0) {
-        PriceLevel * newBestBid = buyBook->get(bestBid->getPrice() - ONE_CENT);
-        // sell book get should return null ptr if we retrieve a bad price.
-        // or consider adding new prices automagically.
-        if (newBestBid != nullptr && newBestBid->getVolume() > 0) {
-            bestBid = newBestBid;
-        }
+    bestAsk = sellBook->get(nextPrice);
+
+    // sell book get should return null ptr if we retrieve a bad price.
+    // or consider adding new prices automagically.
+    if (bestAsk != nullptr && bestAsk->getVolume() > 0) {
+      spdlog::debug("setBidAskToReflectMarket set ask to {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
+      return;
     }
+  }
+
+  while (bestBid->getVolume() == 0) {
+    int nextPrice = bestBid->getPrice() - ONE_CENT;
+    if (nextPrice < ONE_DOLLAR) {
+      spdlog::debug("setBidAskToReflectMarket set bid null/null");
+      bestBid = nullptr;
+      return;
+    }
+
+    bestBid = buyBook->get(nextPrice);
+    // sell book get should return null ptr if we retrieve a bad price.
+    // or consider adding new prices automagically.
+    if (bestBid != nullptr && bestBid->getVolume() > 0) {
+      spdlog::debug("setBidAskToReflectMarket set bid {}/{}", bestBid->getPrice(), bestBid->getVolume());
+      return;
+    }
+  }
 }
 
 bool OrderBook::isOpposingOrderBookBlank(Order* order) {
-    if (order->side == BUY) {
-        return (sellBook == nullptr || sellBook->getVolume() == 0);
-    }
+  if (order->side == BUY) {
+    return (sellBook == nullptr || sellBook->getVolume() == 0);
+  }
 
-    // order is sell side.
-    return (buyBook == nullptr || buyBook->getVolume() == 0);
+  // order is sell side.
+  return (buyBook == nullptr || buyBook->getVolume() == 0);
+}
+
+int OrderBook::bookOrderVolume(Order* order) {
+  if (order->side == BUY) {
+    if (buyBook == nullptr) {
+      return 0;
+    }
+    return buyBook->getVolume();
+  }
+
+  // order is sell side.
+  if (sellBook == nullptr) {
+    return 0;
+  }
+  return sellBook->getVolume();
+}
+
+int OrderBook::opposingOrderVolume(Order* order) {
+  if (order->side == BUY) {
+    if (sellBook == nullptr) {
+      return 0;
+    }
+    return sellBook->getVolume();
+  }
+
+  // order is sell side.
+  if (buyBook == nullptr) {
+    return 0;
+  }
+  return buyBook->getVolume();
 }
 
 void OrderBook::addOrder(Order* order) {
-    // DEBUG("Now inside addOrder");
+  // DEBUG("Now inside addOrder");
 
-    totalVolume += order->unfilled_quantity();
-    spdlog::debug("totalVolume is now {}", totalVolume);
+  totalVolume += order->unfilled_quantity();
+  spdlog::debug("totalVolume is now {}", totalVolume);
 
-    Node<Order*> * node;
-    if (order->side == BUY) {
-        node = buyBook->addOrder(order);
-        // DEBUG("buyBook->addOrder(order); called");
-    } else if (order->side == SELL) {
-        node = sellBook->addOrder(order);
-        // DEBUG("sellBook->addOrder(order); called");
-    }
+  Node<Order*> * node;
+  if (order->side == BUY) {
+    node = buyBook->addOrder(order);
+    // DEBUG("buyBook->addOrder(order); called");
+  } else if (order->side == SELL) {
+    node = sellBook->addOrder(order);
+    // DEBUG("sellBook->addOrder(order); called");
+  }
 
-    orderMap->emplace(order->id, node);
+  orderMap->emplace(order->id, node);
 }
 
 OrderBook::OrderBook() {
-    orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order*> * >();
-    // @TOOD the book should not care about the min / max prices.
-    buyBook = new Book();
-    sellBook = new Book();
-    bestBid = nullptr;
-    bestAsk = nullptr;
+  orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order*> * >();
+  // @TOOD the book should not care about the min / max prices.
+  buyBook = new Book();
+  sellBook = new Book();
+  bestBid = nullptr;
+  bestAsk = nullptr;
 }
 
 // Attempts to fill an order using the buy / sell books.
 std::list<Order *> OrderBook::fillOrder(Order* order) {
-    std::list<Order *> updated_orders;
-    int initialQuantity = order->unfilled_quantity();
+  std::list<Order *> updated_orders;
+  int initialQuantity = order->unfilled_quantity();
 
-    if (order->side == BUY) {
-        updated_orders = sellBook->fillOrder(order);
-    } else if (order->side == SELL) {
-        updated_orders = buyBook->fillOrder(order);
+  if (order->side == BUY) {
+    if (bestAsk == nullptr) {
+      spdlog::debug("bestAsk is null. crashing");
     }
+    updated_orders = sellBook->fillOrder(order, bestAsk);
+  } else if (order->side == SELL) {
+    if (bestBid == nullptr) {
+      spdlog::debug("bestBid is null. crashing");
+    }
+    updated_orders = buyBook->fillOrder(order, bestBid);
+  }
 
-    totalVolume -= (initialQuantity - order->unfilled_quantity());
-    return updated_orders;
+  totalVolume -= (initialQuantity - order->unfilled_quantity());
+  return updated_orders;
 }
 
 int OrderBook::getVolume() {
-    return totalVolume;
+  return totalVolume;
 }
 
 PriceLevel* OrderBook::getBid() {
-    return bestBid;
+  return bestBid;
 }
 
 PriceLevel* OrderBook::getAsk() {
-    return bestAsk;
+  return bestAsk;
 }

@@ -28,3 +28,14 @@ Order * orderQuantity(int quantity) {
     sequence_id++;
     return order;
 }
+
+
+Order * customOrder(int price, int quantity, char side) {
+    Order * order = new Order();
+    order->limitPrice = price;
+    order->quantity = quantity;
+    order->side = side;
+    order->id = sequence_id;
+    sequence_id++;
+    return order;
+}
