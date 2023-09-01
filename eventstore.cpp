@@ -2,7 +2,9 @@
 #include "util/object_pool.h"
 
 EventStore::EventStore() {
+  spdlog::debug("Allocating EventStore mmap pool..");
   object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, name, IS_CONTROLLER);
+  spdlog::debug("Allocated EventStore mmap pool!");
   sequence = 0;
 }
 

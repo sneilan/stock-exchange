@@ -4,24 +4,18 @@ Implementation of LMAX algorithm from https://martinfowler.com/articles/lmax.htm
 
 ## Installation
 ```
-Install cmake / gcc/ build essential.
-brew install catch2 # or apt-get / yum / whatever for your platform.
-# for ubuntu/debian/popos
-sudo apt install libspdlog-dev
-# install Catch2 from https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md#installing-catch2-from-git-repository
-# (I use the git clone version)
-cmake .
+docker build -t exchange .
 ```
 
 ## Running
-
 ```
-make
-./main
+docker run -p 8888:8888 exchange
 ```
 
 ## Tests
 ```
+# Get the docker id from docker ps
+docker exec -it <id> /bin/bash
 ./test
 ```
 
