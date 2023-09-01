@@ -3,13 +3,12 @@ FROM debian:bullseye
 
 # Update package repository and install necessary tools
 RUN apt-get update && \
-    apt-get install -y gcc g++ cmake build-essential catch2
+    apt-get install -y gcc g++ cmake build-essential libspdlog-dev git
 
-# Install spdlog using CMake and Git
-RUN apt-get install -y git && \
-    git clone https://github.com/gabime/spdlog.git && \
-    mkdir spdlog/build && cd spdlog/build && \
-    cmake .. && make install
+RUN git clone https://github.com/catchorg/Catch2.git && \
+    cd Catch2 && \
+    cmake -Bbuild -H. -DBUILD_TESTING=OFF && \
+    cmake --build build/ --target install
 
 # Create a directory for your project inside the container
 WORKDIR /app
