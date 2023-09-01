@@ -3,7 +3,7 @@ import sys
 import time
 from struct import pack
 
-host = 'localhost'
+host = '0.0.0.0'
 port = 8888
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,9 +20,9 @@ count = 0
 NumOfSeconds=100
 
 while True:
-    # char = sys.stdin.read(1)
-    # if char == 'b':
-    #     break
+    char = sys.stdin.read(1)
+    if char == 'b':
+        break
     # time.sleep(.0001)
 
     price = random.randrange(100, 1000)

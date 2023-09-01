@@ -7,8 +7,8 @@
 #include "eventstore.h"
 #include "order_book/order_book.h"
 #include <spdlog/spdlog.h>
-#include <linux/prctl.h>
-#include <sys/prctl.h>
+// #include <linux/prctl.h>
+// #include <sys/prctl.h>
 
 int main() {
   Gateway * gateway = new Gateway();
@@ -26,13 +26,17 @@ int main() {
   if (c_pid > 0) {
     // Parent
     // Listens to new orders from clients and puts them into the mmap ring buffer maintained by gateway.
-    prctl(PR_SET_NAME, "exchangeGateway", NULL, NULL, NULL);
+    // prctl(PR_SET_NAME, "exchangeGateway", NULL, NULL, NULL);
+    spdlog::info("Gateway starting");
     gateway->run();
   } else {
-    prctl(PR_SET_NAME, "exchangeMatchingEngine", NULL, NULL, NULL);
+    // prctl(PR_SET_NAME, "exchangeMatchingEngine", NULL, NULL, NULL);
+    spdlog::info("Order engine starting");
     EventStore * eventStore = new EventStore();
+    spdlog::info("Created EventStore");
     // Child
     OrderBook* orderBook = new OrderBook();
+    spdlog::info("Created OrderBook");
 
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
