@@ -10,7 +10,10 @@ docker build -t exchange .
 ## Running
 ```
 docker run -p 8888:8888 exchange
-python scripts/simpleClient.py # Will place a random trade each time you press enter.
+
+# In a separate terminal, not inside of docker, run the following example trading client.
+# Will place a random trade each time you press enter. You'll see output on the exchange.
+python scripts/simpleClient.py
 ```
 
 ## Tests
