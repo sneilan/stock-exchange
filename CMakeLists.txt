@@ -22,6 +22,7 @@ add_executable(main main.cpp eventstore.cpp ${ORDER_BOOK_SOURCES} ${GATEWAY_SOUR
 add_executable(test ${TEST_FILES_1} ${TEST_FILES_2} ${TEST_FILES_3} eventstore.cpp ${ORDER_BOOK_SOURCES} ${UTIL_SOURCES} ${GATEWAY_SOURCES} ${spdlog_DIR})
 
 target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
+target_link_libraries(main PRIVATE librt.so)
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(test PRIVATE Catch2::Catch2)
-
+target_link_libraries(test PRIVATE librt.so)
