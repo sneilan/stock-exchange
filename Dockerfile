@@ -1,6 +1,6 @@
 FROM debian:bullseye
 
-# Necessary tools and loggin
+# Necessary tools and logging
 RUN apt-get update && \
     apt-get install -y gcc g++ cmake build-essential libspdlog-dev git
 
