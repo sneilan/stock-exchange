@@ -7,37 +7,43 @@ std::list<Order *> PriceLevel::fillOrder(Order* order) {
   // Keep popping orders off at price level until we have either filled quantity
   // or run out of orders.
 
-  int requested_quantity = order->unfilled_quantity();
-  spdlog::debug("PriceLevel::fillOrder::{} - Order id {} requested_quantity is {}. num orders in queue is {}", limitPrice, order->id, requested_quantity, orders.get_total());
+  int unfilled_quantity = order->unfilled_quantity();
+  spdlog::debug("PriceLevel::fillOrder::{} - Order id {} unfilled_quantity is {}. num orders in queue is {}",
+                limitPrice,
+                order->id,
+                unfilled_quantity,
+                orders.get_total());
 
   std::list<Order *> updated_orders;
-  while (orders.get_front() != nullptr && requested_quantity > 0) {
+  while (orders.get_front() != nullptr && unfilled_quantity > 0) {
     Node<Order *> * node = orders.get_front();
     int quantity_available = node->data->unfilled_quantity();
     spdlog::debug("PriceLevel::fillOrder::{} - iterating node {}, quantity {}", limitPrice, node->data->id, quantity_available);
 
     updated_orders.push_back(node->data);
 
-    if (quantity_available > requested_quantity) {
+    if (quantity_available >= unfilled_quantity) {
       spdlog::debug("PriceLevel::fillOrder::{} - Order id {} filling.", limitPrice, order->id);
-      node->data->filled_quantity += requested_quantity;
-      totalVolume -= requested_quantity;
-      requested_quantity = 0;
+      node->data->filled_quantity += order->unfilled_quantity();
+      totalVolume -= order->unfilled_quantity();
+      order->filled_quantity = order->unfilled_quantity();
       // If we've filled the order, stop.
       spdlog::debug("PriceLevel::fillOrder::{} - Order id {} filled. volume {} remains on level", limitPrice, order->id, totalVolume);
+      if (node->data->unfilled_quantity() == 0) {
+        spdlog::debug("PriceLevel::fillOrder::{} - Order id {} removing node {} because order filled.", limitPrice, order->id, node->data->id);
+        orders.remove(node);
+      }
       break;
-    } else if (requested_quantity >= quantity_available) {
+    } else if (unfilled_quantity > quantity_available) {
       spdlog::debug("PriceLevel::fillOrder::{} - Order id {} partial filling", limitPrice, order->id);
-      node->data->filled_quantity += quantity_available;
-      requested_quantity -= quantity_available;
+      order->filled_quantity += quantity_available;
+      unfilled_quantity -= quantity_available;
       totalVolume -= quantity_available;
       spdlog::debug("PriceLevel::fillOrder::{} - Order id {} partial filling, removing node {}", limitPrice, order->id, node->data->id);
       orders.remove(node);
-      spdlog::debug("PriceLevel::fillOrder::{} - quantity {} remains on order id {}", limitPrice, order->unfilled_quantity(), order->id);
+      spdlog::debug("PriceLevel::fillOrder::{} - Order id {} quantity {} remains", limitPrice, order->id, order->unfilled_quantity());
     }
   }
-
-  order->filled_quantity += (order->unfilled_quantity() - requested_quantity);
 
   return updated_orders;
 }

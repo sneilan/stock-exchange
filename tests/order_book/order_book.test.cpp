@@ -54,13 +54,17 @@ TEST_CASE("order_book - match order") {
 
     Order * buyOrder = createDefaultOrder();
     orderBook->newOrder(buyOrder);
+    std::cout << "1\n";
     REQUIRE(orderBook->getBid()->getPrice() == buyOrder->limitPrice);
+    std::cout << "2\n";
 
     Order * sellOrder = createDefaultOrder();
     sellOrder->side = SELL;
     orderBook->newOrder(sellOrder);
+    std::cout << "3\n";
 
     REQUIRE(orderBook->getVolume() == 0);
+    std::cout << "4\n";
 }
 
 TEST_CASE("order_book - buy orders with higher prices should move bid up") {
@@ -91,18 +95,8 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
     REQUIRE(orderBook->getAsk()->getPrice() == sellOrderLower->limitPrice);
 }
 
-TEST_CASE("order_book - odd lots") {
+TEST_CASE("order_book - odd lots to break fillOrder") {
     OrderBook* orderBook = new OrderBook();
-
-    // Order * order1 = customOrder(100, 100, 'b');
-    // orderBook->newOrder(order1);
-    // Order * order2 = customOrder(300, 100, 's');
-    // orderBook->newOrder(order2);
-    // Order * order3 = customOrder(200, 100, 'b');
-    // orderBook->newOrder(order3);
-    // Order * order4 = customOrder(150, 100, 's');
-    // orderBook->newOrder(order4);
-
 
     Order * order1 = customOrder(100, 100, 'b');
     orderBook->newOrder(order1);
@@ -112,5 +106,25 @@ TEST_CASE("order_book - odd lots") {
     orderBook->newOrder(order3);
     Order * order4 = customOrder(103, 100, 's');
     orderBook->newOrder(order4);
+}
 
+TEST_CASE("order_book - odd lots to break set bid / ask") {
+    OrderBook* orderBook = new OrderBook();
+
+    Order * order1 = customOrder(336, 180, 'b');
+    orderBook->newOrder(order1);
+    Order * order2 = customOrder(698, 170, 's');
+    orderBook->newOrder(order2);
+    Order * order3 = customOrder(126, 130, 'b');
+    orderBook->newOrder(order3);
+    Order * order4 = customOrder(180, 150, 's');
+    orderBook->newOrder(order4);
+    Order * order5 = customOrder(418, 150, 'b');
+    orderBook->newOrder(order5);
+    Order * order6 = customOrder(678, 170, 's');
+    orderBook->newOrder(order6);
+    Order * order7 = customOrder(140, 190, 'b');
+    orderBook->newOrder(order7);
+    Order * order8 = customOrder(119, 180, 's');
+    orderBook->newOrder(order8);
 }

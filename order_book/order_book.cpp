@@ -1,5 +1,6 @@
 #include "order_book.h"
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order * order) {
@@ -55,15 +56,15 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
     spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
 
-    // If there are no more orders, return.
-    if (isOpposingOrderBookBlank(order)) {
-      // @TODO should probably wrap bestAsk updates in a setter so we can report changes.
-      bestAsk = nullptr;
-      return updated_orders;
-    }
-
     // Because we filled some orders, update the best ask if necessary.
     setBidAskToReflectMarket();
+    spdlog::debug("Called set bid ask");
+
+    // If there are no more orders, break.
+    if (isOpposingOrderBookBlank(order)) {
+      spdlog::debug("Opposing order book blank");
+      break;
+    }
   }
 
   return updated_orders;
@@ -121,16 +122,34 @@ void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order* order) {
   }
 }
 
+void OrderBook::printBestBidAsk(const char * prefix) {
+  std::stringstream ss;
+
+  ss << prefix << " ";
+  
+  ss << "bid is ";
+  if (bestBid != nullptr) {
+    ss << bestBid->getPrice() << "/" << bestBid->getVolume() << ". ask is ";
+  } else {
+    ss << "null/null.";
+  }
+
+  ss << "ask is ";
+  if (bestAsk != nullptr) {
+    ss << bestAsk->getPrice() << "/" << bestAsk->getVolume() << ". ask is ";
+  } else {
+    ss << "null/null\n";
+  }
+
+  spdlog::debug(ss.str());
+}
+
 void OrderBook::setBidAskToReflectMarket() {
-  spdlog::debug("setBidAskToReflectMarket called. bid is {}/{}. ask is {}/{}",
-                bestBid->getPrice(),
-                bestBid->getVolume(),
-                bestAsk->getPrice(),
-                bestAsk->getVolume());
+  printBestBidAsk("setBidAskToReflectMarket called.");
 
   // If we ran out of orders at this price level,
   // Find the next best selling price & make that the ask.
-  while (bestAsk->getVolume() == 0) {
+  while (bestAsk != nullptr && bestAsk->getVolume() == 0) {
     int nextPrice = bestAsk->getPrice() + ONE_CENT;
 
     if (nextPrice > ONE_HUNDRED_DOLLARS) {
@@ -149,7 +168,7 @@ void OrderBook::setBidAskToReflectMarket() {
     }
   }
 
-  while (bestBid->getVolume() == 0) {
+  while (bestBid != nullptr && bestBid->getVolume() == 0) {
     int nextPrice = bestBid->getPrice() - ONE_CENT;
     if (nextPrice < ONE_DOLLAR) {
       spdlog::debug("setBidAskToReflectMarket set bid null/null");
@@ -240,12 +259,14 @@ std::list<Order *> OrderBook::fillOrder(Order* order) {
 
   if (order->side == BUY) {
     if (bestAsk == nullptr) {
-      spdlog::debug("bestAsk is null. crashing");
+      spdlog::debug("bestAsk is null. returning");
+      return updated_orders;
     }
     updated_orders = sellBook->fillOrder(order, bestAsk);
   } else if (order->side == SELL) {
     if (bestBid == nullptr) {
-      spdlog::debug("bestBid is null. crashing");
+      spdlog::debug("bestBid is null. returning");
+      return updated_orders;
     }
     updated_orders = buyBook->fillOrder(order, bestBid);
   }

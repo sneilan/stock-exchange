@@ -18,10 +18,10 @@ def get_side(side):
 side = 'b'
 
 while True:
-    # char = sys.stdin.read(1)
-    # if char == 'b':
-    #     break
-    time.sleep(1)
+    char = sys.stdin.read(1)
+    if char == 'b':
+        break
+    # time.sleep(1)
 
     price = random.randrange(100, 1000)
     quantity = random.randrange(100, 200, 10)

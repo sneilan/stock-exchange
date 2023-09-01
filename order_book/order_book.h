@@ -32,6 +32,7 @@ class OrderBook {
         void adjustBidAskIfOrderIsBetterPrice(Order* order);
         bool orderCrossedSpread(Order* order);
         void setBidAskToReflectMarket();
+        void printBestBidAsk(const char * prefix);
 
         Book* buyBook;
         Book* sellBook;
