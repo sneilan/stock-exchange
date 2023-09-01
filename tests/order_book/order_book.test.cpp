@@ -95,36 +95,62 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
     REQUIRE(orderBook->getAsk()->getPrice() == sellOrderLower->limitPrice);
 }
 
-TEST_CASE("order_book - odd lots to break fillOrder") {
+TEST_CASE("order_book - testing order fills after order book populated") {
     OrderBook* orderBook = new OrderBook();
 
+    // initial buy order
     Order * order1 = customOrder(100, 100, 'b');
     orderBook->newOrder(order1);
+
+    REQUIRE(orderBook->getVolume() == 100);
+
+    // sell order that does not cross spread.
     Order * order2 = customOrder(110, 100, 's');
     orderBook->newOrder(order2);
+
+    REQUIRE(orderBook->getVolume() == 200);
+
+    // buy order that also does not cross spread.
     Order * order3 = customOrder(105, 100, 'b');
     orderBook->newOrder(order3);
+
+    REQUIRE(orderBook->getVolume() == 300);
+
+    // sell order that should match only with buy order for 105 and not 100.
     Order * order4 = customOrder(103, 100, 's');
     orderBook->newOrder(order4);
+
+    REQUIRE(orderBook->getVolume() == 200);
 }
 
-TEST_CASE("order_book - odd lots to break set bid / ask") {
+TEST_CASE("order_book - testing fillOrder when we attempt to sell more than what is offered.") {
     OrderBook* orderBook = new OrderBook();
 
+    // initial buy order.
     Order * order1 = customOrder(336, 180, 'b');
     orderBook->newOrder(order1);
+
+    REQUIRE(orderBook->getVolume() == 180);
+
+    // sell order that does not cross spread.
     Order * order2 = customOrder(698, 170, 's');
     orderBook->newOrder(order2);
+
+    REQUIRE(orderBook->getVolume() == 170 + 180);
+
+    // buy order that does not adjust best bid and does not cross spread.
     Order * order3 = customOrder(126, 130, 'b');
     orderBook->newOrder(order3);
-    Order * order4 = customOrder(180, 150, 's');
+
+    REQUIRE(orderBook->getVolume() == 170 + 180 + 130);
+
+    // Sell order that crosses spread and matches with buy order for 336.
+    // However the order has one more unit than we have available.
+    // exchange should know to give up.
+    Order * order4 = customOrder(180, 181, 's');
+    REQUIRE(order4->unfilled_quantity() == 181);
     orderBook->newOrder(order4);
-    Order * order5 = customOrder(418, 150, 'b');
-    orderBook->newOrder(order5);
-    Order * order6 = customOrder(678, 170, 's');
-    orderBook->newOrder(order6);
-    Order * order7 = customOrder(140, 190, 'b');
-    orderBook->newOrder(order7);
-    Order * order8 = customOrder(119, 180, 's');
-    orderBook->newOrder(order8);
+    REQUIRE(order4->unfilled_quantity() == 0);
+
+    REQUIRE(orderBook->getBid()->getPrice() == 126);
 }

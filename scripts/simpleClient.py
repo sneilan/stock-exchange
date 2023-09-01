@@ -16,12 +16,14 @@ def get_side(side):
     return bytes(side, 'ascii')
 
 side = 'b'
+count = 0
+NumOfSeconds=100
 
 while True:
-    char = sys.stdin.read(1)
-    if char == 'b':
-        break
-    # time.sleep(1)
+    # char = sys.stdin.read(1)
+    # if char == 'b':
+    #     break
+    # time.sleep(.0001)
 
     price = random.randrange(100, 1000)
     quantity = random.randrange(100, 200, 10)
@@ -43,7 +45,8 @@ while True:
         side = 'b'
 
     response = sock.recv(1024)
-    print(response)
+    count += 1
+    print(float(count)/NumOfSeconds)
 
 sock.close()
 

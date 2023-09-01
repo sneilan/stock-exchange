@@ -26,9 +26,9 @@ std::list<Order *> PriceLevel::fillOrder(Order* order) {
       spdlog::debug("PriceLevel::fillOrder::{} - Order id {} filling.", limitPrice, order->id);
       node->data->filled_quantity += order->unfilled_quantity();
       totalVolume -= order->unfilled_quantity();
-      order->filled_quantity = order->unfilled_quantity();
+      order->filled_quantity = order->quantity;
       // If we've filled the order, stop.
-      spdlog::debug("PriceLevel::fillOrder::{} - Order id {} filled. volume {} remains on level", limitPrice, order->id, totalVolume);
+      spdlog::debug("PriceLevel::fillOrder::{} - Order id {} filled. volume {} remains on level. Order has {} quantity remaining.", limitPrice, order->id, totalVolume, order->unfilled_quantity());
       if (node->data->unfilled_quantity() == 0) {
         spdlog::debug("PriceLevel::fillOrder::{} - Order id {} removing node {} because order filled.", limitPrice, order->id, node->data->id);
         orders.remove(node);

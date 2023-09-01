@@ -26,6 +26,13 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
   // If this order has not crossed the spread meaning
   // if it's a buy order it's less than current ask and
   // if a sell order greater than current bid.
+  // It's like saying a user does not want to buy at a price
+  // anyone wants to sell at and does not want to sell at a price
+  // anyone wants to buy at. For example, say the bid (highest price
+  // buyer will pay) is $5.00 but I'm only willing to sell for $6.00.
+  // This order would not cross the spread because the buyer isn't willing to
+  // pay $6.00. If I changed my order to $4.50, this would cross the spread because
+  // the buyer is willing the pay $5.00 and I'm willing to sell for $4.50 so that's a match.
   if (!orderCrossedSpread(order)) {
     spdlog::debug("orderCrossedSpread returned false");
 
@@ -51,7 +58,7 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
   spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
   while (order->unfilled_quantity() > 0) {
     updated_orders.merge(this->fillOrder(order));
-    spdlog::debug("Called fillOrder");
+    spdlog::debug("Finished fillOrder. Order id {} has unfillled quantity {}", order->id, order->unfilled_quantity());
 
     spdlog::debug("opposingOrderBook volume is {}", opposingOrderVolume(order));
     spdlog::debug("orderBook volume is {}", bookOrderVolume(order));
@@ -63,6 +70,20 @@ std::list<Order *> OrderBook::newOrder(Order * order) {
     // If there are no more orders, break.
     if (isOpposingOrderBookBlank(order)) {
       spdlog::debug("Opposing order book blank");
+      break;
+    }
+    printBestBidAsk("fillOrder requested info. ");
+
+    // If user is looking to buy but no-one is willing to sell as low as they want to buy
+    // then break because even though we have opposing orders, nothing will get filled.
+    // People try to sell for as high as possible but buy for as low as possible.
+    // So we want to see if the ask is less than what user is attempting to buy for.
+    if (order->side == BUY && bestAsk->getPrice() < order->limitPrice) {
+      break;
+    }
+
+    // and vice versa.
+    if (order->side == SELL && bestBid->getPrice() > order->limitPrice) {
       break;
     }
   }
@@ -136,7 +157,7 @@ void OrderBook::printBestBidAsk(const char * prefix) {
 
   ss << "ask is ";
   if (bestAsk != nullptr) {
-    ss << bestAsk->getPrice() << "/" << bestAsk->getVolume() << ". ask is ";
+    ss << bestAsk->getPrice() << "/" << bestAsk->getVolume() << "\n";
   } else {
     ss << "null/null\n";
   }

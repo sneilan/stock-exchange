@@ -11,8 +11,7 @@
 #include "util/object_pool.h"
 #include "util/mmap_wrapper.h"
 
-#define EVENTSTORE_BUFLEN 10000
-#define MAX_OPEN_ORDERS 10000
+#define MAX_OPEN_ORDERS 1000000000
 
 class EventStore {
 public:
