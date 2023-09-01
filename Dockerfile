@@ -19,6 +19,7 @@ COPY . /app
 
 # Compile the C++ program
 RUN cmake .
+RUN make
 
 # Run the compiled C++ program
 CMD ["./main"]
