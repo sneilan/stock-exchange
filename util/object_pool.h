@@ -2,45 +2,45 @@
 #define stack_allocator_h
 
 #include "mmap_wrapper.h"
-#include <stdexcept>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <sys/wait.h>
 
 // Note to self, template classes must reside entirely in header files
-// Compiler needs access to all source to generate code for template https://stackoverflow.com/a/1353981/761726
+// Compiler needs access to all source to generate code for template
+// https://stackoverflow.com/a/1353981/761726
 // http://www.parashift.com/c++-faq-lite/templates-defn-vs-decl.html
 
 #define IS_CONTROLLER true
 #define IS_CLIENT false
 
-template <typename T>
-class MMapObjectPool {
+template <typename T> class MMapObjectPool {
 private:
-  T* block;
-  T* next_free_space;
+  T *block;
+  T *next_free_space;
 
   // Need to track number of objects allocated so we don't overflow capacity.
   int max_num_obj;
   int cur_num_obj;
 
-  T** free_spaces;
+  T **free_spaces;
   int num_free_spaces;
-  MMap_Info * mmap_info;
+  MMap_Info *mmap_info;
   bool is_controller;
+
 public:
-  MMapObjectPool(int max_num_obj, const char * pool_name, bool _is_controller);
+  MMapObjectPool(int max_num_obj, const char *pool_name, bool _is_controller);
   ~MMapObjectPool();
-  T* allocate();
-  int pointer_to_offset(T* pointer);
-  T* offset_to_pointer(int offset);
-  void free(T* obj);
+  T *allocate();
+  int pointer_to_offset(T *pointer);
+  T *offset_to_pointer(int offset);
+  void free(T *obj);
   int num_obj_stored();
   int num_random_free_spaces();
   void cleanup();
 };
 
-template <typename T>
-void MMapObjectPool<T>::cleanup() {
+template <typename T> void MMapObjectPool<T>::cleanup() {
   if (is_controller) {
     delete_mmap(mmap_info);
   } else {
@@ -48,33 +48,27 @@ void MMapObjectPool<T>::cleanup() {
   }
 }
 
-template <typename T>
-MMapObjectPool<T>::~MMapObjectPool() {
-  cleanup();
-}
+template <typename T> MMapObjectPool<T>::~MMapObjectPool() { cleanup(); }
 
-template <typename T>
-int MMapObjectPool<T>::num_obj_stored() {
+template <typename T> int MMapObjectPool<T>::num_obj_stored() {
   return cur_num_obj;
 }
 
-template <typename T>
-int MMapObjectPool<T>::num_random_free_spaces() {
+template <typename T> int MMapObjectPool<T>::num_random_free_spaces() {
   return num_free_spaces;
 }
 
-template <typename T>
-int MMapObjectPool<T>::pointer_to_offset(T* pointer) {
-  return pointer - (T*)mmap_info->location;
+template <typename T> int MMapObjectPool<T>::pointer_to_offset(T *pointer) {
+  return pointer - (T *)mmap_info->location;
+}
+
+template <typename T> T *MMapObjectPool<T>::offset_to_pointer(int offset) {
+  return (T *)mmap_info->location + offset;
 }
 
 template <typename T>
-T* MMapObjectPool<T>::offset_to_pointer(int offset) {
-  return (T*)mmap_info->location + offset;
-}
-
-template <typename T>
-MMapObjectPool<T>::MMapObjectPool(int max_num_obj_, const char * pool_name, bool _is_controller) {
+MMapObjectPool<T>::MMapObjectPool(int max_num_obj_, const char *pool_name,
+                                  bool _is_controller) {
   is_controller = _is_controller;
 
   max_num_obj = max_num_obj_;
@@ -85,18 +79,18 @@ MMapObjectPool<T>::MMapObjectPool(int max_num_obj_, const char * pool_name, bool
     mmap_info = open_mmap(pool_name, sizeof(T) * max_num_obj);
   }
 
-  block = (T*)mmap_info->location;
+  block = (T *)mmap_info->location;
 
   next_free_space = block;
   num_free_spaces = 0;
   cur_num_obj = 0;
 
-  // Keep track of free spaces in a stack in case we delete an object that's not at end of array.
-  free_spaces = new T*[max_num_obj];
+  // Keep track of free spaces in a stack in case we delete an object that's not
+  // at end of array.
+  free_spaces = new T *[max_num_obj];
 };
 
-template <typename T>
-T* MMapObjectPool<T>::allocate() {
+template <typename T> T *MMapObjectPool<T>::allocate() {
   if (cur_num_obj + 1 > max_num_obj) {
     throw std::runtime_error("Could not allocate obj");
   }
@@ -106,7 +100,8 @@ T* MMapObjectPool<T>::allocate() {
   if (num_free_spaces > 0) {
 
     num_free_spaces--;
-    // Pointer in free spaces always points to null so decrementing gives us a pointer to a good memory location.
+    // Pointer in free spaces always points to null so decrementing gives us a
+    // pointer to a good memory location.
     --free_spaces;
     return *free_spaces;
   }
@@ -115,12 +110,13 @@ T* MMapObjectPool<T>::allocate() {
   return next_free_space++;
 };
 
-template <typename T>
-void MMapObjectPool<T>::free(T* obj) {
-  // We don't wipe memory here. Up to caller to take care of allocation / setting.
+template <typename T> void MMapObjectPool<T>::free(T *obj) {
+  // We don't wipe memory here. Up to caller to take care of allocation /
+  // setting.
 
   if (obj > (block + max_num_obj)) {
-    throw std::runtime_error("Attempted to free obj outside of stack allocator bounds.");
+    throw std::runtime_error(
+        "Attempted to free obj outside of stack allocator bounds.");
   }
 
   cur_num_obj--;

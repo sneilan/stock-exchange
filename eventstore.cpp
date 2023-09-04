@@ -8,13 +8,11 @@ EventStore::EventStore() {
   sequence = 0;
 }
 
-EventStore::~EventStore() {
-  delete_mmap(mmap_info);
-}
+EventStore::~EventStore() { delete_mmap(mmap_info); }
 
-
-SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int quantity) {
-  Order* order = object_pool->allocate();
+SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId,
+                                 int quantity) {
+  Order *order = object_pool->allocate();
   order->clientId = clientId;
   order->side = side;
   order->limitPrice = limitPrice;
@@ -30,15 +28,11 @@ SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId, int
   return sequence;
 }
 
-void EventStore::remove(SEQUENCE_ID id) {
-  event_store.erase(id);
-}
+void EventStore::remove(SEQUENCE_ID id) { event_store.erase(id); }
 
-Order* EventStore::get(SEQUENCE_ID id) {
+Order *EventStore::get(SEQUENCE_ID id) {
   ORDER_MMAP_OFFSET offset = event_store.at(id);
   return object_pool->offset_to_pointer(offset);
 }
 
-size_t EventStore::size() {
-  return event_store.size();
-}
+size_t EventStore::size() { return event_store.size(); }

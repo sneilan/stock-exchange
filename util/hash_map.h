@@ -23,22 +23,22 @@ typedef struct {
 typedef struct {
   int count;
   int capacity;
-  Entry* entries;
+  Entry *entries;
 } Table;
 
-void tableAddAll(Table* from, Table* to);
-bool tableSet(Table* table, int key, int value);
-bool tableGet(Table* table, int key, int value);
-void initTable(Table* table);
-void freeTable(Table* table);
+void tableAddAll(Table *from, Table *to);
+bool tableSet(Table *table, int key, int value);
+bool tableGet(Table *table, int key, int value);
+void initTable(Table *table);
+void freeTable(Table *table);
 
-void initTable(Table* table) {
+void initTable(Table *table) {
   table->count = 0;
   table->capacity = 0;
   table->entries = 0;
 }
 
-void freeTable(Table* table) {
+void freeTable(Table *table) {
   FREE_ARRAY(Entry, table->entries, table->capacity);
   initTable(table);
 }
@@ -55,12 +55,12 @@ static uint32_t hashInt(int key) {
   return hash;
 }
 
-static Entry* findEntry(Entry* entries, int capacity, int key) {
+static Entry *findEntry(Entry *entries, int capacity, int key) {
   uint32_t index = hashInt(key) % capacity;
   for (;;) {
-    Entry* entry = &entries[index];
+    Entry *entry = &entries[index];
 
-    if (entry->key == key || entry ->key == NULL) {
+    if (entry->key == key || entry->key == NULL) {
       return entry;
     }
 
@@ -68,27 +68,28 @@ static Entry* findEntry(Entry* entries, int capacity, int key) {
   }
 }
 
-void tableAddAll(Table* from, Table* to) {
+void tableAddAll(Table *from, Table *to) {
   for (int i = 0; i < from->capacity; i++) {
-    Entry* entry = &from->entries[i];
+    Entry *entry = &from->entries[i];
     if (entry->key != NULL) {
       tableSet(to, entry->key, entry->value);
     }
   }
 }
 
-static void adjustCapacity(Table* table, int capacity) {
-  Entry* entries = ALLOCATE(Entry, capacity);
+static void adjustCapacity(Table *table, int capacity) {
+  Entry *entries = ALLOCATE(Entry, capacity);
   for (int i = 0; i < capacity; i++) {
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
   }
 
   for (int i = 0; i < table->capacity; i++) {
-    Entry* entry = &table->entries[i];
-    if (entry->key == NULL) continue;
+    Entry *entry = &table->entries[i];
+    if (entry->key == NULL)
+      continue;
 
-    Entry* dest = findEntry(entries, capacity, entry->key);
+    Entry *dest = findEntry(entries, capacity, entry->key);
     dest->key = entry->key;
     dest->value = dest->value;
   }
@@ -98,15 +99,16 @@ static void adjustCapacity(Table* table, int capacity) {
   table->capacity = capacity;
 }
 
-bool tableSet(Table* table, int key, int value) {
+bool tableSet(Table *table, int key, int value) {
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     int capacity = GROW_CAPACITY(table->capacity);
     adjustCapacity(table, capacity);
   }
 
-  Entry* entry = findEntry(table->entries, table->capacity, key);
+  Entry *entry = findEntry(table->entries, table->capacity, key);
   bool isNewKey = entry->key == NULL;
-  if (isNewKey) table->count++;
+  if (isNewKey)
+    table->count++;
 
   entry->key = key;
   entry->value = value;
@@ -115,4 +117,3 @@ bool tableSet(Table* table, int key, int value) {
 }
 
 #endif
-

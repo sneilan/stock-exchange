@@ -2,7 +2,7 @@
 
 Gateway::Gateway() {
   mmap_info = init_mmap(name, get_mmap_size());
-  gatewayRingBuf = (NewOrderEvent*)mmap_info->location;
+  gatewayRingBuf = (NewOrderEvent *)mmap_info->location;
 
   // Initialize all orders to stale
   for (int i = 0; i < GATEWAY_BUFLEN; i++) {
@@ -10,35 +10,30 @@ Gateway::Gateway() {
   }
 }
 
-Gateway::~Gateway() throw() {
-  delete_mmap(mmap_info);
-}
+Gateway::~Gateway() throw() { delete_mmap(mmap_info); }
 
 NewOrderEvent Gateway::get() {
-    // Copy what is in the ring buffer into a new structure.
-    NewOrderEvent item = gatewayRingBuf[start];
+  // Copy what is in the ring buffer into a new structure.
+  NewOrderEvent item = gatewayRingBuf[start];
 
-    if (!item.stale) {
-      spdlog::debug("Ring buffer Order retrieved for client {} for price {} for side {} quantity {}",
-        item.clientId,
-        item.limitPrice,
-        item.side,
-        item.quantity
-      );
-    }
-    // Mark the old copy of new order event in ring buffer as stale.
-    gatewayRingBuf[start].stale = true;
+  if (!item.stale) {
+    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for "
+                  "side {} quantity {}",
+                  item.clientId, item.limitPrice, item.side, item.quantity);
+  }
+  // Mark the old copy of new order event in ring buffer as stale.
+  gatewayRingBuf[start].stale = true;
 
-    // @TODO proper lmax algo does not increment start until another process tells it to.
-    // See https://martinfowler.com/articles/lmax.html
-    start++;
-    start %= GATEWAY_BUFLEN;
-    return item;
+  // @TODO proper lmax algo does not increment start until another process tells
+  // it to. See https://martinfowler.com/articles/lmax.html
+  start++;
+  start %= GATEWAY_BUFLEN;
+  return item;
 }
 
 void Gateway::newClient(int client_id) {
   spdlog::info("New client {}", client_id);
-  const char * msg = "Welcome new client";
+  const char *msg = "Welcome new client";
   if (!sendMessage(client_id, msg)) {
     // @TODO perhaps sendMessage can handle what happens if a client disconnects
     // Then call our disconnected handler and let us know so we don't have to do
@@ -55,44 +50,42 @@ int Gateway::get_mmap_size() {
   return sizeof(NewOrderEvent) * (GATEWAY_BUFLEN);
 }
 
-void Gateway::readMessage(int client_id, char* message) {
+void Gateway::readMessage(int client_id, char *message) {
   spdlog::info("Read message from {}", client_id);
 
-  gatewayRingBuf[end].clientId = ((NewOrderEvent*)message)->clientId;
-  gatewayRingBuf[end].limitPrice = ((NewOrderEvent*)message)->limitPrice;
-  gatewayRingBuf[end].side = ((NewOrderEvent*)message)->side;
-  gatewayRingBuf[end].quantity = ((NewOrderEvent*)message)->quantity;
+  gatewayRingBuf[end].clientId = ((NewOrderEvent *)message)->clientId;
+  gatewayRingBuf[end].limitPrice = ((NewOrderEvent *)message)->limitPrice;
+  gatewayRingBuf[end].side = ((NewOrderEvent *)message)->side;
+  gatewayRingBuf[end].quantity = ((NewOrderEvent *)message)->quantity;
   gatewayRingBuf[end].stale = false;
 
-  spdlog::info("Ring buffer Order recieved from client {} for price {} for side {} quantity {}",
-    gatewayRingBuf[end].clientId,
-    gatewayRingBuf[end].limitPrice,
-    gatewayRingBuf[end].side,
-    gatewayRingBuf[end].quantity
-  );
+  spdlog::info("Ring buffer Order recieved from client {} for price {} for "
+               "side {} quantity {}",
+               gatewayRingBuf[end].clientId, gatewayRingBuf[end].limitPrice,
+               gatewayRingBuf[end].side, gatewayRingBuf[end].quantity);
 
   end++;
 
   end %= GATEWAY_BUFLEN;
 
-  const char * msg = "order received";
+  const char *msg = "order received";
   sendMessage(client_id, msg);
 }
 
 void Gateway::run() {
-    /* 
-    // @TODO
-    Socket server should have the following events
-     1) New connection
-     2) Disconnect
-     3) Reading data from client
-    Expose the following methods
-     1) Sending data to a client
-     2) Getting a list of open clients.
-     3) Force closing a client connection
-    Something else can handle parsing data from clients.
-    */
+  /*
+  // @TODO
+  Socket server should have the following events
+   1) New connection
+   2) Disconnect
+   3) Reading data from client
+  Expose the following methods
+   1) Sending data to a client
+   2) Getting a list of open clients.
+   3) Force closing a client connection
+  Something else can handle parsing data from clients.
+  */
 
-    bindSocket(8888);
-    listenToSocket();
+  bindSocket(8888);
+  listenToSocket();
 }

@@ -1,8 +1,8 @@
 #ifndef linked_list_h
 #define linked_list_h
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 // #define LL_DEBUG(x) std::cout << x << "\n";
 #define LL_DEBUG(x)
@@ -13,61 +13,47 @@
 // I needed a way to maintain pointers to orders, delete orders w/o invalidating
 // my other pointers to orders.
 
-template <typename T>
-struct Node {
+template <typename T> struct Node {
   T data;
-  Node<T>* prev;
-  Node<T>* next;
+  Node<T> *prev;
+  Node<T> *next;
   Node(T val) : data(val), prev(nullptr), next(nullptr) {}
 };
 
-template <typename T>
-class DoublyLinkedList {
+template <typename T> class DoublyLinkedList {
 private:
-  Node<T>* head;
-  Node<T>* tail;
+  Node<T> *head;
+  Node<T> *tail;
   int total;
+
 public:
   DoublyLinkedList();
-  Node<T> * push_back(T val);
-  Node<T> * get_front();
-  Node<T> * get_back();
+  Node<T> *push_back(T val);
+  Node<T> *get_front();
+  Node<T> *get_back();
   void pop_front();
-  void remove(Node<T>* node);
+  void remove(Node<T> *node);
   int get_total();
 };
 
-template <typename T>
-DoublyLinkedList<T>::DoublyLinkedList() {
+template <typename T> DoublyLinkedList<T>::DoublyLinkedList() {
   head = nullptr;
   tail = nullptr;
   total = 0;
 }
 
-template <typename T>
-Node<T> * DoublyLinkedList<T>::get_front() {
-  return head;
-}
+template <typename T> Node<T> *DoublyLinkedList<T>::get_front() { return head; }
 
-template <typename T>
-Node<T> * DoublyLinkedList<T>::get_back() {
-  return tail;
-}
+template <typename T> Node<T> *DoublyLinkedList<T>::get_back() { return tail; }
 
-template <typename T>
-int DoublyLinkedList<T>::get_total() {
-  return total;
-}
+template <typename T> int DoublyLinkedList<T>::get_total() { return total; }
 
-template <typename T>
-Node<T> * DoublyLinkedList<T>::push_back(T val)
-{
+template <typename T> Node<T> *DoublyLinkedList<T>::push_back(T val) {
   Node<T> *newNode = new Node<T>(val);
   if (head == nullptr) {
     head = newNode;
     tail = newNode;
-  }
-  else {
+  } else {
     tail->next = newNode;
     newNode->prev = tail;
     tail = newNode;
@@ -76,9 +62,7 @@ Node<T> * DoublyLinkedList<T>::push_back(T val)
   return newNode;
 }
 
-template <typename T>
-void DoublyLinkedList<T>::pop_front()
-{
+template <typename T> void DoublyLinkedList<T>::pop_front() {
   if (head == nullptr) {
     return;
   }
@@ -88,8 +72,7 @@ void DoublyLinkedList<T>::pop_front()
 
   if (head != nullptr) {
     head->prev = nullptr;
-  }
-  else {
+  } else {
     tail = nullptr;
   }
 
@@ -97,30 +80,27 @@ void DoublyLinkedList<T>::pop_front()
   delete nodeToRemove;
 }
 
-template <typename T>
-void DoublyLinkedList<T>::remove(Node<T> *node) {
+template <typename T> void DoublyLinkedList<T>::remove(Node<T> *node) {
   if (node == nullptr) {
     return;
   }
   if (node == head) {
-      LL_DEBUG(1);
-      head = node->next;
-      LL_DEBUG(2);
-      if (head != nullptr) {
-        LL_DEBUG(3);
-        head->prev = nullptr;
-        LL_DEBUG(4);
-      }
+    LL_DEBUG(1);
+    head = node->next;
+    LL_DEBUG(2);
+    if (head != nullptr) {
+      LL_DEBUG(3);
+      head->prev = nullptr;
+      LL_DEBUG(4);
     }
-  else if (node == tail) {
+  } else if (node == tail) {
     tail = node->prev;
     LL_DEBUG(5);
     if (tail != nullptr) {
       tail->next = nullptr;
       LL_DEBUG(6);
     }
-  }
-  else {
+  } else {
     LL_DEBUG(7);
     node->prev->next = node->next;
     LL_DEBUG(8);

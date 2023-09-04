@@ -1,14 +1,14 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include "../../util/object_pool.h"
 
-const char * pool_name = "/object_pool";
+const char *pool_name = "/object_pool";
 
 TEST_CASE("Basic allocation test.") {
   MMapObjectPool<int> allocator(10, pool_name, IS_CONTROLLER);
 
-  int * a = allocator.allocate();
+  int *a = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 1);
 
   allocator.free(a);
@@ -20,9 +20,9 @@ TEST_CASE("Basic allocation test.") {
 TEST_CASE("Allocate and free randomly") {
   MMapObjectPool<int> allocator(10, pool_name, IS_CONTROLLER);
 
-  int * a = allocator.allocate();
+  int *a = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 1);
-  int * b = allocator.allocate();
+  int *b = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 2);
 
   allocator.free(b);
@@ -33,7 +33,7 @@ TEST_CASE("Allocate and free randomly") {
   REQUIRE(allocator.num_obj_stored() == 0);
   REQUIRE(allocator.num_random_free_spaces() == 2);
 
-  // Finally make two allocations to see if 
+  // Finally make two allocations to see if
   a = allocator.allocate();
   b = allocator.allocate();
   REQUIRE(allocator.num_obj_stored() == 2);
@@ -58,11 +58,11 @@ TEST_CASE("Crash if we allocate more than we allow") {
 
 TEST_CASE("Do offsets and memory locations line up") {
   MMapObjectPool<int> allocator(10, pool_name, IS_CONTROLLER);
-  int * a = allocator.allocate();
+  int *a = allocator.allocate();
   REQUIRE(allocator.pointer_to_offset(a) == 0);
 
   allocator.allocate();
-  int * b = allocator.allocate();
+  int *b = allocator.allocate();
   REQUIRE(allocator.pointer_to_offset(b) == 2);
   REQUIRE(allocator.offset_to_pointer(2) == b);
 
@@ -73,7 +73,7 @@ TEST_CASE("Can processes share object pool") {
   MMapObjectPool<int> allocator(10, pool_name, IS_CONTROLLER);
   // allocate one object so we can see an offset of at least one.
   allocator.allocate();
-  int * a = allocator.allocate();
+  int *a = allocator.allocate();
   int a_offset = allocator.pointer_to_offset(a);
 
   *a = 5;
@@ -87,7 +87,7 @@ TEST_CASE("Can processes share object pool") {
   } else {
     // child
     MMapObjectPool<int> client_allocator(10, pool_name, IS_CLIENT);
-    int * b = client_allocator.offset_to_pointer(a_offset);
+    int *b = client_allocator.offset_to_pointer(a_offset);
     REQUIRE(*b == 5);
     REQUIRE(client_allocator.pointer_to_offset(b) == 1);
     client_allocator.cleanup();
