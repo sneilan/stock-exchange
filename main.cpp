@@ -56,8 +56,12 @@ int main() {
         spdlog::debug("Orders updated are size {}", updated_orders.size());
 
         // @TODO issue with sending orders.. :(
-        // I think it's the python client not reading enough data from the
-        // socket for (Order *order : updated_orders) {
+        // I cannot send orders from the child process
+        // because new sockets are being opened on the parent process gateway.
+        // The child process task_struct in the kernel does not know
+        // what was opened in the parent process task_struct after the call
+        // to fork()
+        // for (Order *order : updated_orders) {
         //   const char *message = "order updated";
         //   // @TODO send updated order information to the clients via another
         //   // ring buffer. Another process will read from this ring buffer and
@@ -66,6 +70,7 @@ int main() {
         //   // between client ids and sockets. Also create a buffer to try
         //   // to send orders to clients that have disconnected.
         //   gateway->sendMessage(order->clientId, message);
+        //   spdlog::debug("Orders updated message sent");
         // }
       }
     }

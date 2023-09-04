@@ -159,11 +159,12 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, const char *message) {
-  if (send(client_socket[client_id], message, strlen(message), 0) !=
-      strlen(message)) {
-    spdlog::error("send");
+  int error = send(client_socket[client_id], message, strlen(message), 0);
+  if (error != strlen(message)) {
+    spdlog::error("send error {} to client_id {} at socket {}", error, client_id, client_socket[client_id]);
     return false;
   }
+
   spdlog::info("sent message {} to client {}", message, client_id);
 
   return true;
