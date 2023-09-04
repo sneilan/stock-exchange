@@ -10,7 +10,7 @@ EventStore::EventStore() {
 
 EventStore::~EventStore() { delete_mmap(mmap_info); }
 
-SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, char clientId,
+SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, int clientId,
                                  int quantity) {
   Order *order = object_pool->allocate();
   order->clientId = clientId;

@@ -55,13 +55,18 @@ int main() {
         spdlog::debug("Order book volume is now {}", orderBook->getVolume());
         spdlog::debug("Orders updated are size {}", updated_orders.size());
 
-        for (Order *order : updated_orders) {
-          const char *message = "order updated";
-          // @TODO send updated order information to the clients via another
-          // ring buffer. Another process will read from this ring buffer and
-          // send data to the client.
-          gateway->sendMessage(order->clientId, message);
-        }
+        // @TODO issue with sending orders.. :(
+        // I think it's the python client not reading enough data from the
+        // socket for (Order *order : updated_orders) {
+        //   const char *message = "order updated";
+        //   // @TODO send updated order information to the clients via another
+        //   // ring buffer. Another process will read from this ring buffer and
+        //   // send data to the client.
+        //   // @TODO Stop using socket ids as client ids. Set up a map
+        //   // between client ids and sockets. Also create a buffer to try
+        //   // to send orders to clients that have disconnected.
+        //   gateway->sendMessage(order->clientId, message);
+        // }
       }
     }
   }

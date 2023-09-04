@@ -20,7 +20,7 @@
 #define ONE_CENT 1
 
 struct Order {
-  char clientId;
+  int clientId;
   int quantity;
   SIDE side;
   PRICE limitPrice;

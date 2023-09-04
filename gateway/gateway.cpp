@@ -53,7 +53,9 @@ int Gateway::get_mmap_size() {
 void Gateway::readMessage(int client_id, char *message) {
   spdlog::info("Read message from {}", client_id);
 
-  gatewayRingBuf[end].clientId = ((NewOrderEvent *)message)->clientId;
+  // Not building an authentication system yet
+  // so just sending trades back to clients by socket id.
+  gatewayRingBuf[end].clientId = client_id;
   gatewayRingBuf[end].limitPrice = ((NewOrderEvent *)message)->limitPrice;
   gatewayRingBuf[end].side = ((NewOrderEvent *)message)->side;
   gatewayRingBuf[end].quantity = ((NewOrderEvent *)message)->quantity;

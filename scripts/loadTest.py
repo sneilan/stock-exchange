@@ -46,7 +46,7 @@ while True:
         side = 'b'
 
     response = sock.recv(1024)
-    print("Trade accepted!")
+    print(response)
 
 sock.close()
 
