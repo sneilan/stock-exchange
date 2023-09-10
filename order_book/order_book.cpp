@@ -6,7 +6,7 @@
 std::list<Order *> OrderBook::newOrder(Order *order) {
   std::list<Order *> updated_orders;
 
-  spdlog::info("Called newOrder on Order {} side {} price {} quantity {}",
+  SPDLOG_INFO("Called newOrder on Order {} side {} price {} quantity {}",
                order->id, order->side, order->limitPrice,
                order->unfilled_quantity());
 
@@ -17,7 +17,7 @@ std::list<Order *> OrderBook::newOrder(Order *order) {
     SPDLOG_DEBUG("addOrder called");
 
     adjustBidAskIfOrderIsBetterPrice(order);
-    spdlog::debug("adjustBidAskIfOrderIsBetterPrice called");
+    SPDLOG_DEBUG("adjustBidAskIfOrderIsBetterPrice called");
 
     SPDLOG_DEBUG("opposingOrderBook volume is {}", opposingOrderVolume(order));
     SPDLOG_DEBUG("orderBook volume is {}", bookOrderVolume(order));

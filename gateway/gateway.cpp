@@ -32,7 +32,7 @@ NewOrderEvent Gateway::get() {
 }
 
 void Gateway::newClient(int client_id) {
-  spdlog::info("New client {}", client_id);
+  SPDLOG_INFO("New client {}", client_id);
   const char *msg = "Welcome new client";
   if (!sendMessage(client_id, msg)) {
     // @TODO perhaps sendMessage can handle what happens if a client disconnects
@@ -43,7 +43,7 @@ void Gateway::newClient(int client_id) {
 }
 
 void Gateway::disconnected(int client_id) {
-  spdlog::info("Client disconnected {}", client_id);
+  SPDLOG_INFO("Client disconnected {}", client_id);
 }
 
 int Gateway::get_mmap_size() {
@@ -51,7 +51,7 @@ int Gateway::get_mmap_size() {
 }
 
 void Gateway::readMessage(int client_id, char *message) {
-  spdlog::info("Read message from {}", client_id);
+  SPDLOG_INFO("Read message from {}", client_id);
 
   // Not building an authentication system yet
   // so just sending trades back to clients by socket id.
@@ -61,7 +61,7 @@ void Gateway::readMessage(int client_id, char *message) {
   gatewayRingBuf[end].quantity = ((NewOrderEvent *)message)->quantity;
   gatewayRingBuf[end].stale = false;
 
-  spdlog::info("Ring buffer Order recieved from client {} for price {} for "
+  SPDLOG_INFO("Ring buffer Order recieved from client {} for price {} for "
                "side {} quantity {}",
                gatewayRingBuf[end].clientId, gatewayRingBuf[end].limitPrice,
                gatewayRingBuf[end].side, gatewayRingBuf[end].quantity);
