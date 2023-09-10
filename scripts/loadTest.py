@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 from struct import pack
 import random
 
@@ -22,9 +23,10 @@ print("Connected!")
 side = 'b'
 
 while True:
-    char = sys.stdin.read(1)
-    if char == 'b':
-        break
+    # char = sys.stdin.read(1)
+    # if char == 'b':
+    #     break
+    time.sleep(.1)
 
     price = random.randrange(100, 1000)
     quantity = random.randrange(100, 200, 10)

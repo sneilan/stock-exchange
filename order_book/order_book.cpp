@@ -168,9 +168,9 @@ void OrderBook::printBestBidAsk(const char *prefix) {
 
   ss << "ask is ";
   if (bestAsk != nullptr) {
-    ss << bestAsk->getPrice() << "/" << bestAsk->getVolume() << "\n";
+    ss << bestAsk->getPrice() << "/" << bestAsk->getVolume();
   } else {
-    ss << "null/null\n";
+    ss << "null/null";
   }
 
   spdlog::debug(ss.str());

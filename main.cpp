@@ -14,8 +14,7 @@
 int main() {
   spdlog::set_level(spdlog::level::debug);
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
-  // spdlog::set_pattern("[%l] %E %-16s%-4#%-21! %v");
-  spdlog::set_pattern("[%l] %E %-16s%-4#%-21! %v");
+  spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
 
   Gateway *gateway = new Gateway();
 

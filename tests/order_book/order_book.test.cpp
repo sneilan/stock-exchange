@@ -54,17 +54,13 @@ TEST_CASE("order_book - match order") {
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
-  std::cout << "1\n";
   REQUIRE(orderBook->getBid()->getPrice() == buyOrder->limitPrice);
-  std::cout << "2\n";
 
   Order *sellOrder = createDefaultOrder();
   sellOrder->side = SELL;
   orderBook->newOrder(sellOrder);
-  std::cout << "3\n";
 
   REQUIRE(orderBook->getVolume() == 0);
-  std::cout << "4\n";
 }
 
 TEST_CASE("order_book - buy orders with higher prices should move bid up") {
