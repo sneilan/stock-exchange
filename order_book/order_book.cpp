@@ -260,18 +260,14 @@ int OrderBook::opposingOrderVolume(Order *order) {
 }
 
 void OrderBook::addOrder(Order *order) {
-  // DEBUG("Now inside addOrder");
-
   totalVolume += order->unfilled_quantity();
-  spdlog::debug("totalVolume is now {}", totalVolume);
+  SPDLOG_DEBUG("totalVolume is now {}", totalVolume);
 
   Node<Order *> *node;
   if (order->side == BUY) {
     node = buyBook->addOrder(order);
-    // DEBUG("buyBook->addOrder(order); called");
   } else if (order->side == SELL) {
     node = sellBook->addOrder(order);
-    // DEBUG("sellBook->addOrder(order); called");
   }
 
   orderMap->emplace(order->id, node);

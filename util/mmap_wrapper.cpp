@@ -1,5 +1,4 @@
 #include "mmap_wrapper.h"
-#include <spdlog/spdlog.h>
 
 MMap_Info *init_mmap(const char *name, int size) {
   int fd = shm_open(name, O_CREAT | O_RDWR, 0777);

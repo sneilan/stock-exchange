@@ -4,5 +4,7 @@
 
 int main(int argc, char *argv[]) {
   spdlog::set_level(spdlog::level::debug);
+  spdlog::set_pattern("%E.%F %g::%!::%@ [%l] %v");
+
   return Catch::Session().run(argc, argv);
 }

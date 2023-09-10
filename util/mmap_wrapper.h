@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <spdlog/spdlog.h>
 
 struct MMap_Info {
   int fd;

@@ -4,7 +4,7 @@ void SocketServer::listenToSocket() {
   // accept the incoming connection
   // int addrlen = sizeof(address);
 
-  spdlog::info("Waiting for connections ...");
+  SPDLOG_INFO("Waiting for connections ...");
   while (1) {
     // set of socket descriptors for sockets with data to be read.
     fd_set readfds;
@@ -18,7 +18,7 @@ void SocketServer::listenToSocket() {
     int activity = select(max_sd + 1, &readfds, &writefds, NULL, &timeout);
 
     if ((activity < 0) && (errno != EINTR)) {
-      spdlog::error("select error");
+      SPDLOG_ERROR("select error");
     }
 
     // non-blocking accept new connection call.
@@ -37,7 +37,7 @@ void SocketServer::listenToSocket() {
           // set the string terminating NULL byte on the end
           // of the data read
           buffer[valread] = '\0';
-          spdlog::info("Calling readMessage from client_id {}", i);
+          SPDLOG_INFO("Calling readMessage from client_id {}", i);
           readMessage(i, buffer);
           memset(buffer, 0, sizeof(buffer));
         } else {
@@ -70,7 +70,7 @@ void SocketServer::forceDisconnect(int client_id) {
 void SocketServer::bindSocket(int PORT) {
   // create a master socket
   if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-    spdlog::debug("socket failed");
+    SPDLOG_DEBUG("socket failed");
     exit(EXIT_FAILURE);
   }
 
@@ -79,7 +79,7 @@ void SocketServer::bindSocket(int PORT) {
   int opt = 1;
   if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
                  sizeof(opt)) < 0) {
-    spdlog::debug("setsockopt");
+    SPDLOG_DEBUG("setsockopt");
     exit(EXIT_FAILURE);
   }
 
@@ -90,14 +90,14 @@ void SocketServer::bindSocket(int PORT) {
 
   // bind the socket to localhost port 8888
   if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
-    spdlog::debug("bind failed");
+    SPDLOG_DEBUG("bind failed");
     exit(EXIT_FAILURE);
   }
 
-  spdlog::info("Listener on port {}", PORT);
+  SPDLOG_INFO("Listener on port {}", PORT);
   // try to specify maximum of 3 pending connections for the master socket
   if (listen(master_socket, 3) < 0) {
-    spdlog::debug("listen failure");
+    SPDLOG_DEBUG("listen failure");
     exit(EXIT_FAILURE);
   }
 }
@@ -140,7 +140,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   if (FD_ISSET(master_socket, readfds)) {
     if ((new_socket = accept(master_socket, (struct sockaddr *)&address,
                              (socklen_t *)&addrlen)) < 0) {
-      spdlog::debug("accept");
+      SPDLOG_DEBUG("accept");
       exit(EXIT_FAILURE);
     }
 
@@ -150,7 +150,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
       if (client_socket[i] == 0) {
         client_socket[i] = new_socket;
         newClient(i);
-        spdlog::debug("Registering new client {}", i);
+        SPDLOG_DEBUG("Registering new client {}", i);
 
         break;
       }
@@ -161,11 +161,11 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 bool SocketServer::sendMessage(int client_id, const char *message) {
   int error = send(client_socket[client_id], message, strlen(message), 0);
   if (error != strlen(message)) {
-    spdlog::error("send error {} to client_id {} at socket {}", error, client_id, client_socket[client_id]);
+    SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id, client_socket[client_id]);
     return false;
   }
 
-  spdlog::info("sent message {} to client {}", message, client_id);
+  SPDLOG_INFO("sent message {} to client {}", message, client_id);
 
   return true;
 }
@@ -187,10 +187,10 @@ int SocketServer::handleErrors(int i, fd_set *readfds) {
     close(sd);
     client_socket[i] = 0;
     disconnected(i);
-    spdlog::debug("Host disconnected, ip {}, port {}, client {}",
+    SPDLOG_DEBUG("Host disconnected, ip {}, port {}, client {}",
                   inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
   }
-  spdlog::debug("Read valread {} bytes from client_id {}", valread, i);
+  SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, i);
 
   /*
     else if (valread == -1)

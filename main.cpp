@@ -4,20 +4,27 @@
 #include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/version.h>
 #include <sys/mman.h>
+
 #include <unistd.h>
 
 int main() {
+  spdlog::set_level(spdlog::level::debug);
+  // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
+  // spdlog::set_pattern("[%l] %E %-16s%-4#%-21! %v");
+  spdlog::set_pattern("[%l] %E %-16s%-4#%-21! %v");
+
   Gateway *gateway = new Gateway();
 
-  spdlog::info("Exchange starting");
-  spdlog::set_level(spdlog::level::debug);
+  SPDLOG_INFO("Exchange starting");
 
   pid_t c_pid = fork();
 
   if (c_pid == -1) {
-    perror("fork");
+    SPDLOG_CRITICAL("fork");
     exit(EXIT_FAILURE);
   }
 
@@ -25,15 +32,15 @@ int main() {
     // Parent
     // Listens to new orders from clients and puts them into the mmap ring
     // buffer maintained by gateway.
-    spdlog::info("Gateway starting");
+    SPDLOG_INFO("Gateway starting");
     gateway->run();
   } else {
     // Child
-    spdlog::info("Order engine starting");
+    SPDLOG_INFO("Order engine starting");
     EventStore *eventStore = new EventStore();
-    spdlog::info("Created EventStore");
+    SPDLOG_INFO("Created EventStore");
     OrderBook *orderBook = new OrderBook();
-    spdlog::info("Created OrderBook");
+    SPDLOG_INFO("Created OrderBook");
 
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
@@ -43,17 +50,17 @@ int main() {
         // @TODO consider returning an Order* instead of sequence ID.
         SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice,
                                               item.clientId, item.quantity);
-        spdlog::debug("Sequence ID is now {} & size is now {}", id,
+        SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
                       eventStore->size());
 
         // Get response here & spool information to new ring buffer
         Order *order = eventStore->get(id);
-        spdlog::debug("Grabbed order {}", order->id);
+        SPDLOG_INFO("Grabbed order {}", order->id);
         // @TODO This is a call to the matching engine. newOrder name should be
         // more descriptive.
         std::list<Order *> updated_orders = orderBook->newOrder(order);
-        spdlog::debug("Order book volume is now {}", orderBook->getVolume());
-        spdlog::debug("Orders updated are size {}", updated_orders.size());
+        SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
+        SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
 
         // @TODO issue with sending orders.. :(
         // I cannot send orders from the child process

@@ -17,7 +17,7 @@ NewOrderEvent Gateway::get() {
   NewOrderEvent item = gatewayRingBuf[start];
 
   if (!item.stale) {
-    spdlog::debug("Ring buffer Order retrieved for client {} for price {} for "
+    SPDLOG_DEBUG("Ring buffer Order retrieved for client {} for price {} for "
                   "side {} quantity {}",
                   item.clientId, item.limitPrice, item.side, item.quantity);
   }
