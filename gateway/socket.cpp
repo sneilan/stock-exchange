@@ -31,7 +31,7 @@ void SocketServer::listenToSocket() {
       if (FD_ISSET(sd, &readfds)) {
         // @TODO handleErrors is also responsible for reading data from the
         // client.
-        int valread = handleErrors(i, &readfds);
+        int valread = handleErrors(i/*, &readfds */);
 
         if (valread > 0) {
           // set the string terminating NULL byte on the end
@@ -159,7 +159,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, const char *message) {
-  int error = send(client_socket[client_id], message, strlen(message), 0);
+  size_t error = send(client_socket[client_id], message, strlen(message), 0);
   if (error != strlen(message)) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id, client_socket[client_id]);
     return false;
@@ -172,7 +172,7 @@ bool SocketServer::sendMessage(int client_id, const char *message) {
 
 // @TODO make buffer a pointer to this.
 // @TODO why is handleErrors also responsible for reading data from the client?
-int SocketServer::handleErrors(int i, fd_set *readfds) {
+int SocketServer::handleErrors(int i /* , fd_set *readfds */) {
   int valread;
   int addrlen = sizeof(address);
   int sd = client_socket[i];
