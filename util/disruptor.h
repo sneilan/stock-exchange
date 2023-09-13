@@ -1,5 +1,12 @@
 // Implementation of ring buffer for processes to communicate with each other
 // See https://martinfowler.com/articles/lmax.html
+//
+// Basic concept is producer should never produce more than consumer can consume.
+// and Consumer should never consume more than consumer can produce.
+// Otherwise it's not a ring buffer anymore it's a snake eating it's own tail.
+//
+// The consumer can consume up until and including the producer position
+// But the producer position can only produce up until the consumer position.
 
 #include "mmap_wrapper.h"
 #include <spdlog/spdlog.h>
@@ -25,7 +32,7 @@ public:
   void cleanup();
   // This creates a copy on function call for simplicity.
   // Later on use pointers to improve performance.
-  void put(T item);
+  bool put(T item);
 };
 
 template <typename T> class Consumer : public Disruptor<T> {
@@ -45,10 +52,11 @@ template <typename T> T *Consumer<T>::get() {
                this->shared_mem_region->producer_position,
                this->shared_mem_region->consumer_position);
 
-  // Consumer should never go past producer position. Producer should always be
-  // one spot ahead.
-  if (this->shared_mem_region->consumer_position >
-      this->shared_mem_region->producer_position) {
+  // Consumer can consume up until the producer position including producer position but no further.
+  int next_consumer_position = (this->shared_mem_region->consumer_position) % this->slots;
+  // special case to handle wraparound. Should be able to consume this slot.
+  // bool is_wraparound_case = next_consumer_position == 0 && this->shared_mem_region->producer_position == (this->slots-1);
+  if (next_consumer_position == this->shared_mem_region->producer_position) {
     return nullptr;
   }
 
@@ -61,7 +69,6 @@ template <typename T> T *Consumer<T>::get() {
 }
 
 template <typename T> int Disruptor<T>::get_mmap_size() {
-  // Extra two slots is to store consumer / producer positions.
   return sizeof(SharedData<T>) + sizeof(T) * slots;
 }
 
@@ -79,21 +86,30 @@ template <typename T> Producer<T>::Producer(int slots, const char *mmap_name) {
   this->shared_mem_region->entities = reinterpret_cast<T *>(
       (char *)this->shared_mem_region + sizeof(SharedData<T>));
 
+  // producer always starts ahead of consumer
   this->shared_mem_region->producer_position = 0;
 }
 
-template <typename T> void Producer<T>::put(T item) {
+template <typename T> bool Producer<T>::put(T item) {
   SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
                this->shared_mem_region->producer_position,
                this->shared_mem_region->consumer_position);
-  // @TODO we can optionally put a check to make sure producer cannot put more
-  // entities into queue here.
+  int next_producer_position = (this->shared_mem_region->producer_position+1) % this->slots;
+
+  // Producer cannot produce spots that the consumer cannot read without looping around.
+  // producer spot must be < consumer spot.
+  if (next_producer_position == this->shared_mem_region->consumer_position) {
+    SPDLOG_ERROR("{} Producer overflow!", this->mmap_info->name);
+    return false;
+  }
 
   this->shared_mem_region
       ->entities[this->shared_mem_region->producer_position] = item;
 
   this->shared_mem_region->producer_position++;
   this->shared_mem_region->producer_position %= this->slots;
+
+  return true;
 }
 
 template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name) {
