@@ -58,6 +58,10 @@ TEST_CASE("Disruptor Producer Overflow Test") {
   // Then no more items.
   REQUIRE(consumer.get() == nullptr);
 
+  // consumer has consumed everything. should be able to put more stuff in.
+  REQUIRE(producer.put(item) == true);
+  REQUIRE(producer.put(item) == true);
+
   producer.cleanup();
   consumer.cleanup();
 };

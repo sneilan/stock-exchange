@@ -43,12 +43,12 @@ int main() {
 
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
-      NewOrderEvent item = gateway->get();
-      if (!item.stale) {
+      NewOrderEvent* item = gateway->get();
+      if (item != nullptr) {
         // Store the event in the event store
         // @TODO consider returning an Order* instead of sequence ID.
-        SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice,
-                                              item.clientId, item.quantity);
+        SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
+                                              item->clientId, item->quantity);
         SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
                     eventStore->size());
 

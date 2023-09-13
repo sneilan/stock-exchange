@@ -48,15 +48,14 @@ public:
 };
 
 template <typename T> T *Consumer<T>::get() {
-  SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
-               this->shared_mem_region->producer_position,
-               this->shared_mem_region->consumer_position);
+  // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
+  //              this->shared_mem_region->producer_position,
+  //              this->shared_mem_region->consumer_position);
 
-  // Consumer can consume up until the producer position including producer position but no further.
-  int next_consumer_position = (this->shared_mem_region->consumer_position) % this->slots;
-  // special case to handle wraparound. Should be able to consume this slot.
-  // bool is_wraparound_case = next_consumer_position == 0 && this->shared_mem_region->producer_position == (this->slots-1);
-  if (next_consumer_position == this->shared_mem_region->producer_position) {
+  // Consumer can consume up until the producer position. Producer is not allowed to produce > consumer position - 1
+  // So producers next position it will write to is it's current position and the last position it wrote to is
+  // position - 1. Then consumer can consume only up to producer position - 1. It's a real mind bender but it works.
+  if (this->shared_mem_region->consumer_position == this->shared_mem_region->producer_position) {
     return nullptr;
   }
 
@@ -91,9 +90,9 @@ template <typename T> Producer<T>::Producer(int slots, const char *mmap_name) {
 }
 
 template <typename T> bool Producer<T>::put(T item) {
-  SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
-               this->shared_mem_region->producer_position,
-               this->shared_mem_region->consumer_position);
+  // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
+  //              this->shared_mem_region->producer_position,
+  //              this->shared_mem_region->consumer_position);
   int next_producer_position = (this->shared_mem_region->producer_position+1) % this->slots;
 
   // Producer cannot produce spots that the consumer cannot read without looping around.
