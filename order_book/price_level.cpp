@@ -9,49 +9,47 @@ std::list<Order *> PriceLevel::fillOrder(Order *order) {
 
   int unfilled_quantity = order->unfilled_quantity();
   SPDLOG_DEBUG("Level {} - Order id {} unfilled_quantity is "
-                "{}. num orders in queue is {}",
-                limitPrice, order->id, unfilled_quantity, orders.get_total());
+               "{}. num orders in queue is {}",
+               limitPrice, order->id, unfilled_quantity, orders.get_total());
 
   std::list<Order *> updated_orders;
   while (orders.get_front() != nullptr && unfilled_quantity > 0) {
     Node<Order *> *node = orders.get_front();
     int quantity_available = node->data->unfilled_quantity();
-    SPDLOG_DEBUG("Level {} - iterating node {}, quantity {}",
-                  limitPrice, node->data->id, quantity_available);
+    SPDLOG_DEBUG("Level {} - iterating node {}, quantity {}", limitPrice,
+                 node->data->id, quantity_available);
 
     updated_orders.push_back(node->data);
 
     if (quantity_available >= unfilled_quantity) {
-      SPDLOG_DEBUG("Level {} - Order id {} filling.",
-                    limitPrice, order->id);
+      SPDLOG_DEBUG("Level {} - Order id {} filling.", limitPrice, order->id);
       node->data->filled_quantity += order->unfilled_quantity();
       totalVolume -= order->unfilled_quantity();
       order->filled_quantity = order->quantity;
       // If we've filled the order, stop.
       SPDLOG_DEBUG("Level {} - Order id {} filled. volume {} "
-                    "remains on level. Order has {} quantity remaining.",
-                    limitPrice, order->id, totalVolume,
-                    order->unfilled_quantity());
+                   "remains on level. Order has {} quantity remaining.",
+                   limitPrice, order->id, totalVolume,
+                   order->unfilled_quantity());
       if (node->data->unfilled_quantity() == 0) {
         SPDLOG_DEBUG("Level {} - Order id {} removing node "
-                      "{} because order filled.",
-                      limitPrice, order->id, node->data->id);
+                     "{} because order filled.",
+                     limitPrice, order->id, node->data->id);
         orders.remove(node);
       }
       break;
     } else if (unfilled_quantity > quantity_available) {
-      SPDLOG_DEBUG("Level {} - Order id {} partial filling",
-                    limitPrice, order->id);
+      SPDLOG_DEBUG("Level {} - Order id {} partial filling", limitPrice,
+                   order->id);
       order->filled_quantity += quantity_available;
       unfilled_quantity -= quantity_available;
       totalVolume -= quantity_available;
       SPDLOG_DEBUG("Level {} - Order id {} partial filling, "
-                    "removing node {}",
-                    limitPrice, order->id, node->data->id);
+                   "removing node {}",
+                   limitPrice, order->id, node->data->id);
       orders.remove(node);
-      SPDLOG_DEBUG(
-          "Level {} - Order id {} quantity {} remains",
-          limitPrice, order->id, order->unfilled_quantity());
+      SPDLOG_DEBUG("Level {} - Order id {} quantity {} remains", limitPrice,
+                   order->id, order->unfilled_quantity());
     }
   }
 
@@ -61,15 +59,15 @@ std::list<Order *> PriceLevel::fillOrder(Order *order) {
 void PriceLevel::cancelOrder(Node<Order *> *node) {
   this->totalVolume -= node->data->unfilled_quantity();
   orders.remove(node);
-  SPDLOG_DEBUG("Level {} - Level now has {} orders",
-                limitPrice, orders.get_total());
+  SPDLOG_DEBUG("Level {} - Level now has {} orders", limitPrice,
+               orders.get_total());
 }
 
 Node<Order *> *PriceLevel::addOrder(Order *order) {
   this->totalVolume += order->quantity;
   Node<Order *> *node = orders.push_back(order);
-  SPDLOG_DEBUG("Level {} - Level now has {} orders",
-                limitPrice, orders.get_total());
+  SPDLOG_DEBUG("Level {} - Level now has {} orders", limitPrice,
+               orders.get_total());
   return node;
 }
 

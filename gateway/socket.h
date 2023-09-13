@@ -36,7 +36,7 @@ public:
 
 private:
   int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
-  int handleErrors(int i/*, fd_set *readfds*/);
+  int handleErrors(int i /*, fd_set *readfds*/);
   void acceptNewConn(fd_set *readfds);
   void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
 

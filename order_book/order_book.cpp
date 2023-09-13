@@ -7,8 +7,8 @@ std::list<Order *> OrderBook::newOrder(Order *order) {
   std::list<Order *> updated_orders;
 
   SPDLOG_INFO("Called newOrder on Order {} side {} price {} quantity {}",
-               order->id, order->side, order->limitPrice,
-               order->unfilled_quantity());
+              order->id, order->side, order->limitPrice,
+              order->unfilled_quantity());
 
   if (isOpposingOrderBookBlank(order)) {
     SPDLOG_DEBUG("isOpposingOrderBookBlank returned true");
@@ -60,7 +60,7 @@ std::list<Order *> OrderBook::newOrder(Order *order) {
   while (order->unfilled_quantity() > 0) {
     updated_orders.merge(this->fillOrder(order));
     SPDLOG_DEBUG("Finished fillOrder. Order id {} has unfillled quantity {}",
-                  order->id, order->unfilled_quantity());
+                 order->id, order->unfilled_quantity());
 
     SPDLOG_DEBUG("opposingOrderBook volume is {}", opposingOrderVolume(order));
     SPDLOG_DEBUG("orderBook volume is {}", bookOrderVolume(order));
@@ -126,16 +126,14 @@ void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order *order) {
     if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
 
       bestBid = buyBook->get(order->limitPrice);
-      SPDLOG_DEBUG("bid is {}/{}",
-                    bestBid->getPrice(), bestBid->getVolume());
+      SPDLOG_DEBUG("bid is {}/{}", bestBid->getPrice(), bestBid->getVolume());
     }
   } else if (order->side == SELL) {
     // If there are no buy orders & this is a lower ask, lower the ask
     if (bestAsk == nullptr || order->limitPrice < bestAsk->getPrice()) {
 
       bestAsk = sellBook->get(order->limitPrice);
-      SPDLOG_DEBUG("ask is {}/{}",
-                    bestAsk->getPrice(), bestAsk->getVolume());
+      SPDLOG_DEBUG("ask is {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
     }
   }
 }
@@ -181,8 +179,7 @@ void OrderBook::setBidAskToReflectMarket() {
     // sell book get should return null ptr if we retrieve a bad price.
     // or consider adding new prices automagically.
     if (bestAsk != nullptr && bestAsk->getVolume() > 0) {
-      SPDLOG_DEBUG("ask is {}/{}",
-                    bestAsk->getPrice(), bestAsk->getVolume());
+      SPDLOG_DEBUG("ask is {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
       return;
     }
   }
@@ -199,8 +196,7 @@ void OrderBook::setBidAskToReflectMarket() {
     // sell book get should return null ptr if we retrieve a bad price.
     // or consider adding new prices automagically.
     if (bestBid != nullptr && bestBid->getVolume() > 0) {
-      SPDLOG_DEBUG("bid is {}/{}",
-                    bestBid->getPrice(), bestBid->getVolume());
+      SPDLOG_DEBUG("bid is {}/{}", bestBid->getPrice(), bestBid->getVolume());
       return;
     }
   }

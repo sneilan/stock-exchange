@@ -50,7 +50,7 @@ int main() {
         SEQUENCE_ID id = eventStore->newEvent(item.side, item.limitPrice,
                                               item.clientId, item.quantity);
         SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
-                      eventStore->size());
+                    eventStore->size());
 
         // Get response here & spool information to new ring buffer
         Order *order = eventStore->get(id);

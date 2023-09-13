@@ -20,8 +20,8 @@ NewOrderEvent Gateway::get() {
 
   if (!item.stale) {
     SPDLOG_DEBUG("Ring buffer Order retrieved for client {} for price {} for "
-                  "side {} quantity {}",
-                  item.clientId, item.limitPrice, item.side, item.quantity);
+                 "side {} quantity {}",
+                 item.clientId, item.limitPrice, item.side, item.quantity);
   }
   // Mark the old copy of new order event in ring buffer as stale.
   gatewayRingBuf[start].stale = true;
@@ -45,9 +45,9 @@ void Gateway::readMessage(int client_id, char *message) {
   gatewayRingBuf[end].stale = false;
 
   SPDLOG_INFO("Ring buffer Order recieved from client {} for price {} for "
-               "side {} quantity {}",
-               gatewayRingBuf[end].clientId, gatewayRingBuf[end].limitPrice,
-               gatewayRingBuf[end].side, gatewayRingBuf[end].quantity);
+              "side {} quantity {}",
+              gatewayRingBuf[end].clientId, gatewayRingBuf[end].limitPrice,
+              gatewayRingBuf[end].side, gatewayRingBuf[end].quantity);
 
   end++;
 

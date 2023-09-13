@@ -31,7 +31,7 @@ void SocketServer::listenToSocket() {
       if (FD_ISSET(sd, &readfds)) {
         // @TODO handleErrors is also responsible for reading data from the
         // client.
-        int valread = handleErrors(i/*, &readfds */);
+        int valread = handleErrors(i /*, &readfds */);
 
         if (valread > 0) {
           // set the string terminating NULL byte on the end
@@ -161,7 +161,8 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 bool SocketServer::sendMessage(int client_id, const char *message) {
   size_t error = send(client_socket[client_id], message, strlen(message), 0);
   if (error != strlen(message)) {
-    SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id, client_socket[client_id]);
+    SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,
+                 client_socket[client_id]);
     return false;
   }
 
@@ -188,7 +189,7 @@ int SocketServer::handleErrors(int i /* , fd_set *readfds */) {
     client_socket[i] = 0;
     disconnected(i);
     SPDLOG_DEBUG("Host disconnected, ip {}, port {}, client {}",
-                  inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
+                 inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
   }
   SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, i);
 

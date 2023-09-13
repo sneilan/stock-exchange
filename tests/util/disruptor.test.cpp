@@ -21,7 +21,7 @@ TEST_CASE("Disruptor Pool Basic Test") {
 
   Consumer<TestStruct> consumer(10, disruptor_pool_name);
 
-  TestStruct* pulledItem = consumer.get();
+  TestStruct *pulledItem = consumer.get();
   REQUIRE(pulledItem->a == 5);
   REQUIRE(pulledItem->b == 6);
 
