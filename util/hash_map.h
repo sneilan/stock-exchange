@@ -6,6 +6,8 @@
 // Linear Probing
 // http://www.isthe.com/chongo/tech/comp/fnv/
 
+// UNUSED. Still using stl library but will probably use soon.
+
 #ifndef hashtable_h
 #define hashtable_h
 

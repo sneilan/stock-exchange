@@ -14,6 +14,8 @@ Gateway::~Gateway() throw() { delete_mmap(mmap_info); }
 
 NewOrderEvent Gateway::get() {
   // Copy what is in the ring buffer into a new structure.
+  // Eventually we can stream orders directly from the network card
+  // to the mmap buffer for increased performance.
   NewOrderEvent item = gatewayRingBuf[start];
 
   if (!item.stale) {
@@ -29,25 +31,6 @@ NewOrderEvent Gateway::get() {
   start++;
   start %= GATEWAY_BUFLEN;
   return item;
-}
-
-void Gateway::newClient(int client_id) {
-  SPDLOG_INFO("New client {}", client_id);
-  const char *msg = "Welcome new client";
-  if (!sendMessage(client_id, msg)) {
-    // @TODO perhaps sendMessage can handle what happens if a client disconnects
-    // Then call our disconnected handler and let us know so we don't have to do
-    // an error handling pattern everywhere.
-    forceDisconnect(client_id);
-  }
-}
-
-void Gateway::disconnected(int client_id) {
-  SPDLOG_INFO("Client disconnected {}", client_id);
-}
-
-int Gateway::get_mmap_size() {
-  return sizeof(NewOrderEvent) * (GATEWAY_BUFLEN);
 }
 
 void Gateway::readMessage(int client_id, char *message) {
@@ -72,6 +55,25 @@ void Gateway::readMessage(int client_id, char *message) {
 
   const char *msg = "order received";
   sendMessage(client_id, msg);
+}
+
+void Gateway::newClient(int client_id) {
+  SPDLOG_INFO("New client {}", client_id);
+  const char *msg = "Welcome new client";
+  if (!sendMessage(client_id, msg)) {
+    // @TODO perhaps sendMessage can handle what happens if a client disconnects
+    // Then call our disconnected handler and let us know so we don't have to do
+    // an error handling pattern everywhere.
+    forceDisconnect(client_id);
+  }
+}
+
+void Gateway::disconnected(int client_id) {
+  SPDLOG_INFO("Client disconnected {}", client_id);
+}
+
+int Gateway::get_mmap_size() {
+  return sizeof(NewOrderEvent) * (GATEWAY_BUFLEN);
 }
 
 void Gateway::run() {
