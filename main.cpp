@@ -1,5 +1,6 @@
 #include "eventstore.h"
 #include "gateway/gateway.h"
+#include "gateway/socket.h"
 #include "order_book/order_book.h"
 #include <cstring>
 #include <fcntl.h>
@@ -11,10 +12,16 @@
 
 #include <unistd.h>
 
+// Hacking some stuff out while I nail down sending messages in sockets.
+const char *notification = " hello world order notification to the client ";
+const char *orderRecievedMsg = "order received";
+
 int main() {
   spdlog::set_level(spdlog::level::debug);
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
+
+  Producer<OutgoingMessage> outgoingDisruptor(MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER);
 
   Gateway *gateway = new Gateway();
 
@@ -41,6 +48,12 @@ int main() {
     OrderBook *orderBook = new OrderBook();
     SPDLOG_INFO("Created OrderBook");
 
+    OutgoingMessage message;
+    message.message = notification;
+
+    OutgoingMessage orderRecieved;
+    orderRecieved.message = orderRecievedMsg;
+
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
       NewOrderEvent* item = gateway->get();
@@ -58,26 +71,23 @@ int main() {
         // @TODO This is a call to the matching engine. newOrder name should be
         // more descriptive.
         std::list<Order *> updated_orders = orderBook->newOrder(order);
+
+        orderRecieved.client_id = order->clientId;
+        outgoingDisruptor.put(orderRecieved);
+          spdlog::debug("Order {} recieved message sent", order->id);
+
         SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
         SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
 
-        // @TODO issue with sending orders.. :(
-        // I cannot send orders from the child process
-        // because new sockets are being opened on the parent process gateway.
-        // The child process task_struct in the kernel does not know
-        // what was opened in the parent process task_struct after the call
-        // to fork()
-        // for (Order *order : updated_orders) {
-        //   const char *message = "order updated";
-        //   // @TODO send updated order information to the clients via another
-        //   // ring buffer. Another process will read from this ring buffer and
-        //   // send data to the client.
-        //   // @TODO Stop using socket ids as client ids. Set up a map
-        //   // between client ids and sockets. Also create a buffer to try
-        //   // to send orders to clients that have disconnected.
-        //   gateway->sendMessage(order->clientId, message);
-        //   spdlog::debug("Orders updated message sent");
-        // }
+        for (Order *order : updated_orders) {
+          // @TODO Stop using socket ids as client ids. Set up a map
+          // between client ids and sockets. Also create a buffer to try
+          // to send orders to clients that have disconnected.
+          // @TODO send more detailed order information.
+          message.client_id = order->clientId;
+          outgoingDisruptor.put(message);
+          spdlog::debug("Order {} updated message sent", order->id);
+        }
       }
     }
   }

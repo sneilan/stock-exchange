@@ -49,6 +49,12 @@ void SocketServer::listenToSocket() {
         }
       }
     }
+
+    OutgoingMessage* message = outgoing_message_consumer->get();
+    if (message != nullptr) {
+      sendMessage(message->client_id, const_cast<char*>(message->message));
+      SPDLOG_DEBUG("Sent {} message {}", message->client_id, *message->message);
+    }
   }
 }
 
@@ -60,6 +66,12 @@ SocketServer::SocketServer() {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     client_socket[i] = 0;
   }
+
+  outgoing_message_consumer = new Consumer<OutgoingMessage>(MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER);
+}
+
+SocketServer::~SocketServer() {
+  outgoing_message_consumer->cleanup();
 }
 
 void SocketServer::forceDisconnect(int client_id) {
@@ -158,7 +170,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   }
 }
 
-bool SocketServer::sendMessage(int client_id, const char *message) {
+bool SocketServer::sendMessage(int client_id, char *message) {
   size_t error = send(client_socket[client_id], message, strlen(message), 0);
   if (error != strlen(message)) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,

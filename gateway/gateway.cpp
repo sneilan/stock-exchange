@@ -30,7 +30,6 @@ void Gateway::readMessage(int client_id, char *message) {
   item.limitPrice = ((NewOrderEvent *)message)->limitPrice;
   item.side = ((NewOrderEvent *)message)->side;
   item.quantity = ((NewOrderEvent *)message)->quantity;
-  item.stale = false;
 
   producer->put(item);
 
@@ -38,15 +37,12 @@ void Gateway::readMessage(int client_id, char *message) {
               "side {} quantity {}",
               item.clientId, item.limitPrice,
               item.side, item.quantity);
-
-  const char *msg = "order received";
-  sendMessage(client_id, msg);
 }
 
 void Gateway::newClient(int client_id) {
   SPDLOG_INFO("New client {}", client_id);
   const char *msg = "Welcome new client";
-  if (!sendMessage(client_id, msg)) {
+  if (!sendMessage(client_id, const_cast<char *>(msg))) {
     // @TODO perhaps sendMessage can handle what happens if a client disconnects
     // Then call our disconnected handler and let us know so we don't have to do
     // an error handling pattern everywhere.

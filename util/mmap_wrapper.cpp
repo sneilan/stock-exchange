@@ -4,8 +4,9 @@ MMap_Info *init_mmap(const char *name, int size) {
   int fd = shm_open(name, O_CREAT | O_RDWR, 0777);
 
   if (fd == -1) {
-    throw std::runtime_error(
-        "Could not open file descriptor to mmap in controller.");
+    std::stringstream ss;
+    ss << "Could not open file descriptor to mmap " << name << " in controller.";
+    throw std::runtime_error(ss.str());
   }
 
   if (ftruncate(fd, size) == -1) {
@@ -44,8 +45,9 @@ MMap_Info *open_mmap(const char *name, int size) {
   int fd = shm_open(name, O_RDWR, 0777);
 
   if (fd == -1) {
-    throw std::runtime_error(
-        "Could not open file descriptor to mmap in client.");
+      std::stringstream ss;
+      ss << "Could not open file descriptor to mmap " << name << " in client.";
+    throw std::runtime_error(ss.str());
   }
 
   void *location =

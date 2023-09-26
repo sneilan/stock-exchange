@@ -3,6 +3,9 @@ import sys
 import time
 from struct import pack
 import random
+import threading
+# this is crap
+from _thread import *
 
 # Connects to exchange and asks the user to place an
 
@@ -21,6 +24,15 @@ print("Connected!")
 
 # Initial side.
 side = 'b'
+
+def listener(sock):
+    while  True:
+        data = sock.recv(1024)
+        if data:
+            print(data)
+
+
+start_new_thread(listener, (sock,))
 
 while True:
     # char = sys.stdin.read(1)
@@ -47,8 +59,8 @@ while True:
     else:
         side = 'b'
 
-    response = sock.recv(1024)
-    print(response)
+    # response = sock.recv(1024)
+    # print(response)
 
 sock.close()
 

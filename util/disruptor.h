@@ -1,3 +1,5 @@
+#ifndef disruptor_h
+#define disruptor_h
 // Implementation of ring buffer for processes to communicate with each other
 // See https://martinfowler.com/articles/lmax.html
 //
@@ -123,3 +125,4 @@ template <typename T> Consumer<T>::~Consumer() throw() { cleanup(); }
 template <typename T> void Consumer<T>::cleanup() {
   close_mmap(this->mmap_info);
 }
+#endif

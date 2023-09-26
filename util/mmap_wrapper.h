@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <sstream>
 
 struct MMap_Info {
   int fd;
