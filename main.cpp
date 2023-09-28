@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 // Hacking some stuff out while I nail down sending messages in sockets.
-const char *notification = " hello world order notification to the client ";
+const char *notification = "trade fill notification";
 const char *orderRecievedMsg = "order received";
 
 int main() {
