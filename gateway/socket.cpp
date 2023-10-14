@@ -93,7 +93,8 @@ void SocketServer::listenToSocket() {
       std::memcpy(buffer + offset, &order->clientId, sizeof(order->clientId));
 
       sendMessage(order->clientId, buffer, total_size);
-      // SPDLOG_DEBUG("Sent {} message {}", order->clientId, &buffer);
+      SPDLOG_DEBUG("Sent {} message {} about order {}", order->clientId,
+                   buffer[0], order->id);
     }
   }
 }
@@ -213,8 +214,8 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
-  size_t error = send(client_socket[client_id], message, message_size, 0);
-  if (error != strlen(message)) {
+  int error = send(client_socket[client_id], message, message_size, 0);
+  if (error != message_size) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,
                  client_socket[client_id]);
     return false;

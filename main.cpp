@@ -73,7 +73,7 @@ int main() {
       // later on create a new disruptor for order recieved messages
       outgoingDisruptor.put(offset);
       // State of order is based on how many fills.
-      spdlog::debug("Order {} recieved message sent", order->id);
+      SPDLOG_DEBUG("Order {} recieved message sent", order->id);
 
       SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
       SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
@@ -84,7 +84,7 @@ int main() {
         // to send orders to clients that have disconnected.
         // @TODO send more detailed order information.
         outgoingDisruptor.put(offset);
-        spdlog::debug("Order {} updated message sent", order->id);
+        SPDLOG_DEBUG("Order {} updated message sent", order->id);
       }
     }
   }
