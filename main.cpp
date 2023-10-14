@@ -58,7 +58,6 @@ int main() {
       }
 
       // Store the event in the event store
-      // @TODO consider returning an Order* instead of sequence ID.
       SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
                                             item->clientId, item->quantity);
       SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
@@ -82,8 +81,7 @@ int main() {
         // @TODO Stop using socket ids as client ids. Set up a map
         // between client ids and sockets. Also create a buffer to try
         // to send orders to clients that have disconnected.
-        // @TODO send more detailed order information.
-        outgoingDisruptor.put(offset);
+        outgoingDisruptor.put(object_pool->pointer_to_offset(order));
         SPDLOG_DEBUG("Order {} updated message sent", order->id);
       }
     }
