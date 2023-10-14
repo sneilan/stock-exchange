@@ -5,10 +5,13 @@ Gateway::Gateway() {
   consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, name);
 }
 
-Gateway::~Gateway() throw() { producer->cleanup(); consumer->cleanup(); }
+Gateway::~Gateway() throw() {
+  producer->cleanup();
+  consumer->cleanup();
+}
 
-NewOrderEvent* Gateway::get() {
-  NewOrderEvent* item = consumer->get();
+NewOrderEvent *Gateway::get() {
+  NewOrderEvent *item = consumer->get();
 
   if (item != nullptr) {
     SPDLOG_DEBUG("Order get for client {} for price {} for "
@@ -35,14 +38,13 @@ void Gateway::readMessage(int client_id, char *message) {
 
   SPDLOG_INFO("Ring buffer Order recieved from client {} for price {} for "
               "side {} quantity {}",
-              item.clientId, item.limitPrice,
-              item.side, item.quantity);
+              item.clientId, item.limitPrice, item.side, item.quantity);
 }
 
 void Gateway::newClient(int client_id) {
   SPDLOG_INFO("New client {}", client_id);
   const char *msg = "Welcome new client";
-  if (!sendMessage(client_id, const_cast<char *>(msg))) {
+  if (!sendMessage(client_id, const_cast<char *>(msg), strlen(msg))) {
     // @TODO perhaps sendMessage can handle what happens if a client disconnects
     // Then call our disconnected handler and let us know so we don't have to do
     // an error handling pattern everywhere.

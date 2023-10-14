@@ -1,11 +1,12 @@
 #include "eventstore.h"
 #include "util/object_pool.h"
+#include "util/types.h"
 
-EventStore::EventStore() {
-  SPDLOG_INFO("Allocating EventStore mmap pool..");
-  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, name, IS_CONTROLLER);
-  SPDLOG_INFO("Allocated EventStore mmap pool!");
+const char *eventstore_buf_name = "/eventstore_buf";
+
+EventStore::EventStore(MMapObjectPool<Order> *object_pool) {
   sequence = 0;
+  this->object_pool = object_pool;
 }
 
 EventStore::~EventStore() { delete_mmap(mmap_info); }
@@ -26,6 +27,10 @@ SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, int clientId,
   event_store.emplace(sequence, offset);
 
   return sequence;
+}
+
+ORDER_MMAP_OFFSET EventStore::getOffset(SEQUENCE_ID id) {
+  return event_store.at(id);
 }
 
 void EventStore::remove(SEQUENCE_ID id) { event_store.erase(id); }

@@ -17,7 +17,7 @@ docker run -p 8888:8888 exchange
 # In a separate terminal, not inside of docker, run the following example Python 3 trading client.
 # Python 3 script will auto-connect to 0.0.0.0:8888 (exchange server).
 # Will place a random trade each time you press enter. You'll see output on the exchange.
-python3 scripts/simpleClient.py
+python3 scripts/loadTest.py
 ```
 
 ## Test
