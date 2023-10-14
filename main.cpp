@@ -9,7 +9,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/version.h>
 #include <sys/mman.h>
-
 #include <unistd.h>
 
 // Hacking some stuff out while I nail down sending messages in sockets.
@@ -57,37 +56,40 @@ int main() {
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
       NewOrderEvent* item = gateway->get();
-      if (item != nullptr) {
-        // Store the event in the event store
-        // @TODO consider returning an Order* instead of sequence ID.
-        SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
-                                              item->clientId, item->quantity);
-        SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
-                    eventStore->size());
+      if (item == nullptr) {
+        continue;
+      }
 
-        // Get response here & spool information to new ring buffer
-        Order *order = eventStore->get(id);
-        SPDLOG_INFO("Grabbed order {}", order->id);
-        // @TODO This is a call to the matching engine. newOrder name should be
-        // more descriptive.
-        std::list<Order *> updated_orders = orderBook->newOrder(order);
+      // Store the event in the event store
+      // @TODO consider returning an Order* instead of sequence ID.
+      SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
+                                            item->clientId, item->quantity);
+      SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
+                  eventStore->size());
 
-        orderRecieved.client_id = order->clientId;
-        outgoingDisruptor.put(orderRecieved);
-          spdlog::debug("Order {} recieved message sent", order->id);
+      // Get response here & spool information to new ring buffer
+      Order *order = eventStore->get(id);
+      SPDLOG_INFO("Grabbed order {}", order->id);
+      // @TODO This is a call to the matching engine. newOrder name should be
+      // more descriptive.
+      std::list<Order *> updated_orders = orderBook->newOrder(order);
 
-        SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
-        SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
+      orderRecieved.client_id = order->clientId;
+      outgoingDisruptor.put(orderRecieved);
+      // State of order is based on how many fills.
+      spdlog::debug("Order {} recieved message sent", order->id);
 
-        for (Order *order : updated_orders) {
-          // @TODO Stop using socket ids as client ids. Set up a map
-          // between client ids and sockets. Also create a buffer to try
-          // to send orders to clients that have disconnected.
-          // @TODO send more detailed order information.
-          message.client_id = order->clientId;
-          outgoingDisruptor.put(message);
-          spdlog::debug("Order {} updated message sent", order->id);
-        }
+      SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
+      SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
+
+      for (Order *order : updated_orders) {
+        // @TODO Stop using socket ids as client ids. Set up a map
+        // between client ids and sockets. Also create a buffer to try
+        // to send orders to clients that have disconnected.
+        // @TODO send more detailed order information.
+        message.client_id = order->clientId;
+        outgoingDisruptor.put(message);
+        spdlog::debug("Order {} updated message sent", order->id);
       }
     }
   }
