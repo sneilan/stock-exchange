@@ -9,7 +9,11 @@ docker build -t exchange .
 
 ## Run
 ```
-docker run -p 8888:8888 exchange
+docker run -it -v $PWD:/app -p 8888:8888 exchange
+
+# -it is so you can stop the exchange with Control-C
+# Use volume mount to compile so you don't have to recompile everything each
+# time something changed.
 ```
 
 ## Place Trades
@@ -22,9 +26,7 @@ python3 scripts/loadTest.py
 
 ## Test
 ```
-# Get the docker id from docker ps
-docker exec -it <id> /bin/bash
-./test
+docker run -it -v $PWD:/app exchange /app/test
 ```
 
 ## Notes to Self

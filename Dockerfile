@@ -13,11 +13,8 @@ RUN git clone https://github.com/gabime/spdlog.git && \
     cd spdlog && mkdir build && cd build && \
     cmake .. && make -j && make install
 
-# Compile
-WORKDIR /app
-COPY . /app
-RUN cmake .
-RUN make
+WORKDIR /
+COPY run.sh /run.sh
+RUN chmod +x /run.sh
 
-# Run
-CMD ["./main"]
+CMD ["/run.sh"]
