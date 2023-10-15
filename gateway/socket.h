@@ -1,6 +1,9 @@
 #ifndef socket_h
 #define socket_h
 
+#include "../eventstore.h"
+#include "../util/disruptor.h"
+#include "../util/types.h"
 #include <arpa/inet.h> //close
 #include <errno.h>
 #include <netinet/in.h>
@@ -13,18 +16,12 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <sys/types.h>
 #include <unistd.h> //close
-#include "../util/disruptor.h"
 
 #define MAX_CLIENTS 30
 #define TIMEOUT_MICROSECONDS 1
 #define MAX_OUTGOING_MESSAGES 100
 
 #define OUTGOING_MESSAGE_BUFFER "/ss_outgoing_messages"
-
-struct OutgoingMessage {
-  int client_id;
-  const char * message;
-};
 
 class SocketServer {
 public:
@@ -39,7 +36,7 @@ public:
   virtual void readMessage(int client_id, char *message) = 0;
 
   // Does not need to be implemented by subclass.
-  bool sendMessage(int client_id, char *message);
+  bool sendMessage(int client_id, char *message, int message_size);
   void forceDisconnect(int client_id);
 
 private:
@@ -55,7 +52,9 @@ private:
 
   // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
   struct timeval timeout;
-  Consumer<OutgoingMessage>* outgoing_message_consumer;
+  Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
+
+  MMapObjectPool<Order> *object_pool;
 };
 
 #endif

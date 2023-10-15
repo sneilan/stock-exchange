@@ -50,10 +50,51 @@ void SocketServer::listenToSocket() {
       }
     }
 
-    OutgoingMessage* message = outgoing_message_consumer->get();
-    if (message != nullptr) {
-      sendMessage(message->client_id, const_cast<char*>(message->message));
-      SPDLOG_DEBUG("Sent {} message {}", message->client_id, *message->message);
+    ORDER_MMAP_OFFSET *offset = outgoing_message_consumer->get();
+    if (offset != nullptr) {
+      Order *order = object_pool->offset_to_pointer(*offset);
+
+      // message type (char)
+      // sequence ID (unsigned long long)
+      // total quantity (integer)
+      // filled quantity (integer)
+      // (TODO)
+      // last fill price (integer)
+      // last quantity filled (integer)
+
+      // hacked out for prototype purposes. Should replace with FIX or protobuf.
+      // Maybe even Apache Avro.
+      int total_size = sizeof(char) + sizeof(order->id) +
+                       sizeof(order->quantity) +
+                       sizeof(order->filled_quantity) + sizeof(order->clientId);
+      char buffer[total_size];
+
+      char orderRecieved = 'r';
+      char orderUpdated = 'u';
+      char orderFilled = 'f';
+      // @TODO cancelled later.
+
+      if (order->unfilled_quantity() == order->quantity) {
+        buffer[0] = orderRecieved;
+      } else if (order->unfilled_quantity() == 0) {
+        buffer[0] = orderFilled;
+      } else {
+        buffer[0] = orderUpdated;
+      }
+
+      int offset = 1;
+      std::memcpy(buffer + offset, &order->id, sizeof(order->id));
+      offset += sizeof(order->id);
+      std::memcpy(buffer + offset, &order->quantity, sizeof(order->quantity));
+      offset += sizeof(order->quantity);
+      std::memcpy(buffer + offset, &order->filled_quantity,
+                  sizeof(order->filled_quantity));
+      offset += sizeof(order->clientId);
+      std::memcpy(buffer + offset, &order->clientId, sizeof(order->clientId));
+
+      sendMessage(order->clientId, buffer, total_size);
+      SPDLOG_DEBUG("Sent {} message {} about order {}", order->clientId,
+                   buffer[0], order->id);
     }
   }
 }
@@ -67,12 +108,14 @@ SocketServer::SocketServer() {
     client_socket[i] = 0;
   }
 
-  outgoing_message_consumer = new Consumer<OutgoingMessage>(MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER);
+  outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
+      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER);
+
+  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf_name,
+                                          IS_CLIENT);
 }
 
-SocketServer::~SocketServer() {
-  outgoing_message_consumer->cleanup();
-}
+SocketServer::~SocketServer() { outgoing_message_consumer->cleanup(); }
 
 void SocketServer::forceDisconnect(int client_id) {
   close(client_socket[client_id]);
@@ -170,9 +213,9 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   }
 }
 
-bool SocketServer::sendMessage(int client_id, char *message) {
-  size_t error = send(client_socket[client_id], message, strlen(message), 0);
-  if (error != strlen(message)) {
+bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
+  int error = send(client_socket[client_id], message, message_size, 0);
+  if (error != message_size) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,
                  client_socket[client_id]);
     return false;
