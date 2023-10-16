@@ -19,6 +19,9 @@
 #define ONE_HUNDRED_DOLLARS (ONE_DOLLAR * 100)
 #define ONE_CENT 1
 
+#define GATEWAY_CONSUMER 0
+#define OUTGOING_MESSAGE_CONSUMER 0
+
 struct Order {
   int clientId;
   int quantity;

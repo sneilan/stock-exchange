@@ -109,7 +109,7 @@ SocketServer::SocketServer() {
   }
 
   outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
-      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER);
+      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER, OUTGOING_MESSAGE_CONSUMER);
 
   object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf_name,
                                           IS_CLIENT);

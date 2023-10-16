@@ -13,9 +13,11 @@
 #include "mmap_wrapper.h"
 #include <spdlog/spdlog.h>
 
+#define MAX_CONSUMERS 5
+
 template <typename T> struct SharedData {
-  int producer_position;
-  int consumer_position;
+  unsigned long long producer_position;
+  unsigned long long consumer_positions[MAX_CONSUMERS];
   T *entities;
 };
 
@@ -43,31 +45,15 @@ public:
   // we have to specify slots twice.
   // For now this is fine because producer and consumer are
   // created in separate processes anyway.
-  Consumer(int slots, const char *mmap_name);
+  
+  // What if we specified consumer name? Define consu
+  Consumer(int slots, const char *mmap_name, int consumer_id);
   ~Consumer() throw();
   T *get();
   void cleanup();
+private:
+  int consumer_id;
 };
-
-template <typename T> T *Consumer<T>::get() {
-  // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
-  //              this->shared_mem_region->producer_position,
-  //              this->shared_mem_region->consumer_position);
-
-  // Consumer can consume up until the producer position. Producer is not allowed to produce > consumer position - 1
-  // So producers next position it will write to is it's current position and the last position it wrote to is
-  // position - 1. Then consumer can consume only up to producer position - 1. It's a real mind bender but it works.
-  if (this->shared_mem_region->consumer_position == this->shared_mem_region->producer_position) {
-    return nullptr;
-  }
-
-  T *item = &this->shared_mem_region
-                 ->entities[this->shared_mem_region->consumer_position];
-  this->shared_mem_region->consumer_position++;
-  this->shared_mem_region->consumer_position %= this->slots;
-
-  return item;
-}
 
 template <typename T> int Disruptor<T>::get_mmap_size() {
   return sizeof(SharedData<T>) + sizeof(T) * slots;
@@ -95,29 +81,22 @@ template <typename T> bool Producer<T>::put(T item) {
   // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
   //              this->shared_mem_region->producer_position,
   //              this->shared_mem_region->consumer_position);
-  int next_producer_position = (this->shared_mem_region->producer_position+1) % this->slots;
-
-  // Producer cannot produce spots that the consumer cannot read without looping around.
-  // producer spot must be < consumer spot.
-  if (next_producer_position == this->shared_mem_region->consumer_position) {
-    SPDLOG_ERROR("{} Producer overflow!", this->mmap_info->name);
-    return false;
-  }
+  // int next_producer_position = (this->shared_mem_region->producer_position+1) % this->slots;
 
   this->shared_mem_region
-      ->entities[this->shared_mem_region->producer_position] = item;
+      ->entities[this->shared_mem_region->producer_position % this->slots] = item;
 
   this->shared_mem_region->producer_position++;
-  this->shared_mem_region->producer_position %= this->slots;
 
   return true;
 }
 
-template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name) {
+template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name, int consumer_id) {
   this->slots = slots;
   this->mmap_info = open_mmap(mmap_name, this->get_mmap_size());
   this->shared_mem_region = (SharedData<T> *)this->mmap_info->location;
-  this->shared_mem_region->consumer_position = 0;
+  this->consumer_id = consumer_id;
+  this->shared_mem_region->consumer_positions[consumer_id] = 0;
 }
 
 template <typename T> Consumer<T>::~Consumer() throw() { cleanup(); }
@@ -125,4 +104,24 @@ template <typename T> Consumer<T>::~Consumer() throw() { cleanup(); }
 template <typename T> void Consumer<T>::cleanup() {
   close_mmap(this->mmap_info);
 }
+
+template <typename T> T *Consumer<T>::get() {
+  // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
+  //              this->shared_mem_region->producer_position,
+  //              this->shared_mem_region->consumer_position);
+
+  // Consumer can consume up until the producer position. Producer is not allowed to produce > consumer position - 1
+  // So producers next position it will write to is it's current position and the last position it wrote to is
+  // position - 1. Then consumer can consume only up to producer position - 1. It's a real mind bender but it works.
+  if (this->shared_mem_region->consumer_positions[this->consumer_id] == this->shared_mem_region->producer_position) {
+    return nullptr;
+  }
+
+  T *item = &this->shared_mem_region
+                 ->entities[this->shared_mem_region->consumer_positions[this->consumer_id] % this->slots];
+  this->shared_mem_region->consumer_positions[this->consumer_id]++;
+
+  return item;
+}
+
 #endif

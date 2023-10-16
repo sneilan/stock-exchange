@@ -1,6 +1,5 @@
 #!/bin/sh
 
-cd /app
-cmake .
-make
+
+./make.sh
 ./main

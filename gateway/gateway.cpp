@@ -2,7 +2,7 @@
 
 Gateway::Gateway() {
   producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, name);
-  consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, name);
+  consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, name, GATEWAY_CONSUMER);
 }
 
 Gateway::~Gateway() throw() {
