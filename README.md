@@ -1,5 +1,7 @@
 # 💻 Personal C++ Low Latency Stock Exchange 🤑
 
+![CI](https://github.com/sneilan/stock-exchange/actions/workflows/tests.yml/badge.svg)
+
 This is a stock exchange that you can run on your laptop or desktop that will process 10's of thousands of trades per second.
 It's better for testing trading strategies than backtesting because you can try your ideas out against an actual market that you create locally.
 * Create markets by connecting some trading robots to the exchange.
