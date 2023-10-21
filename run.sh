@@ -1,5 +1,4 @@
 #!/bin/sh
 
-
-./make.sh
-./main
+/app/make.sh
+/app/main
