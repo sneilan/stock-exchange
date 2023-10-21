@@ -1,11 +1,13 @@
 #include "gateway.h"
 
 Gateway::Gateway() {
+  // @TODO These need to be labeled to identify flow of information.
   producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, name);
   consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, name, GATEWAY_CONSUMER);
 }
 
 Gateway::~Gateway() throw() {
+  // @TODO Should be handled outside.
   producer->cleanup();
   consumer->cleanup();
 }

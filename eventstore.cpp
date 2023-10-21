@@ -2,6 +2,7 @@
 #include "util/object_pool.h"
 #include "util/types.h"
 
+// @TODO Check if this is an extern reference.
 const char *eventstore_buf_name = "/eventstore_buf";
 
 EventStore::EventStore(MMapObjectPool<Order> *object_pool) {
@@ -9,6 +10,7 @@ EventStore::EventStore(MMapObjectPool<Order> *object_pool) {
   this->object_pool = object_pool;
 }
 
+// @TODO I want highest level managing mmaps.
 EventStore::~EventStore() { delete_mmap(mmap_info); }
 
 SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, int clientId,

@@ -108,9 +108,11 @@ SocketServer::SocketServer() {
     client_socket[i] = 0;
   }
 
+  // consumer should be initialized outside here.
   outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
       MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER, OUTGOING_MESSAGE_CONSUMER);
 
+  // Same with object pool.
   object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf_name,
                                           IS_CLIENT);
 }

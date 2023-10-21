@@ -12,11 +12,13 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+// @TODO should be able to understand flow of information throughout entire program in this file.
 int main() {
   spdlog::set_level(spdlog::level::debug);
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
 
+  // @TODO provide better name for this.
   Producer<ORDER_MMAP_OFFSET> outgoingDisruptor(MAX_OUTGOING_MESSAGES,
                                                 OUTGOING_MESSAGE_BUFFER);
 
@@ -25,6 +27,7 @@ int main() {
       MAX_OPEN_ORDERS, eventstore_buf_name, IS_CONTROLLER);
   SPDLOG_INFO("Allocated EventStore mmap pool!");
 
+  // @TODO Instantiate producer, consumer and mmap pool and pass those as parameters.
   Gateway *gateway = new Gateway();
 
   SPDLOG_INFO("Exchange starting");
