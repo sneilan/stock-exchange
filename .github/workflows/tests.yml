@@ -51,5 +51,5 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: make test
+      run: ./test
 
