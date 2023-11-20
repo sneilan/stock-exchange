@@ -111,9 +111,6 @@ SocketServer::SocketServer(
   for (int i = 0; i < MAX_CLIENTS; i++) {
     client_socket[i] = 0;
   }
-
-  this->outgoing_message_consumer = outgoing_message_consumer;
-  this->object_pool = object_pool;
 }
 
 SocketServer::~SocketServer() { 
