@@ -16,24 +16,12 @@
 
 #define GATEWAY_BUFLEN 100
 
-struct NewOrderEvent {
-  char side;
-  // Stored in pennies
-  // $10.05 = 1005
-  PRICE limitPrice;
-  int quantity;
-  // For now this is the socket id
-  // Later on we can create an authentication feature
-  // and have actual client Ids.
-  int clientId;
-};
-
 class Gateway : public SocketServer {
 public:
-  Gateway();
+  Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
+          Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
+          MMapObjectPool<Order>* object_pool);
   ~Gateway() throw();
-
-  NewOrderEvent* get();
 
   void newClient(int client_id) override;
   void disconnected(int client_id) override;
@@ -41,8 +29,6 @@ public:
   void run();
 
 private:
-  const char *name = "/gateway_ring_buf";
-  Producer<NewOrderEvent>* producer;
-  Consumer<NewOrderEvent>* consumer;
+  Producer<NewOrderEvent>* incoming_msg_producer;
 };
 #endif

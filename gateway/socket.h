@@ -25,7 +25,11 @@
 
 class SocketServer {
 public:
-  SocketServer();
+  SocketServer(
+    // Producer<NewOrderEvent>* incoming_msg_producer,
+    // Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
+    // MMapObjectPool<Order>* object_pool
+  );
   ~SocketServer();
   void bindSocket(int PORT);
   void listenToSocket();
@@ -52,8 +56,8 @@ private:
 
   // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
   struct timeval timeout;
+protected:
   Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
-
   MMapObjectPool<Order> *object_pool;
 };
 

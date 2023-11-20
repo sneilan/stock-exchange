@@ -2,9 +2,6 @@
 #include "util/object_pool.h"
 #include "util/types.h"
 
-// @TODO Check if this is an extern reference.
-const char *eventstore_buf_name = "/eventstore_buf";
-
 EventStore::EventStore(MMapObjectPool<Order> *object_pool) {
   sequence = 0;
   this->object_pool = object_pool;

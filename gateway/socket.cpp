@@ -99,7 +99,11 @@ void SocketServer::listenToSocket() {
   }
 }
 
-SocketServer::SocketServer() {
+SocketServer::SocketServer(
+    // Producer<NewOrderEvent>* incoming_msg_producer,
+    // Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
+    // MMapObjectPool<Order>* object_pool
+  ) {
   timeout.tv_sec = 0;
   timeout.tv_usec = TIMEOUT_MICROSECONDS;
 
@@ -108,16 +112,14 @@ SocketServer::SocketServer() {
     client_socket[i] = 0;
   }
 
-  // consumer should be initialized outside here.
-  outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
-      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER, OUTGOING_MESSAGE_CONSUMER);
-
-  // Same with object pool.
-  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf_name,
-                                          IS_CLIENT);
+  this->outgoing_message_consumer = outgoing_message_consumer;
+  this->object_pool = object_pool;
 }
 
-SocketServer::~SocketServer() { outgoing_message_consumer->cleanup(); }
+SocketServer::~SocketServer() { 
+// @TODO clean this up in a signal handler.
+outgoing_message_consumer->cleanup(); 
+}
 
 void SocketServer::forceDisconnect(int client_id) {
   close(client_socket[client_id]);
