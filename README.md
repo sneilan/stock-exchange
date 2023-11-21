@@ -1,16 +1,20 @@
-# 💻 Personal C++ Low Latency Stock Exchange 🤑
+# 💻 Personal C++ Low Latency Stock Exchange
 
 ![CI](https://github.com/sneilan/stock-exchange/actions/workflows/tests.yml/badge.svg)
 
 This is a stock exchange that you can run on your laptop or desktop that will process 10's of thousands of trades per second.
-It's better for testing trading strategies than backtesting because you can try your ideas out against an actual market that you create locally.
+
+I built this as a fun nerdy project to show off my skills. Check out my [linkedin](https://linkedin.com/in/seanneilan)
+
 * Create markets by connecting some trading robots to the exchange.
-* Simulate any kind of market anytime - even outside of normal trading hours!
+* Simulate any kind of market anytime - even outside of normal trading hours
 * Plug in stock or crypto data and test against that
 * Test against slippage and network failures
-* Allow trading robots to develop new market patterns and write software to detect them!
+* Allow trading robots to develop new market patterns and write software to detect them
 
-It uses the same [techniques and algorithms as NASDAQ but on a smaller scale](https://martinfowler.com/articles/lmax.html).
+It uses the same techniques and algorithms as [NASDAQ](https://martinfowler.com/articles/lmax.html) but unoptimized.
+
+Compare to [LMAX exchange](https://lmax-exchange.github.io/disruptor/).
 
 ## What is an Exchange?
 
@@ -38,6 +42,19 @@ cd scripts
 python3 scripts/loadTest.py
 ```
 
+Script also functions as a 
+
+## Limitations
+* Do not run on a public server (yet)
+* Server loses trades on shutdown (in progress)
+* No cancellations, user accounts, balances, wallets.
+
+Honestly there's a lot of work to do but I hope this becomes the premier stock exchange that everyone uses for personal experiments.
+
+## Protocol
+
+<< TODO >>
+
 ## Current features
 ```
 [x] Connect from internet
@@ -47,14 +64,15 @@ python3 scripts/loadTest.py
 ```
 
 ## Test
-Test with
 ```
 docker compose run -it core /app/test
 ```
+
 Will run all tests automatically.
 
 ## TODO
-There's a lot to do in creating a low-latency stock exchange from the ground up that's fast and 
+There's a lot (to do)[https://github.com/sneilan/stock-exchange/issues] in creating a low-latency stock exchange from the ground up.
+
 ```
 [ ] Market data
 [ ] Cancel trades
@@ -62,3 +80,4 @@ There's a lot to do in creating a low-latency stock exchange from the ground up 
 [ ] Journaling (save trades to database)
 [ ] Simple trading client / GUI
 ```
+
