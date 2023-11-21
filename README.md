@@ -20,24 +20,21 @@ Robinhood sends you a notification once that sale is complete. This works vice-v
 sends your request to sell Gamestop to NASDAQ. NASDAQ finds someone willing to buy your share of Gamestop and once someone buys your share, tells Robinhood
 to tell you!
 
-## How to Install
+## Running the Exchange
 ```
 git clone git@github.com:sneilan/stock-exchange.git stock-exchange
 cd stock-exchange
-docker build -t exchange .
+docker-compose up
 ```
 
-## Running the Exchange
-```
-cd stock-exchange
-docker run -it -v $PWD:/app -p 8888:8888 exchange
-```
+The exchange will start up on the default port 8888.
 
 ## Place Sample Trades
 In a separate terminal, not inside of docker, run the following example Python 3 trading client.
 Python 3 script will auto-connect to 0.0.0.0:8888 (exchange server).
 Will place a random trade each time you press enter. You'll see output on the exchange.
 ```
+cd scripts
 python3 scripts/loadTest.py
 ```
 
@@ -52,7 +49,7 @@ python3 scripts/loadTest.py
 ## Test
 Test with
 ```
-docker run -it -v $PWD:/app exchange /app/test
+docker compose run -it core /app/test
 ```
 Will run all tests automatically.
 

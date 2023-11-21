@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  core:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
