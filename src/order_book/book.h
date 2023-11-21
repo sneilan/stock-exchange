@@ -1,6 +1,6 @@
 #ifndef book_h
 #define book_h
-#include "../eventstore.h"
+#include "../eventstore/eventstore.h"
 #include "../util/linked_list.h"
 #include "../util/types.h"
 #include "price_level.h"

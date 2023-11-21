@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "../../order_book/order_book.h"
+#include "../../src/order_book/order_book.h"
 #include "../helpers.h"
 
 TEST_CASE("Price levels - filling full orders") {

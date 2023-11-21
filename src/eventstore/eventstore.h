@@ -1,9 +1,9 @@
 #ifndef _eventstore_h
 #define _eventstore_h
 
-#include "./util/types.h"
-#include "util/mmap_wrapper.h"
-#include "util/object_pool.h"
+#include "../util/mmap_wrapper.h"
+#include "../util/object_pool.h"
+#include "../util/types.h"
 #include <fcntl.h>
 #include <iostream>
 #include <stdexcept>

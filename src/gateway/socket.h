@@ -1,7 +1,7 @@
 #ifndef socket_h
 #define socket_h
 
-#include "../eventstore.h"
+#include "../eventstore/eventstore.h"
 #include "../util/disruptor.h"
 #include "../util/types.h"
 #include <arpa/inet.h> //close
@@ -50,6 +50,7 @@ private:
 
   // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
   struct timeval timeout;
+
 protected:
   Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
   MMapObjectPool<Order> *order_pool;

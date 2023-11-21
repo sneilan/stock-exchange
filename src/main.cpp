@@ -1,4 +1,4 @@
-#include "eventstore.h"
+#include "eventstore/eventstore.h"
 #include "gateway/gateway.h"
 #include "gateway/socket.h"
 #include "order_book/order_book.h"
@@ -17,28 +17,31 @@ int main() {
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
 
-  const char * outgoing_message_buf = "/ss_outgoing_messages";
+  const char *outgoing_message_buf = "/ss_outgoing_messages";
 
   Producer<ORDER_MMAP_OFFSET> outboundMessage(MAX_OUTGOING_MESSAGES,
                                               outgoing_message_buf);
 
   SPDLOG_INFO("Allocating EventStore mmap pool..");
   const char *eventstore_buf = "/eventstore_buf";
-  MMapObjectPool<Order> *order_pool = new MMapObjectPool<Order>(
-      MAX_OPEN_ORDERS, eventstore_buf, IS_CONTROLLER);
+  MMapObjectPool<Order> *order_pool =
+      new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CONTROLLER);
   SPDLOG_INFO("Allocated EventStore mmap pool!");
 
   const char *incoming_msg_buf = "/gateway_ring_buf";
-  Producer<NewOrderEvent>* producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf);
+  Producer<NewOrderEvent> *producer =
+      new Producer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf);
 
-  Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
-      MAX_OUTGOING_MESSAGES, outgoing_message_buf, OUTGOING_MESSAGE_CONSUMER);
+  Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer =
+      new Consumer<ORDER_MMAP_OFFSET>(MAX_OUTGOING_MESSAGES,
+                                      outgoing_message_buf,
+                                      OUTGOING_MESSAGE_CONSUMER);
 
-  order_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
+  order_pool =
+      new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
 
-  Gateway *gateway = new Gateway(producer,
-                                 outgoing_message_consumer,
-                                 order_pool);
+  Gateway *gateway =
+      new Gateway(producer, outgoing_message_consumer, order_pool);
 
   SPDLOG_INFO("Exchange starting");
 
@@ -63,7 +66,9 @@ int main() {
     OrderBook *orderBook = new OrderBook();
     SPDLOG_INFO("Created OrderBook");
 
-    Consumer<NewOrderEvent>* incoming_order_consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf, GATEWAY_CONSUMER);
+    Consumer<NewOrderEvent> *incoming_order_consumer =
+        new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf,
+                                    GATEWAY_CONSUMER);
     SPDLOG_INFO("Created consumer for incoming orders.");
 
     while (1) {
@@ -76,7 +81,8 @@ int main() {
 
       SPDLOG_DEBUG("Order get for client {} for price {} for "
                    "side {} quantity {}",
-                   item->clientId, item->limitPrice, item->side, item->quantity);
+                   item->clientId, item->limitPrice, item->side,
+                   item->quantity);
 
       // Store the event in the event store
       SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
