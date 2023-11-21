@@ -1,6 +1,6 @@
 #ifndef price_level_h
 #define price_level_h
-#include "../eventstore.h"
+#include "../eventstore/eventstore.h"
 #include "../util/linked_list.h"
 #include "../util/types.h"
 #include <algorithm>

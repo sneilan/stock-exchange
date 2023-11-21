@@ -1,13 +1,13 @@
 #include "eventstore.h"
-#include "util/object_pool.h"
-#include "util/types.h"
+#include "../util/object_pool.h"
+#include "../util/types.h"
 
 EventStore::EventStore(MMapObjectPool<Order> *order_pool) {
   sequence = 0;
   this->order_pool = order_pool;
 }
 
-EventStore::~EventStore() { 
+EventStore::~EventStore() {
   // delete_mmap(mmap_info);
 }
 

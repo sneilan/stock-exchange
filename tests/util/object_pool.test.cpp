@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "../../util/object_pool.h"
+#include "../../src/util/object_pool.h"
 
 const char *pool_name = "/object_pool";
 

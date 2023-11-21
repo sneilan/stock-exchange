@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "../util/linked_list.h"
+#include "../src/util/linked_list.h"
 
 TEST_CASE("Linked list removes data") {
   DoublyLinkedList<int> list;
