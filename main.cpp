@@ -17,12 +17,14 @@ int main() {
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
 
+  const char * outgoing_message_buf = "/ss_outgoing_messages";
+
   Producer<ORDER_MMAP_OFFSET> outboundMessage(MAX_OUTGOING_MESSAGES,
-                                              OUTGOING_MESSAGE_BUFFER);
+                                              outgoing_message_buf);
 
   SPDLOG_INFO("Allocating EventStore mmap pool..");
   const char *eventstore_buf = "/eventstore_buf";
-  MMapObjectPool<Order> *object_pool = new MMapObjectPool<Order>(
+  MMapObjectPool<Order> *order_pool = new MMapObjectPool<Order>(
       MAX_OPEN_ORDERS, eventstore_buf, IS_CONTROLLER);
   SPDLOG_INFO("Allocated EventStore mmap pool!");
 
@@ -30,13 +32,13 @@ int main() {
   Producer<NewOrderEvent>* producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf);
 
   Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
-      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER, OUTGOING_MESSAGE_CONSUMER);
+      MAX_OUTGOING_MESSAGES, outgoing_message_buf, OUTGOING_MESSAGE_CONSUMER);
 
-  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
+  order_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
 
   Gateway *gateway = new Gateway(producer,
                                  outgoing_message_consumer,
-                                 object_pool);
+                                 order_pool);
 
   SPDLOG_INFO("Exchange starting");
 
@@ -56,7 +58,7 @@ int main() {
   } else {
     // Child
     SPDLOG_INFO("Order engine starting");
-    EventStore *eventStore = new EventStore(object_pool);
+    EventStore *eventStore = new EventStore(order_pool);
     SPDLOG_INFO("Created EventStore");
     OrderBook *orderBook = new OrderBook();
     SPDLOG_INFO("Created OrderBook");
@@ -99,7 +101,7 @@ int main() {
         // @TODO Stop using socket ids as client ids. Set up a map
         // between client ids and sockets. Also create a buffer to try
         // to send orders to clients that have disconnected.
-        outboundMessage.put(object_pool->pointer_to_offset(order));
+        outboundMessage.put(order_pool->pointer_to_offset(order));
         SPDLOG_DEBUG("Order {} updated message sent", order->id);
       }
     }

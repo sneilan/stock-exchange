@@ -1,6 +1,6 @@
 #include "mmap_wrapper.h"
 
-MMap_Info *init_mmap(const char *name, int size) {
+MMapMeta *init_mmap(const char *name, int size) {
   int fd = shm_open(name, O_CREAT | O_RDWR, 0777);
 
   if (fd == -1) {
@@ -26,7 +26,7 @@ MMap_Info *init_mmap(const char *name, int size) {
 
   // This is allocated w/o a destructor as it is assumed
   // program will instantiate an mmap once.
-  MMap_Info *info = new MMap_Info();
+  MMapMeta *info = new MMapMeta();
 
   info->location = location;
   info->fd = fd;
@@ -36,12 +36,12 @@ MMap_Info *init_mmap(const char *name, int size) {
   return info;
 };
 
-void delete_mmap(MMap_Info *info) {
+void delete_mmap(MMapMeta *info) {
   munmap(info->location, info->size);
   shm_unlink(info->name);
 }
 
-MMap_Info *open_mmap(const char *name, int size) {
+MMapMeta *open_mmap(const char *name, int size) {
   int fd = shm_open(name, O_RDWR, 0777);
 
   if (fd == -1) {
@@ -59,7 +59,7 @@ MMap_Info *open_mmap(const char *name, int size) {
 
   // This is allocated w/o a destructor as it is assumed
   // program will instantiate an mmap once.
-  MMap_Info *info = new MMap_Info();
+  MMapMeta *info = new MMapMeta();
   info->location = location;
   info->fd = fd;
   info->name = name;
@@ -68,7 +68,7 @@ MMap_Info *open_mmap(const char *name, int size) {
   return info;
 }
 
-void close_mmap(MMap_Info *info) {
+void close_mmap(MMapMeta *info) {
   munmap(info->location, info->size);
   close(info->fd);
 }

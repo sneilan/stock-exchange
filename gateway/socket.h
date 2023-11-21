@@ -21,15 +21,9 @@
 #define TIMEOUT_MICROSECONDS 1
 #define MAX_OUTGOING_MESSAGES 100
 
-#define OUTGOING_MESSAGE_BUFFER "/ss_outgoing_messages"
-
 class SocketServer {
 public:
-  SocketServer(
-    // Producer<NewOrderEvent>* incoming_msg_producer,
-    // Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
-    // MMapObjectPool<Order>* object_pool
-  );
+  SocketServer();
   ~SocketServer();
   void bindSocket(int PORT);
   void listenToSocket();
@@ -58,7 +52,7 @@ private:
   struct timeval timeout;
 protected:
   Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
-  MMapObjectPool<Order> *object_pool;
+  MMapObjectPool<Order> *order_pool;
 };
 
 #endif

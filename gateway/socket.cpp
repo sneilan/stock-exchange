@@ -52,7 +52,7 @@ void SocketServer::listenToSocket() {
 
     ORDER_MMAP_OFFSET *offset = outgoing_message_consumer->get();
     if (offset != nullptr) {
-      Order *order = object_pool->offset_to_pointer(*offset);
+      Order *order = order_pool->offset_to_pointer(*offset);
 
       // message type (char)
       // sequence ID (unsigned long long)
@@ -99,11 +99,7 @@ void SocketServer::listenToSocket() {
   }
 }
 
-SocketServer::SocketServer(
-    // Producer<NewOrderEvent>* incoming_msg_producer,
-    // Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
-    // MMapObjectPool<Order>* object_pool
-  ) {
+SocketServer::SocketServer() {
   timeout.tv_sec = 0;
   timeout.tv_usec = TIMEOUT_MICROSECONDS;
 

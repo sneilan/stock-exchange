@@ -2,14 +2,14 @@
 
 Gateway::Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
                  Consumer<ORDER_MMAP_OFFSET> * outgoing_message_consumer,
-                 MMapObjectPool<Order> *object_pool) {
+                 MMapObjectPool<Order> *order_pool) {
   this->incoming_msg_producer = incoming_msg_producer;
   this->outgoing_message_consumer = outgoing_message_consumer;
-  this->object_pool = object_pool;
+  this->order_pool = order_pool;
 }
 
 Gateway::~Gateway() throw() {
-  incoming_msg_producer->cleanup();
+  // incoming_msg_producer->cleanup();
 }
 
 void Gateway::readMessage(int client_id, char *message) {

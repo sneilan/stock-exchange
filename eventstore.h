@@ -17,7 +17,7 @@ extern const char *eventstore_buf_name;
 
 class EventStore {
 public:
-  EventStore(MMapObjectPool<Order> *object_pool);
+  EventStore(MMapObjectPool<Order> *order_pool);
   ~EventStore();
   SEQUENCE_ID newEvent(SIDE side, PRICE limitPrice, int clientId, int quantity);
   Order *get(SEQUENCE_ID id);
@@ -26,12 +26,9 @@ public:
   size_t size();
 
 private:
-  // Location of shared memory block where we store orders.
-  MMap_Info *mmap_info;
-
   SEQUENCE_ID sequence;
   std::unordered_map<SEQUENCE_ID, ORDER_MMAP_OFFSET> event_store;
-  MMapObjectPool<Order> *object_pool;
+  MMapObjectPool<Order> *order_pool;
 };
 
 #endif
