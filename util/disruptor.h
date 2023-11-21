@@ -23,7 +23,7 @@ template <typename T> struct SharedData {
 
 template <typename T> class Disruptor {
 protected:
-  MMap_Info *mmap_info;
+  MMapMeta *mmap_meta;
   SharedData<T> *shared_mem_region;
   int get_mmap_size();
   int slots;
@@ -60,15 +60,15 @@ template <typename T> int Disruptor<T>::get_mmap_size() {
 }
 
 template <typename T> void Producer<T>::cleanup() {
-  delete_mmap(this->mmap_info);
+  delete_mmap(this->mmap_meta);
 }
 
 template <typename T> Producer<T>::~Producer() throw() { cleanup(); }
 
 template <typename T> Producer<T>::Producer(int slots, const char *mmap_name) {
   this->slots = slots;
-  this->mmap_info = init_mmap(mmap_name, this->get_mmap_size());
-  this->shared_mem_region = (SharedData<T> *)this->mmap_info->location;
+  this->mmap_meta = init_mmap(mmap_name, this->get_mmap_size());
+  this->shared_mem_region = (SharedData<T> *)this->mmap_meta->location;
 
   this->shared_mem_region->entities = reinterpret_cast<T *>(
       (char *)this->shared_mem_region + sizeof(SharedData<T>));
@@ -93,8 +93,8 @@ template <typename T> bool Producer<T>::put(T item) {
 
 template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name, int consumer_id) {
   this->slots = slots;
-  this->mmap_info = open_mmap(mmap_name, this->get_mmap_size());
-  this->shared_mem_region = (SharedData<T> *)this->mmap_info->location;
+  this->mmap_meta = open_mmap(mmap_name, this->get_mmap_size());
+  this->shared_mem_region = (SharedData<T> *)this->mmap_meta->location;
   this->consumer_id = consumer_id;
   this->shared_mem_region->consumer_positions[consumer_id] = 0;
 }
@@ -102,7 +102,7 @@ template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name, in
 template <typename T> Consumer<T>::~Consumer() throw() { cleanup(); }
 
 template <typename T> void Consumer<T>::cleanup() {
-  close_mmap(this->mmap_info);
+  close_mmap(this->mmap_meta);
 }
 
 template <typename T> T *Consumer<T>::get() {

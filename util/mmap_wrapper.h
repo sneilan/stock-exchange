@@ -11,16 +11,16 @@
 #include <unordered_map>
 #include <sstream>
 
-struct MMap_Info {
+struct MMapMeta {
   int fd;
   void *location;
   const char *name;
   int size;
 };
 
-MMap_Info *init_mmap(const char *name, int size);
-MMap_Info *open_mmap(const char *name, int size);
-void delete_mmap(MMap_Info *info);
-void close_mmap(MMap_Info *info);
+MMapMeta *init_mmap(const char *name, int size);
+MMapMeta *open_mmap(const char *name, int size);
+void delete_mmap(MMapMeta *info);
+void close_mmap(MMapMeta *info);
 
 #endif

@@ -39,4 +39,16 @@ struct Order {
   // int64_t updated_at;
 };
 
+struct NewOrderEvent {
+  char side;
+  // Stored in pennies
+  // $10.05 = 1005
+  PRICE limitPrice;
+  int quantity;
+  // For now this is the socket id
+  // Later on we can create an authentication feature
+  // and have actual client Ids.
+  int clientId;
+};
+
 #endif

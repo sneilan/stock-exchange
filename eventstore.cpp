@@ -2,18 +2,18 @@
 #include "util/object_pool.h"
 #include "util/types.h"
 
-const char *eventstore_buf_name = "/eventstore_buf";
-
-EventStore::EventStore(MMapObjectPool<Order> *object_pool) {
+EventStore::EventStore(MMapObjectPool<Order> *order_pool) {
   sequence = 0;
-  this->object_pool = object_pool;
+  this->order_pool = order_pool;
 }
 
-EventStore::~EventStore() { delete_mmap(mmap_info); }
+EventStore::~EventStore() { 
+  // delete_mmap(mmap_info);
+}
 
 SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, int clientId,
                                  int quantity) {
-  Order *order = object_pool->allocate();
+  Order *order = order_pool->allocate();
   order->clientId = clientId;
   order->side = side;
   order->limitPrice = limitPrice;
@@ -22,7 +22,7 @@ SEQUENCE_ID EventStore::newEvent(SIDE side, PRICE limitPrice, int clientId,
   order->id = sequence;
   sequence++;
 
-  ORDER_MMAP_OFFSET offset = object_pool->pointer_to_offset(order);
+  ORDER_MMAP_OFFSET offset = order_pool->pointer_to_offset(order);
 
   event_store.emplace(sequence, offset);
 
@@ -37,7 +37,7 @@ void EventStore::remove(SEQUENCE_ID id) { event_store.erase(id); }
 
 Order *EventStore::get(SEQUENCE_ID id) {
   ORDER_MMAP_OFFSET offset = event_store.at(id);
-  return object_pool->offset_to_pointer(offset);
+  return order_pool->offset_to_pointer(offset);
 }
 
 size_t EventStore::size() { return event_store.size(); }

@@ -25,7 +25,7 @@ private:
 
   T **free_spaces;
   int num_free_spaces;
-  MMap_Info *mmap_info;
+  MMapMeta *mmap_meta;
   bool is_controller;
 
 public:
@@ -42,9 +42,9 @@ public:
 
 template <typename T> void MMapObjectPool<T>::cleanup() {
   if (is_controller) {
-    delete_mmap(mmap_info);
+    delete_mmap(mmap_meta);
   } else {
-    close_mmap(mmap_info);
+    close_mmap(mmap_meta);
   }
 }
 
@@ -59,11 +59,11 @@ template <typename T> int MMapObjectPool<T>::num_random_free_spaces() {
 }
 
 template <typename T> int MMapObjectPool<T>::pointer_to_offset(T *pointer) {
-  return pointer - (T *)mmap_info->location;
+  return pointer - (T *)mmap_meta->location;
 }
 
 template <typename T> T *MMapObjectPool<T>::offset_to_pointer(int offset) {
-  return (T *)mmap_info->location + offset;
+  return (T *)mmap_meta->location + offset;
 }
 
 template <typename T>
@@ -74,12 +74,12 @@ MMapObjectPool<T>::MMapObjectPool(int max_num_obj_, const char *pool_name,
   max_num_obj = max_num_obj_;
 
   if (is_controller) {
-    mmap_info = init_mmap(pool_name, sizeof(T) * max_num_obj);
+    mmap_meta = init_mmap(pool_name, sizeof(T) * max_num_obj);
   } else {
-    mmap_info = open_mmap(pool_name, sizeof(T) * max_num_obj);
+    mmap_meta = open_mmap(pool_name, sizeof(T) * max_num_obj);
   }
 
-  block = (T *)mmap_info->location;
+  block = (T *)mmap_meta->location;
 
   next_free_space = block;
   num_free_spaces = 0;

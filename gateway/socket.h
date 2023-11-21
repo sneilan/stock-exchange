@@ -21,8 +21,6 @@
 #define TIMEOUT_MICROSECONDS 1
 #define MAX_OUTGOING_MESSAGES 100
 
-#define OUTGOING_MESSAGE_BUFFER "/ss_outgoing_messages"
-
 class SocketServer {
 public:
   SocketServer();
@@ -52,9 +50,9 @@ private:
 
   // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
   struct timeval timeout;
+protected:
   Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
-
-  MMapObjectPool<Order> *object_pool;
+  MMapObjectPool<Order> *order_pool;
 };
 
 #endif

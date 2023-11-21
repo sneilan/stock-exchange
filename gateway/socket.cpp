@@ -52,7 +52,7 @@ void SocketServer::listenToSocket() {
 
     ORDER_MMAP_OFFSET *offset = outgoing_message_consumer->get();
     if (offset != nullptr) {
-      Order *order = object_pool->offset_to_pointer(*offset);
+      Order *order = order_pool->offset_to_pointer(*offset);
 
       // message type (char)
       // sequence ID (unsigned long long)
@@ -107,15 +107,12 @@ SocketServer::SocketServer() {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     client_socket[i] = 0;
   }
-
-  outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
-      MAX_OUTGOING_MESSAGES, OUTGOING_MESSAGE_BUFFER, OUTGOING_MESSAGE_CONSUMER);
-
-  object_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf_name,
-                                          IS_CLIENT);
 }
 
-SocketServer::~SocketServer() { outgoing_message_consumer->cleanup(); }
+SocketServer::~SocketServer() { 
+// @TODO clean this up in a signal handler.
+outgoing_message_consumer->cleanup(); 
+}
 
 void SocketServer::forceDisconnect(int client_id) {
   close(client_socket[client_id]);

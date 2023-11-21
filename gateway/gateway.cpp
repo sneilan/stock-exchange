@@ -1,25 +1,15 @@
 #include "gateway.h"
 
-Gateway::Gateway() {
-  producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, name);
-  consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, name, GATEWAY_CONSUMER);
+Gateway::Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
+                 Consumer<ORDER_MMAP_OFFSET> * outgoing_message_consumer,
+                 MMapObjectPool<Order> *order_pool) {
+  this->incoming_msg_producer = incoming_msg_producer;
+  this->outgoing_message_consumer = outgoing_message_consumer;
+  this->order_pool = order_pool;
 }
 
 Gateway::~Gateway() throw() {
-  producer->cleanup();
-  consumer->cleanup();
-}
-
-NewOrderEvent *Gateway::get() {
-  NewOrderEvent *item = consumer->get();
-
-  if (item != nullptr) {
-    SPDLOG_DEBUG("Order get for client {} for price {} for "
-                 "side {} quantity {}",
-                 item->clientId, item->limitPrice, item->side, item->quantity);
-  }
-
-  return item;
+  // incoming_msg_producer->cleanup();
 }
 
 void Gateway::readMessage(int client_id, char *message) {
@@ -34,7 +24,7 @@ void Gateway::readMessage(int client_id, char *message) {
   item.side = ((NewOrderEvent *)message)->side;
   item.quantity = ((NewOrderEvent *)message)->quantity;
 
-  producer->put(item);
+  incoming_msg_producer->put(item);
 
   SPDLOG_INFO("Ring buffer Order recieved from client {} for price {} for "
               "side {} quantity {}",
@@ -58,7 +48,6 @@ void Gateway::disconnected(int client_id) {
 
 void Gateway::run() {
   /*
-  // @TODO
   Socket server should have the following events
    1) New connection
    2) Disconnect

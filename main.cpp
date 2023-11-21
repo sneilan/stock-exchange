@@ -17,15 +17,28 @@ int main() {
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
 
-  Producer<ORDER_MMAP_OFFSET> outgoingDisruptor(MAX_OUTGOING_MESSAGES,
-                                                OUTGOING_MESSAGE_BUFFER);
+  const char * outgoing_message_buf = "/ss_outgoing_messages";
+
+  Producer<ORDER_MMAP_OFFSET> outboundMessage(MAX_OUTGOING_MESSAGES,
+                                              outgoing_message_buf);
 
   SPDLOG_INFO("Allocating EventStore mmap pool..");
-  MMapObjectPool<Order> *object_pool = new MMapObjectPool<Order>(
-      MAX_OPEN_ORDERS, eventstore_buf_name, IS_CONTROLLER);
+  const char *eventstore_buf = "/eventstore_buf";
+  MMapObjectPool<Order> *order_pool = new MMapObjectPool<Order>(
+      MAX_OPEN_ORDERS, eventstore_buf, IS_CONTROLLER);
   SPDLOG_INFO("Allocated EventStore mmap pool!");
 
-  Gateway *gateway = new Gateway();
+  const char *incoming_msg_buf = "/gateway_ring_buf";
+  Producer<NewOrderEvent>* producer = new Producer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf);
+
+  Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer = new Consumer<ORDER_MMAP_OFFSET>(
+      MAX_OUTGOING_MESSAGES, outgoing_message_buf, OUTGOING_MESSAGE_CONSUMER);
+
+  order_pool = new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
+
+  Gateway *gateway = new Gateway(producer,
+                                 outgoing_message_consumer,
+                                 order_pool);
 
   SPDLOG_INFO("Exchange starting");
 
@@ -45,17 +58,25 @@ int main() {
   } else {
     // Child
     SPDLOG_INFO("Order engine starting");
-    EventStore *eventStore = new EventStore(object_pool);
+    EventStore *eventStore = new EventStore(order_pool);
     SPDLOG_INFO("Created EventStore");
     OrderBook *orderBook = new OrderBook();
     SPDLOG_INFO("Created OrderBook");
 
+    Consumer<NewOrderEvent>* incoming_order_consumer = new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf, GATEWAY_CONSUMER);
+    SPDLOG_INFO("Created consumer for incoming orders.");
+
     while (1) {
       // Constantly checking for new orders in the gateway ring buffer.
-      NewOrderEvent *item = gateway->get();
+      NewOrderEvent *item = incoming_order_consumer->get();
+
       if (item == nullptr) {
         continue;
       }
+
+      SPDLOG_DEBUG("Order get for client {} for price {} for "
+                   "side {} quantity {}",
+                   item->clientId, item->limitPrice, item->side, item->quantity);
 
       // Store the event in the event store
       SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
@@ -69,8 +90,7 @@ int main() {
       SPDLOG_INFO("Grabbed order {}", order->id);
       std::list<Order *> updated_orders = orderBook->newOrder(order);
 
-      // later on create a new disruptor for order recieved messages
-      outgoingDisruptor.put(offset);
+      outboundMessage.put(offset);
       // State of order is based on how many fills.
       SPDLOG_DEBUG("Order {} recieved message sent", order->id);
 
@@ -81,11 +101,13 @@ int main() {
         // @TODO Stop using socket ids as client ids. Set up a map
         // between client ids and sockets. Also create a buffer to try
         // to send orders to clients that have disconnected.
-        outgoingDisruptor.put(object_pool->pointer_to_offset(order));
+        outboundMessage.put(order_pool->pointer_to_offset(order));
         SPDLOG_DEBUG("Order {} updated message sent", order->id);
       }
     }
   }
+
+  // @TODO create signal handler to clean up
 
   return 0;
 }
