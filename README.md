@@ -26,17 +26,23 @@ sends your request to sell Gamestop to NASDAQ. NASDAQ finds someone willing to b
 to tell you!
 
 ## Running the Exchange
+
+Clone with
 ```
 git clone git@github.com:sneilan/stock-exchange.git stock-exchange
 cd stock-exchange
+```
+
+Run with
+```
 docker compose up
 ```
 
-The exchange will start up on the default port 8888.
+The exchange will start up on the default port `8888`.
 
 ## Place Sample Trades
 In a separate terminal, not inside of docker, run the following example Python 3 trading client.
-Python 3 script will auto-connect to 0.0.0.0:8888 (exchange server).
+Python 3 script will auto-connect to server at `0.0.0.0:8888`.
 Will place a random trade each time you press enter. You'll see output on the exchange.
 ```
 cd scripts
