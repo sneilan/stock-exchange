@@ -101,8 +101,8 @@ No risk controls at the moment. Place as many trades as you like.
 
 After connecting, send a trade by submitting 9 bytes.
 1. Byte 0: Char -  buy or sell with 'b' for buy and 's' for sell.
-2. Bytes 1-4 (inclusive) - Price as a positive unsigned integer in pennies.
-3. Bytes 5-9 (inclusive) - Quantity as a positive unsigned integer.
+2. Bytes 1-4 (inclusive 4 bytes) - Price as a positive unsigned integer in pennies.
+3. Bytes 5-8 (inclusive 4 bytes) - Quantity as a positive unsigned integer.
 
 Here's an example of sending a buy order in Python for 500 shares at
 $1.23 / share. Assuming sock is an open socket to the exchange.
@@ -132,10 +132,10 @@ notification is 21 bytes.
 'r' is 'recieved'
 'u' is 'updated'
 'f' is 'filled'
-2. Bytes 1-8 (inclusive): Unsigned long long - trade id
-3. Bytes 9-12 (inclusive): Unsigned integer - quantity
-4. Bytes 13-16 (inclusive): Unsigned integer - filled quantity
-5. Bytes 17-20 (inclusive): Unsigned integer - client id
+2. Bytes 1-8 (inclusive 8 bytes): Unsigned long long - trade id
+3. Bytes 9-12 (inclusive 4 bytes): Unsigned integer - quantity
+4. Bytes 13-16 (inclusive 4 bytes): Unsigned integer - filled quantity
+5. Bytes 17-20 (inclusive 4 bytes): Unsigned integer - client id
 Client id is not important but will tell you what integer 0-30 your "user id" is.
 
 You will always get a recieved notification. The other two notifications to a trade are either updated
