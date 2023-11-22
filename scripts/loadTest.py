@@ -26,15 +26,13 @@ print("Connected!")
 side = 'b'
 
 def listener(sock):
-    while  True:
+    while True:
         data = sock.recv(21)
         if data:
             # c is char
             # Q is unsigned long long
             # i is 4 byte integer
             format_string = 'Qiii'
-            # import ipdb
-            # ipdb.set_trace()
             unpacked_data = unpack(format_string, data[1:])
             msg_type = chr(data[0])
             message = ''
@@ -64,11 +62,10 @@ while True:
     price = random.randrange(100, 1000)
     quantity = random.randrange(100, 200, 10)
     message = pack(
-        'ciic',
+        'cii',
         bytes(side, 'ascii'),
         price,
         quantity,
-        bytes(str(random.randrange(0, 9)), 'ascii')
     )
     side_msg = 'buy' if side == 'b' else 'sell'
     print(f"Placing {side_msg} for quantity {quantity} at price {price}")

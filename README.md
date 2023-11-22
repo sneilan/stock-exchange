@@ -1,6 +1,6 @@
-# 💻 Personal C++ Low Latency Stock Exchange
-
 ![CI](https://github.com/sneilan/stock-exchange/actions/workflows/tests.yml/badge.svg)
+
+# 💻 Personal C++ Low Latency Stock Exchange
 
 This is a stock exchange that you can run on your laptop or desktop that will process 10's of thousands of trades per second.
 
@@ -53,7 +53,80 @@ Honestly there's a lot of work to do but I hope this becomes the premier stock e
 
 ## Protocol
 
-<< TODO >>
+The exchange is basic for now. You connect, place trades and recieve notifications about your trades.
+
+### Connect
+
+Open a connection to the server with a socket. Use this in python
+
+```python
+import socket
+
+host = '0.0.0.0'
+port = 8888
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((host, port))
+response = sock.recv(1024)
+print("Connected!")
+```
+
+### Authentication 
+
+_or lack thereof_
+
+There is no authentication currently. 
+
+You will be assigned a User ID however on connection that is not told
+to the client except on trade notifications. Your "user id" is the socket number.
+
+The exchange supports up to 30 concurrent clients.
+First user to connect will have user id 0, second 1 and so one. If User 1 disconnects and a new user reconnects,
+the new user will have user id 1 also. It's not great but it works for a demo. You do not need to authenticate
+
+### What is traded
+
+Currently the exchange trades one unnamed symbol. The name of the symbol
+is whatever you want. To trade multiple symbols, start up multiple exchanges.
+
+### Balances
+
+Trade balances are infinite. Wallets and balances will come later.
+
+### Risk Controls
+
+No risk controls at the moment. Place as many trades as you like.
+
+### Sending a trade
+
+After connecting, send a trade by submitting 9 bytes.
+1. Byte 0: Char -  buy or sell with 'b' for buy and 's' for sell.
+2. Bytes 1-4 (inclusive) - Price as a positive unsigned integer in pennies.
+3. Bytes 5-9 (inclusive) - Quantity as a positive unsigned integer.
+
+Here's an example of sending a buy order in Python for 500 shares at
+$1.23 / share. Assuming sock is an open socket to the exchange.
+
+```python
+price = 123 # $1.23 in 1 hundred 23 pennies.
+quantity = 500
+side = 'b' # 's' for sell
+message = pack(
+    'cii',
+    bytes(side, 'ascii'),
+    price,
+    quantity,
+)
+sock.sendall(message)
+```
+
+Server will immediately send a trade notification with the id
+of the trade.
+
+### Trade Notifications
+
+As soon as you send a trade, the server will tell you
+the trade is recieved with the ID of the trade. Each trade
+notification is 21 bytes with the first 
 
 ## Current features
 ```
