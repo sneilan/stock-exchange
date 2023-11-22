@@ -77,32 +77,6 @@ response = sock.recv(1024)
 print("Connected!")
 ```
 
-### Authentication 
-
-_or lack thereof_
-
-There is no authentication currently. 
-
-You will be assigned a User ID however on connection that is not told
-to the client except on trade notifications. Your "user id" is the socket number.
-
-The exchange supports up to 30 concurrent clients.
-First user to connect will have user id 0, second 1 and so one. If User 1 disconnects and a new user reconnects,
-the new user will have user id 1 also. It's not great but it works for a demo. You do not need to authenticate
-
-### What is traded
-
-Currently the exchange trades one unnamed symbol. The name of the symbol
-is whatever you want. To trade multiple symbols, start up multiple exchanges.
-
-### Balances
-
-Trade balances are infinite. Wallets and balances will come later.
-
-### Risk Controls
-
-No risk controls at the moment. Place as many trades as you like.
-
 ### Sending a trade
 
 After connecting, send a trade by submitting 9 bytes.
@@ -180,6 +154,32 @@ while True:
 Check out scripts/loadTest.py for an example trading client.
 
 You can paste these protocols into Chat GPT and produce trading frontends in your preferred language.
+
+### Authentication 
+
+_or lack thereof_
+
+There is no authentication currently. 
+
+You will be assigned a User ID however on connection that is not told
+to the client except on trade notifications. Your "user id" is the socket number.
+
+The exchange supports up to 30 concurrent clients.
+First user to connect will have user id 0, second 1 and so one. If User 1 disconnects and a new user reconnects,
+the new user will have user id 1 also. It's not great but it works for a demo. You do not need to authenticate
+
+### What is traded
+
+Currently the exchange trades one unnamed symbol. The name of the symbol
+is whatever you want. To trade multiple symbols, start up multiple exchanges.
+
+### Balances
+
+Trade balances are infinite. Wallets and balances will come later.
+
+### Risk Controls
+
+No risk controls at the moment. Place as many trades as you like.
 
 ### Market Data
 
