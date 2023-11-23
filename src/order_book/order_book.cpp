@@ -1,6 +1,4 @@
 #include "order_book.h"
-#include <spdlog/spdlog.h>
-#include <sstream>
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order *order) {
@@ -255,7 +253,7 @@ void OrderBook::addOrder(Order *order) {
   orderMap->emplace(order->id, node);
 }
 
-OrderBook::OrderBook() {
+OrderBook::OrderBook(Producer<L1MarketData> *outbound_mkt_l1) {
   orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order *> *>();
   // @TOOD the book should not care about the min / max prices.
   buyBook = new Book();

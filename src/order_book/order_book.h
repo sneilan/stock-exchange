@@ -11,11 +11,14 @@
 #include <list>
 #include <stdexcept>
 #include <unordered_map>
+#include <spdlog/spdlog.h>
+#include <sstream>
+#include "../util/disruptor.h"
 
-/* Main entry point for matching orders */
 class OrderBook {
+// Main entry point for matching orders
 public:
-  OrderBook();
+  OrderBook(Producer<L1MarketData> *outbound_mkt_l1);
 
   std::list<Order *>
   newOrder(Order *order); // give a list of orders matched or none at all.
@@ -46,6 +49,7 @@ private:
   // In a v2 consider implementing my own linked list so we don't need pointers
   // to iterators.
   std::unordered_map<SEQUENCE_ID, Node<Order *> *> *orderMap;
+  Producer<L1MarketData> *outbound_mkt_l1;
 };
 
 #endif

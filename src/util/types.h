@@ -51,4 +51,10 @@ struct NewOrderEvent {
   int clientId;
 };
 
+struct L1MarketData {
+    char type; // 'b' for bid and 'a' for ask. Expandable to other data types.
+    unsigned int val;
+    unsigned long long time_ms;
+};
+
 #endif
