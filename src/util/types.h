@@ -22,6 +22,7 @@
 #define GATEWAY_CONSUMER 0
 #define OUTGOING_MESSAGE_CONSUMER 0
 
+// @TODO Order / NewOrderEvent could be combined?
 struct Order {
   int clientId;
   int quantity;
@@ -52,9 +53,11 @@ struct NewOrderEvent {
 };
 
 struct L1MarketData {
+  unsigned char version = 0;
   char type; // 'b' for bid and 'a' for ask. Expandable to other data types.
   unsigned int val;
-  unsigned long long time_ms;
+  // May include other types of data like volume later.
+  unsigned long long time_ns;
 };
 
 #endif

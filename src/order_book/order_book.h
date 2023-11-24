@@ -1,6 +1,7 @@
 #ifndef order_book_h_
 #define order_book_h_
 #include "../eventstore/eventstore.h"
+#include "../util/disruptor.h"
 #include "../util/linked_list.h"
 #include "../util/types.h"
 #include "book.h"
@@ -9,14 +10,14 @@
 #include <cmath>
 #include <iostream>
 #include <list>
-#include <stdexcept>
-#include <unordered_map>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include "../util/disruptor.h"
+#include <stdexcept>
+#include <time.h>
+#include <unordered_map>
 
 class OrderBook {
-// Main entry point for matching orders
+  // Main entry point for matching orders
 public:
   OrderBook(Producer<L1MarketData> *outbound_mkt_l1);
 
@@ -37,6 +38,7 @@ private:
   bool orderCrossedSpread(Order *order);
   void setBidAskToReflectMarket();
   void printBestBidAsk(const char *prefix);
+  void sendMarketData(char type, int val);
 
   Book *buyBook;
   Book *sellBook;
