@@ -260,6 +260,7 @@ OrderBook::OrderBook(Producer<L1MarketData> *outbound_mkt_l1) {
   sellBook = new Book();
   bestBid = nullptr;
   bestAsk = nullptr;
+  this->outbound_mkt_l1 = outbound_mkt_l1;
 }
 
 // Attempts to fill an order using the buy / sell books.

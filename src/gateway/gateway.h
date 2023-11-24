@@ -26,9 +26,12 @@ public:
   void newClient(int client_id) override;
   void disconnected(int client_id) override;
   void readMessage(int client_id, char *message) override;
+  void handleOutgoingMessage() override;
   void run();
 
 private:
   Producer<NewOrderEvent>* incoming_msg_producer;
+  Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
+  MMapObjectPool<Order> *order_pool;
 };
 #endif

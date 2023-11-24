@@ -40,6 +40,13 @@ int main() {
   order_pool =
       new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
 
+  const char * outbound_market_data_buf = "/l1_market_data";
+  Producer<L1MarketData> *producer_l1_market_data =
+    new Producer<L1MarketData>(MAX_MARKET_DATA_UPDATES, outbound_market_data_buf);
+
+  Consumer<L1MarketData> *consumer_l1_market_data =
+    new Consumer<L1MarketData>(MAX_MARKET_DATA_UPDATES, outbound_market_data_buf, OUTGOING_MESSAGE_CONSUMER);
+
   Gateway *gateway =
       new Gateway(producer, outgoing_message_consumer, order_pool);
 
@@ -63,7 +70,8 @@ int main() {
     SPDLOG_INFO("Order engine starting");
     EventStore *eventStore = new EventStore(order_pool);
     SPDLOG_INFO("Created EventStore");
-    OrderBook *orderBook = new OrderBook();
+
+    OrderBook *orderBook = new OrderBook(producer_l1_market_data);
     SPDLOG_INFO("Created OrderBook");
 
     Consumer<NewOrderEvent> *incoming_order_consumer =

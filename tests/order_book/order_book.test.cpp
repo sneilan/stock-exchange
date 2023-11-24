@@ -10,7 +10,7 @@
 
 TEST_CASE("order_book - add order") {
   // Hello world order book test.
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   Order *order = createDefaultOrder();
   orderBook->newOrder(order);
@@ -19,7 +19,7 @@ TEST_CASE("order_book - add order") {
 }
 
 TEST_CASE("order_book - cancel order") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
   Order *order = createDefaultOrder();
 
   orderBook->newOrder(order);
@@ -32,7 +32,7 @@ TEST_CASE("order_book - cancel order") {
 }
 
 TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   // Making a buy order w/ no sell order should immediately set bid.
   Order *buyOrder = createDefaultOrder();
@@ -50,7 +50,7 @@ TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
 }
 
 TEST_CASE("order_book - match order") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -64,7 +64,7 @@ TEST_CASE("order_book - match order") {
 }
 
 TEST_CASE("order_book - buy orders with higher prices should move bid up") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -77,7 +77,7 @@ TEST_CASE("order_book - buy orders with higher prices should move bid up") {
 }
 
 TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   Order *sellOrder = createDefaultOrder();
   sellOrder->side = SELL;
@@ -92,7 +92,7 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
 }
 
 TEST_CASE("order_book - testing order fills after order book populated") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   // initial buy order
   Order *order1 = customOrder(100, 100, 'b');
@@ -121,7 +121,7 @@ TEST_CASE("order_book - testing order fills after order book populated") {
 
 TEST_CASE("order_book - testing fillOrder when we attempt to sell more than "
           "what is offered.") {
-  OrderBook *orderBook = new OrderBook();
+  OrderBook *orderBook = new OrderBook(nullptr);
 
   // initial buy order.
   Order *order1 = customOrder(336, 180, 'b');
