@@ -87,10 +87,9 @@ template <typename T> T *Producer<T>::access_cur() {
   // int next_producer_position = (this->shared_mem_region->producer_position+1)
   // % this->slots;
 
-  return this->shared_mem_region
-      ->entities[this->shared_mem_region->producer_position % this->slots];
-
-  return true;
+  return &this->shared_mem_region
+              ->entities[this->shared_mem_region->producer_position %
+                         this->slots];
 }
 
 template <typename T> void Producer<T>::incr() {
