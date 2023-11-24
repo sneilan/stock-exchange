@@ -37,6 +37,7 @@ public:
 
   // Does not need to be implemented by subclass.
   bool sendMessage(int client_id, char *message, int message_size);
+  void sendMessageToAllClients(char* message, int message_size);
   void forceDisconnect(int client_id);
 
 private:

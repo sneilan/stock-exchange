@@ -166,6 +166,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
+
   int error = send(client_socket[client_id], message, message_size, 0);
   if (error != message_size) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,
@@ -176,6 +177,20 @@ bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
   SPDLOG_INFO("sent message {} to client {}", message, client_id);
 
   return true;
+}
+
+void SocketServer::sendMessageToAllClients(char* message, int message_size) {
+  for (int i = 0; i < MAX_CLIENTS; i++) {
+    int sd = client_socket[i];
+    if (sd == 0) {
+      continue;
+    }
+
+    int error = send(sd, message, message_size, 0);
+    if (error != message_size) {
+      SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, i, sd);
+    }
+  }
 }
 
 // @TODO make buffer a pointer to this.
