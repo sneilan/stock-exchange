@@ -8,9 +8,7 @@ Gateway::Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
   this->order_pool = order_pool;
 }
 
-Gateway::~Gateway() throw() {
-  // incoming_msg_producer->cleanup();
-}
+Gateway::~Gateway() throw() {}
 
 void Gateway::handleOutgoingMessage() {
   ORDER_MMAP_OFFSET *offset = outgoing_message_consumer->get();
