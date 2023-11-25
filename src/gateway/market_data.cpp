@@ -22,7 +22,7 @@ void MarketData::handleOutgoingMessage() {
   }
 
   // For every client, send market data.
-  sendMessageToAllClients((char*)market_data, sizeof(market_data));
+  sendMessageToAllClients((char*)market_data, sizeof(L1MarketData));
 }
 
 void MarketData::run() {
