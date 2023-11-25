@@ -3,8 +3,8 @@
 // Implementation of ring buffer for processes to communicate with each other
 // See https://martinfowler.com/articles/lmax.html
 //
-// Basic concept is producer should never produce more than consumer can consume.
-// and Consumer should never consume more than consumer can produce.
+// Basic concept is producer should never produce more than consumer can
+// consume. and Consumer should never consume more than consumer can produce.
 // Otherwise it's not a ring buffer anymore it's a snake eating it's own tail.
 //
 // The consumer can consume up until and including the producer position
@@ -32,6 +32,8 @@ protected:
 template <typename T> class Producer : public Disruptor<T> {
 public:
   Producer(int slots, const char *mmap_name);
+  void incr();
+  T *access_cur();
   ~Producer() throw();
   void cleanup();
   // This creates a copy on function call for simplicity.
@@ -45,12 +47,13 @@ public:
   // we have to specify slots twice.
   // For now this is fine because producer and consumer are
   // created in separate processes anyway.
-  
+
   // What if we specified consumer name? Define consu
   Consumer(int slots, const char *mmap_name, int consumer_id);
   ~Consumer() throw();
   T *get();
   void cleanup();
+
 private:
   int consumer_id;
 };
@@ -77,21 +80,40 @@ template <typename T> Producer<T>::Producer(int slots, const char *mmap_name) {
   this->shared_mem_region->producer_position = 0;
 }
 
+template <typename T> T *Producer<T>::access_cur() {
+  // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
+  //              this->shared_mem_region->producer_position,
+  //              this->shared_mem_region->consumer_position);
+  // int next_producer_position = (this->shared_mem_region->producer_position+1)
+  // % this->slots;
+
+  return &this->shared_mem_region
+              ->entities[this->shared_mem_region->producer_position %
+                         this->slots];
+}
+
+template <typename T> void Producer<T>::incr() {
+  this->shared_mem_region->producer_position++;
+}
+
 template <typename T> bool Producer<T>::put(T item) {
   // SPDLOG_DEBUG("{} Producer/Consumer is {}/{}", this->mmap_info->name,
   //              this->shared_mem_region->producer_position,
   //              this->shared_mem_region->consumer_position);
-  // int next_producer_position = (this->shared_mem_region->producer_position+1) % this->slots;
+  // int next_producer_position = (this->shared_mem_region->producer_position+1)
+  // % this->slots;
 
   this->shared_mem_region
-      ->entities[this->shared_mem_region->producer_position % this->slots] = item;
+      ->entities[this->shared_mem_region->producer_position % this->slots] =
+      item;
 
   this->shared_mem_region->producer_position++;
 
   return true;
 }
 
-template <typename T> Consumer<T>::Consumer(int slots, const char *mmap_name, int consumer_id) {
+template <typename T>
+Consumer<T>::Consumer(int slots, const char *mmap_name, int consumer_id) {
   this->slots = slots;
   this->mmap_meta = open_mmap(mmap_name, this->get_mmap_size());
   this->shared_mem_region = (SharedData<T> *)this->mmap_meta->location;
@@ -110,15 +132,20 @@ template <typename T> T *Consumer<T>::get() {
   //              this->shared_mem_region->producer_position,
   //              this->shared_mem_region->consumer_position);
 
-  // Consumer can consume up until the producer position. Producer is not allowed to produce > consumer position - 1
-  // So producers next position it will write to is it's current position and the last position it wrote to is
-  // position - 1. Then consumer can consume only up to producer position - 1. It's a real mind bender but it works.
-  if (this->shared_mem_region->consumer_positions[this->consumer_id] == this->shared_mem_region->producer_position) {
+  // Consumer can consume up until the producer position. Producer is not
+  // allowed to produce > consumer position - 1 So producers next position it
+  // will write to is it's current position and the last position it wrote to is
+  // position - 1. Then consumer can consume only up to producer position - 1.
+  // It's a real mind bender but it works.
+  if (this->shared_mem_region->consumer_positions[this->consumer_id] ==
+      this->shared_mem_region->producer_position) {
     return nullptr;
   }
 
   T *item = &this->shared_mem_region
-                 ->entities[this->shared_mem_region->consumer_positions[this->consumer_id] % this->slots];
+                 ->entities[this->shared_mem_region
+                                ->consumer_positions[this->consumer_id] %
+                            this->slots];
   this->shared_mem_region->consumer_positions[this->consumer_id]++;
 
   return item;

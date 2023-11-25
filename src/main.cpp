@@ -1,5 +1,6 @@
 #include "eventstore/eventstore.h"
 #include "gateway/gateway.h"
+#include "gateway/market_data.h"
 #include "gateway/socket.h"
 #include "order_book/order_book.h"
 #include "util/types.h"
@@ -40,15 +41,17 @@ int main() {
   order_pool =
       new MMapObjectPool<Order>(MAX_OPEN_ORDERS, eventstore_buf, IS_CLIENT);
 
-  const char * outbound_market_data_buf = "/l1_market_data";
-  Producer<L1MarketData> *producer_l1_market_data =
-    new Producer<L1MarketData>(MAX_MARKET_DATA_UPDATES, outbound_market_data_buf);
+  const char *outbound_market_data_buf = "/l1_market_data";
+  Producer<L1MarketData> *producer_l1_market_data = new Producer<L1MarketData>(
+      MAX_MARKET_DATA_UPDATES, outbound_market_data_buf);
 
-  Consumer<L1MarketData> *consumer_l1_market_data =
-    new Consumer<L1MarketData>(MAX_MARKET_DATA_UPDATES, outbound_market_data_buf, OUTGOING_MESSAGE_CONSUMER);
+  Consumer<L1MarketData> *consumer_l1_market_data = new Consumer<L1MarketData>(
+      MAX_MARKET_DATA_UPDATES, outbound_market_data_buf,
+      OUTGOING_MESSAGE_CONSUMER);
 
   Gateway *gateway =
       new Gateway(producer, outgoing_message_consumer, order_pool);
+  MarketData *market_data = new MarketData(consumer_l1_market_data);
 
   SPDLOG_INFO("Exchange starting");
 
@@ -66,57 +69,64 @@ int main() {
     SPDLOG_INFO("Gateway starting");
     gateway->run();
   } else {
-    // Child
-    SPDLOG_INFO("Order engine starting");
-    EventStore *eventStore = new EventStore(order_pool);
-    SPDLOG_INFO("Created EventStore");
+    pid_t c_pid2 = fork();
 
-    OrderBook *orderBook = new OrderBook(producer_l1_market_data);
-    SPDLOG_INFO("Created OrderBook");
+    if (c_pid2 > 0) {
+      SPDLOG_INFO("MarketData starting");
+      market_data->run();
+    } else {
+      // Child
+      SPDLOG_INFO("Order engine starting");
+      EventStore *eventStore = new EventStore(order_pool);
+      SPDLOG_INFO("Created EventStore");
 
-    Consumer<NewOrderEvent> *incoming_order_consumer =
-        new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf,
-                                    GATEWAY_CONSUMER);
-    SPDLOG_INFO("Created consumer for incoming orders.");
+      OrderBook *orderBook = new OrderBook(producer_l1_market_data);
+      SPDLOG_INFO("Created OrderBook");
 
-    while (1) {
-      // Constantly checking for new orders in the gateway ring buffer.
-      NewOrderEvent *item = incoming_order_consumer->get();
+      Consumer<NewOrderEvent> *incoming_order_consumer =
+          new Consumer<NewOrderEvent>(GATEWAY_BUFLEN, incoming_msg_buf,
+                                      GATEWAY_CONSUMER);
+      SPDLOG_INFO("Created consumer for incoming orders.");
 
-      if (item == nullptr) {
-        continue;
-      }
+      while (1) {
+        // Constantly checking for new orders in the gateway ring buffer.
+        NewOrderEvent *item = incoming_order_consumer->get();
 
-      SPDLOG_DEBUG("Order get for client {} for price {} for "
-                   "side {} quantity {}",
-                   item->clientId, item->limitPrice, item->side,
-                   item->quantity);
+        if (item == nullptr) {
+          continue;
+        }
 
-      // Store the event in the event store
-      SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
-                                            item->clientId, item->quantity);
-      SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
-                  eventStore->size());
+        SPDLOG_DEBUG("Order get for client {} for price {} for "
+                     "side {} quantity {}",
+                     item->clientId, item->limitPrice, item->side,
+                     item->quantity);
 
-      // Get response here & spool information to new ring buffer
-      Order *order = eventStore->get(id);
-      ORDER_MMAP_OFFSET offset = eventStore->getOffset(id);
-      SPDLOG_INFO("Grabbed order {}", order->id);
-      std::list<Order *> updated_orders = orderBook->newOrder(order);
+        // Store the event in the event store
+        SEQUENCE_ID id = eventStore->newEvent(item->side, item->limitPrice,
+                                              item->clientId, item->quantity);
+        SPDLOG_INFO("Sequence ID is now {} & size is now {}", id,
+                    eventStore->size());
 
-      outboundMessage.put(offset);
-      // State of order is based on how many fills.
-      SPDLOG_DEBUG("Order {} recieved message sent", order->id);
+        // Get response here & spool information to new ring buffer
+        Order *order = eventStore->get(id);
+        ORDER_MMAP_OFFSET offset = eventStore->getOffset(id);
+        SPDLOG_INFO("Grabbed order {}", order->id);
+        std::list<Order *> updated_orders = orderBook->newOrder(order);
 
-      SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
-      SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
+        outboundMessage.put(offset);
+        // State of order is based on how many fills.
+        SPDLOG_DEBUG("Order {} recieved message sent", order->id);
 
-      for (Order *order : updated_orders) {
-        // @TODO Stop using socket ids as client ids. Set up a map
-        // between client ids and sockets. Also create a buffer to try
-        // to send orders to clients that have disconnected.
-        outboundMessage.put(order_pool->pointer_to_offset(order));
-        SPDLOG_DEBUG("Order {} updated message sent", order->id);
+        SPDLOG_INFO("Order book volume is now {}", orderBook->getVolume());
+        SPDLOG_INFO("Orders updated are size {}", updated_orders.size());
+
+        for (Order *order : updated_orders) {
+          // @TODO Stop using socket ids as client ids. Set up a map
+          // between client ids and sockets. Also create a buffer to try
+          // to send orders to clients that have disconnected.
+          outboundMessage.put(order_pool->pointer_to_offset(order));
+          SPDLOG_DEBUG("Order {} updated message sent", order->id);
+        }
       }
     }
   }
