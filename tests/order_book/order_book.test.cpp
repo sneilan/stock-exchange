@@ -24,7 +24,7 @@ TEST_CASE("order_book - add order") {
 TEST_CASE("order_book - cancel order") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
   Order *order = createDefaultOrder();
 
   orderBook->newOrder(order);
@@ -40,7 +40,7 @@ TEST_CASE("order_book - cancel order") {
 TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
 
   // Making a buy order w/ no sell order should immediately set bid.
   Order *buyOrder = createDefaultOrder();
@@ -61,7 +61,7 @@ TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
 TEST_CASE("order_book - match order") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -78,7 +78,7 @@ TEST_CASE("order_book - match order") {
 TEST_CASE("order_book - buy orders with higher prices should move bid up") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -94,7 +94,7 @@ TEST_CASE("order_book - buy orders with higher prices should move bid up") {
 TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *sellOrder = createDefaultOrder();
   sellOrder->side = SELL;
@@ -112,7 +112,7 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
 TEST_CASE("order_book - testing order fills after order book populated") {
   const char *market_buf = "/test_mkt_buf";
   Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
-  OrderBook *orderBook = new OrderBook(nullptr);
+  OrderBook *orderBook = new OrderBook(producer);
 
   // initial buy order
   Order *order1 = customOrder(100, 100, 'b');
