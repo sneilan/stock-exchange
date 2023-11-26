@@ -30,8 +30,7 @@ class Client:
         self.thread.start()
 
     def stop_listener(self):
-        # Stops thread
-        pass
+        raise NotImplementedError()
 
 
 class MarketClient(Client):
@@ -42,18 +41,21 @@ class MarketClient(Client):
         while True:
             data = self.sock.recv(16)
             print(data)
+            print(len(data))
             if not data:
                 return
 
             # c is char
             # Q is unsigned long long
             # i is 4 byte integer
-            format_string = 'ciQ'
+            # x is 1 byte padding.
+            format_string = 'BcxxiQ'
             unpacked_data = unpack(format_string, data)
 
-            msg_type = chr(unpacked_data[0])
-            val = unpacked_data[1]
-            time_ms = unpacked_data[2]
+            version = unpacked_data[0]
+            msg_type = unpacked_data[1].decode()
+            val = unpacked_data[2]
+            time_ms = unpacked_data[3]
 
             self.handle_notification(msg_type, val, time_ms)
 
@@ -108,7 +110,7 @@ class TradingClient(Client):
             self.handle_notification(id, quantity, filled_quantity, client_id)
 
     def handle_notification(self, id, quantity, filled_quantity, client_id):
-        self.log({'id', id, 'quantity', quantity, 'filled_quantity', filled_quantity, 'client_id', client_id})
+        self.log({'id': id, 'quantity': quantity, 'filled_quantity': filled_quantity, 'client_id': client_id})
 
 
 client = TradingClient()
@@ -116,8 +118,8 @@ client.connect()
 client.start_listener()
 
 mkt = MarketClient()
-client.connect()
-client.start_listener()
+mkt.connect()
+mkt.start_listener()
 
 while True:
     char = sys.stdin.read(1)
@@ -125,5 +127,8 @@ while True:
         break
     time.sleep(.1)
     print("Placing trade.")
-    client.trade(500, 5, 'b')
+    price = random.randint(101, 999)
+    quantity = random.randint(1, 10)
+    side = 'b' if random.randint(0, 1) == 0 else 's'
+    client.trade(price, quantity, side)
 

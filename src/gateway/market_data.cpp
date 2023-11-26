@@ -8,9 +8,12 @@ MarketData::~MarketData() throw() {}
 
 // I don't care about these for now because I am implementing authentication later.
 // For now anyone can get market data if they connect.
+
 void MarketData::newClient(int client_id) {
-  // @TODO send nice message to client.
-  // sendMessage(int client_id, char *message, int message_size)
+  const char *msg = "Welcome new market data consumer";
+  if (!sendMessage(client_id, const_cast<char *>(msg), strlen(msg))) {
+    forceDisconnect(client_id);
+  }
 }
 void MarketData::disconnected(int client_id) {};
 void MarketData::readMessage(int client_id, char *message) {};
@@ -23,6 +26,7 @@ void MarketData::handleOutgoingMessage() {
 
   // For every client, send market data.
   sendMessageToAllClients((char*)market_data, sizeof(L1MarketData));
+  SPDLOG_DEBUG("Sent Mkt {} Value {} ", market_data->type, market_data->val);
 }
 
 void MarketData::run() {
