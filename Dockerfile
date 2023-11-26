@@ -1,7 +1,7 @@
 FROM alpine:3.14
 
 RUN apk update
-RUN apk add g++ git cmake make openssl sqlite-dev openssl-dev spdlog-dev catch2
+RUN apk add g++ git cmake make openssl sqlite-dev openssl-dev spdlog-dev catch
 
 # Testing framework
 # RUN git clone https://github.com/catchorg/Catch2.git && \

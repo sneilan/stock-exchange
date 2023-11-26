@@ -24,7 +24,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install catch2 libspdlog-dev
+        sudo apt-get install catch libspdlog-dev
 
     # - name: Download spdlog
     #   run: |
