@@ -24,7 +24,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install catch libspdlog-dev
+        sudo apt-get install libspdlog-dev
 
     # - name: Download spdlog
     #   run: |
@@ -36,13 +36,13 @@ jobs:
     #     cmake ..
     #     sudo make install
 
-    # - name: Download Catch2
-    #   run: |
-    #     cd third_party
-    #     git clone https://github.com/catchorg/Catch2.git
-    #     cd Catch2
-    #     cmake -Bbuild -H. -DBUILD_TESTING=OFF
-    #     sudo cmake --build build/ --target install
+    - name: Download Catch2
+      run: |
+        cd third_party
+        git clone https://github.com/catchorg/Catch2.git
+        cd Catch2
+        cmake -Bbuild -H. -DBUILD_TESTING=OFF
+        sudo cmake --build build/ --target install
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
