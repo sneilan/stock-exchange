@@ -1,6 +1,15 @@
 #include "order_book.h"
-#include <spdlog/spdlog.h>
-#include <sstream>
+#include <ctime>
+
+OrderBook::OrderBook(Producer<L1MarketData> *outbound_mkt_l1) {
+  orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order *> *>();
+  // @TOOD the book should not care about the min / max prices.
+  buyBook = new Book();
+  sellBook = new Book();
+  bestBid = nullptr;
+  bestAsk = nullptr;
+  this->outbound_mkt_l1 = outbound_mkt_l1;
+}
 
 // Main entry point for matching engine. Consider this the "controller"
 std::list<Order *> OrderBook::newOrder(Order *order) {
@@ -126,6 +135,8 @@ void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order *order) {
     if (bestBid == nullptr || order->limitPrice > bestBid->getPrice()) {
 
       bestBid = buyBook->get(order->limitPrice);
+      sendMarketData('b', bestBid->getPrice());
+
       SPDLOG_DEBUG("bid is {}/{}", bestBid->getPrice(), bestBid->getVolume());
     }
   } else if (order->side == SELL) {
@@ -133,9 +144,25 @@ void OrderBook::adjustBidAskIfOrderIsBetterPrice(Order *order) {
     if (bestAsk == nullptr || order->limitPrice < bestAsk->getPrice()) {
 
       bestAsk = sellBook->get(order->limitPrice);
+      sendMarketData('a', bestAsk->getPrice());
+
       SPDLOG_DEBUG("ask is {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
     }
   }
+}
+
+void OrderBook::sendMarketData(char type, int val) {
+  L1MarketData *data = this->outbound_mkt_l1->access_cur();
+  data->type = type;
+  data->val = val;
+
+  struct timespec ts;
+  if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
+    data->time_ns = ts.tv_sec * 1000000000LL + ts.tv_nsec;
+  } else {
+    SPDLOG_ERROR("clock_gettime");
+  }
+  this->outbound_mkt_l1->incr();
 }
 
 void OrderBook::printBestBidAsk(const char *prefix) {
@@ -179,6 +206,7 @@ void OrderBook::setBidAskToReflectMarket() {
     // sell book get should return null ptr if we retrieve a bad price.
     // or consider adding new prices automagically.
     if (bestAsk != nullptr && bestAsk->getVolume() > 0) {
+      sendMarketData('a', bestAsk->getPrice());
       SPDLOG_DEBUG("ask is {}/{}", bestAsk->getPrice(), bestAsk->getVolume());
       return;
     }
@@ -196,6 +224,7 @@ void OrderBook::setBidAskToReflectMarket() {
     // sell book get should return null ptr if we retrieve a bad price.
     // or consider adding new prices automagically.
     if (bestBid != nullptr && bestBid->getVolume() > 0) {
+      sendMarketData('b', bestBid->getPrice());
       SPDLOG_DEBUG("bid is {}/{}", bestBid->getPrice(), bestBid->getVolume());
       return;
     }
@@ -253,15 +282,6 @@ void OrderBook::addOrder(Order *order) {
   }
 
   orderMap->emplace(order->id, node);
-}
-
-OrderBook::OrderBook() {
-  orderMap = new std::unordered_map<SEQUENCE_ID, Node<Order *> *>();
-  // @TOOD the book should not care about the min / max prices.
-  buyBook = new Book();
-  sellBook = new Book();
-  bestBid = nullptr;
-  bestAsk = nullptr;
 }
 
 // Attempts to fill an order using the buy / sell books.

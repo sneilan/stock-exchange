@@ -20,6 +20,7 @@
 #define MAX_CLIENTS 30
 #define TIMEOUT_MICROSECONDS 1
 #define MAX_OUTGOING_MESSAGES 100
+#define MAX_MARKET_DATA_UPDATES 100
 
 class SocketServer {
 public:
@@ -32,9 +33,11 @@ public:
   virtual void newClient(int client_id) = 0;
   virtual void disconnected(int client_id) = 0;
   virtual void readMessage(int client_id, char *message) = 0;
+  virtual void handleOutgoingMessage() = 0;
 
   // Does not need to be implemented by subclass.
   bool sendMessage(int client_id, char *message, int message_size);
+  void sendMessageToAllClients(char* message, int message_size);
   void forceDisconnect(int client_id);
 
 private:
@@ -50,10 +53,6 @@ private:
 
   // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
   struct timeval timeout;
-
-protected:
-  Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
-  MMapObjectPool<Order> *order_pool;
 };
 
 #endif

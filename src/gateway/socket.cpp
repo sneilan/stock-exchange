@@ -50,52 +50,7 @@ void SocketServer::listenToSocket() {
       }
     }
 
-    ORDER_MMAP_OFFSET *offset = outgoing_message_consumer->get();
-    if (offset != nullptr) {
-      Order *order = order_pool->offset_to_pointer(*offset);
-
-      // message type (char)
-      // sequence ID (unsigned long long)
-      // total quantity (integer)
-      // filled quantity (integer)
-      // (TODO)
-      // last fill price (integer)
-      // last quantity filled (integer)
-
-      // hacked out for prototype purposes. Should replace with FIX or protobuf.
-      // Maybe even Apache Avro.
-      int total_size = sizeof(char) + sizeof(order->id) +
-                       sizeof(order->quantity) +
-                       sizeof(order->filled_quantity) + sizeof(order->clientId);
-      char buffer[total_size];
-
-      char orderRecieved = 'r';
-      char orderUpdated = 'u';
-      char orderFilled = 'f';
-      // @TODO cancelled later.
-
-      if (order->unfilled_quantity() == order->quantity) {
-        buffer[0] = orderRecieved;
-      } else if (order->unfilled_quantity() == 0) {
-        buffer[0] = orderFilled;
-      } else {
-        buffer[0] = orderUpdated;
-      }
-
-      int offset = 1;
-      std::memcpy(buffer + offset, &order->id, sizeof(order->id));
-      offset += sizeof(order->id);
-      std::memcpy(buffer + offset, &order->quantity, sizeof(order->quantity));
-      offset += sizeof(order->quantity);
-      std::memcpy(buffer + offset, &order->filled_quantity,
-                  sizeof(order->filled_quantity));
-      offset += sizeof(order->clientId);
-      std::memcpy(buffer + offset, &order->clientId, sizeof(order->clientId));
-
-      sendMessage(order->clientId, buffer, total_size);
-      SPDLOG_DEBUG("Sent {} message {} about order {}", order->clientId,
-                   buffer[0], order->id);
-    }
+    handleOutgoingMessage();
   }
 }
 
@@ -110,8 +65,8 @@ SocketServer::SocketServer() {
 }
 
 SocketServer::~SocketServer() { 
-// @TODO clean this up in a signal handler.
-outgoing_message_consumer->cleanup(); 
+  // @TODO clean this up in a signal handler.
+  // outgoing_message_consumer->cleanup(); 
 }
 
 void SocketServer::forceDisconnect(int client_id) {
@@ -211,6 +166,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
+
   int error = send(client_socket[client_id], message, message_size, 0);
   if (error != message_size) {
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, client_id,
@@ -221,6 +177,20 @@ bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
   SPDLOG_INFO("sent message {} to client {}", message, client_id);
 
   return true;
+}
+
+void SocketServer::sendMessageToAllClients(char* message, int message_size) {
+  for (int i = 0; i < MAX_CLIENTS; i++) {
+    int sd = client_socket[i];
+    if (sd == 0) {
+      continue;
+    }
+
+    int error = send(sd, message, message_size, 0);
+    if (error != message_size) {
+      SPDLOG_ERROR("send error {} to client_id {} at socket {}", error, i, sd);
+    }
+  }
 }
 
 // @TODO make buffer a pointer to this.

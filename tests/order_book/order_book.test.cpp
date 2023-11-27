@@ -10,16 +10,21 @@
 
 TEST_CASE("order_book - add order") {
   // Hello world order book test.
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *order = createDefaultOrder();
   orderBook->newOrder(order);
 
   REQUIRE(orderBook->getVolume() == 100);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - cancel order") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
   Order *order = createDefaultOrder();
 
   orderBook->newOrder(order);
@@ -29,10 +34,13 @@ TEST_CASE("order_book - cancel order") {
   orderBook->cancelOrder(order->id);
 
   REQUIRE(orderBook->getVolume() == 0);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   // Making a buy order w/ no sell order should immediately set bid.
   Order *buyOrder = createDefaultOrder();
@@ -47,10 +55,13 @@ TEST_CASE("order_book - new orders that do not fill should set bid/ask price") {
   orderBook->newOrder(sellOrder);
 
   REQUIRE(orderBook->getAsk()->getPrice() == sellOrder->limitPrice);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - match order") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -61,10 +72,13 @@ TEST_CASE("order_book - match order") {
   orderBook->newOrder(sellOrder);
 
   REQUIRE(orderBook->getVolume() == 0);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - buy orders with higher prices should move bid up") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *buyOrder = createDefaultOrder();
   orderBook->newOrder(buyOrder);
@@ -74,10 +88,13 @@ TEST_CASE("order_book - buy orders with higher prices should move bid up") {
   buyOrderHigher->limitPrice = buyOrder->limitPrice + 100;
   orderBook->newOrder(buyOrderHigher);
   REQUIRE(orderBook->getBid()->getPrice() == buyOrderHigher->limitPrice);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   Order *sellOrder = createDefaultOrder();
   sellOrder->side = SELL;
@@ -89,10 +106,13 @@ TEST_CASE("order_book - sell orders with lower prices should move ask lower") {
   sellOrderLower->limitPrice = sellOrder->limitPrice - 100;
   orderBook->newOrder(sellOrderLower);
   REQUIRE(orderBook->getAsk()->getPrice() == sellOrderLower->limitPrice);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - testing order fills after order book populated") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   // initial buy order
   Order *order1 = customOrder(100, 100, 'b');
@@ -117,11 +137,14 @@ TEST_CASE("order_book - testing order fills after order book populated") {
   orderBook->newOrder(order4);
 
   REQUIRE(orderBook->getVolume() == 200);
+  producer->cleanup();
 }
 
 TEST_CASE("order_book - testing fillOrder when we attempt to sell more than "
           "what is offered.") {
-  OrderBook *orderBook = new OrderBook();
+  const char *market_buf = "/test_mkt_buf";
+  Producer<L1MarketData> *producer = new Producer<L1MarketData>(10, market_buf);
+  OrderBook *orderBook = new OrderBook(producer);
 
   // initial buy order.
   Order *order1 = customOrder(336, 180, 'b');
@@ -150,4 +173,5 @@ TEST_CASE("order_book - testing fillOrder when we attempt to sell more than "
   REQUIRE(order4->unfilled_quantity() == 0);
 
   REQUIRE(orderBook->getBid()->getPrice() == 126);
+  producer->cleanup();
 }

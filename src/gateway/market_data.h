@@ -1,5 +1,5 @@
-#ifndef _gateway_h
-#define _gateway_h
+#ifndef _market_h
+#define _market_h
 
 #include "../util/mmap_wrapper.h"
 #include "../util/disruptor.h"
@@ -16,12 +16,10 @@
 
 #define GATEWAY_BUFLEN 100
 
-class Gateway : public SocketServer {
+class MarketData : public SocketServer {
 public:
-  Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
-          Consumer<ORDER_MMAP_OFFSET>* outgoing_message_consumer,
-          MMapObjectPool<Order>* order_pool);
-  ~Gateway() throw();
+  MarketData(Consumer<L1MarketData>* market_l1_data_consumer);
+  ~MarketData() throw();
 
   void newClient(int client_id) override;
   void disconnected(int client_id) override;
@@ -30,8 +28,6 @@ public:
   void run();
 
 private:
-  Producer<NewOrderEvent>* incoming_msg_producer;
-  Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
-  MMapObjectPool<Order> *order_pool;
+  Consumer<L1MarketData> *market_l1_data_consumer;
 };
 #endif
