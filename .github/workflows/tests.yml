@@ -38,6 +38,7 @@ jobs:
 
     - name: Download Catch2
       run: |
+        mkdir third_party
         cd third_party
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
