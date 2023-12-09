@@ -4,6 +4,5 @@ UserService::UserService() {
 
 }
 
-bool UserService::authenticate(char* username, char* password) {
-  return true;
+void UserService::authenticate(char* username, char* password, AuthRet* return_val) {
 }
