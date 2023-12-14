@@ -1,6 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <csignal>
 #include <spdlog/spdlog.h>
+#include <cstdio>
 
 #include "../../src/user_service/user_service.h"
 
@@ -24,4 +26,15 @@ TEST_CASE("LibSodium Test - Creating and authenticating password") {
   // Make sure wrong password does not.
   const char *wrong_password = "battery staple";
   REQUIRE(crypto_pwhash_str_verify(hashed_password, wrong_password, strlen(wrong_password)) != 0);
+}
+
+TEST_CASE("Sqlite3 - Open and close database") {
+  sqlite3* db;
+  const char * db_name = "/tmp/test.db";
+  int rc = sqlite3_open(db_name, &db);
+
+  REQUIRE(rc == 0);
+
+  sqlite3_close(db);
+  std::remove(db_name);
 }

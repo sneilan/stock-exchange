@@ -3,6 +3,7 @@ project(StockExchange)
 
 find_package(spdlog REQUIRED)
 find_package(Catch2 REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 # Including sodium with cmake using this magic hack.
 # https://github.com/robinlinden/libsodium-cmake/blob/master/README.md
@@ -17,6 +18,7 @@ set(SODIUM_DISABLE_TESTS ON)
 FetchContent_MakeAvailable(Sodium)
 
 include(CMakePrintHelpers)
+# include_directories(${SQLite3_INCLUDE_DIRS})
 
 add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 
@@ -38,7 +40,10 @@ add_executable(test ${TEST_FILES_1} ${TEST_FILES_2} ${TEST_FILES_3} ${TEST_FILES
 target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(main PRIVATE librt.so)
 target_link_libraries(main PRIVATE sodium)
+target_link_libraries(main PRIVATE sqlite3)
+
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(test PRIVATE Catch2::Catch2)
 target_link_libraries(test PRIVATE librt.so)
 target_link_libraries(test PRIVATE sodium)
+target_link_libraries(test PRIVATE sqlite3)

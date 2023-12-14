@@ -1,7 +1,7 @@
 FROM alpine:3.14
 
 RUN apk update
-RUN apk add g++ git cmake make openssl sqlite-dev openssl-dev spdlog-dev wget
+RUN apk add g++ git cmake make openssl sqlite-dev openssl-dev spdlog-dev wget sqlite-dev
 # RUN wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.19-stable.tar.gz && \
 #   tar -xzf libsodium-1.0.19-stable.tar.gz && \
 #   cd libsodium-stable && \
