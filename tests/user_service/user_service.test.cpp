@@ -56,6 +56,7 @@ TEST_CASE("UserService - Create database, add user and try logging in") {
   rc = system("/app/scripts/operations/add_user.py --username sneilan --password password --user-db /tmp/users.db");
   REQUIRE(rc == 0);
 
+  // test a good password
   UserService* user_service = new UserService(db_name);
   AuthRet ret;
   ret.authenticated = false;
@@ -64,6 +65,20 @@ TEST_CASE("UserService - Create database, add user and try logging in") {
   user_service->authenticate(username, password, &ret);
 
   REQUIRE(ret.authenticated == true);
+
+  // Test a bad password
+  char bad_password[] = "bad_password";
+  ret.authenticated = false;
+  user_service->authenticate(username, bad_password, &ret);
+
+  REQUIRE(ret.authenticated == false);
+
+  // Test what happens when user does not exist
+  ret.authenticated = false;
+  char bad_username[] = "bad_username";
+  user_service->authenticate(bad_username, password, &ret);
+
+  REQUIRE(ret.authenticated == false);
 
   std::remove(db_name);
 }

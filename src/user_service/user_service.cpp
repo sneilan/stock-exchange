@@ -11,7 +11,7 @@ UserService::UserService() {
 }
 
 void UserService::open_database() {
-  int rc = sqlite3_open(user_db_location, &db);
+  int rc = sqlite3_open_v2(user_db_location, &db, SQLITE_OPEN_READONLY, nullptr);
 
   if (rc) {
     SPDLOG_CRITICAL("Can't open database {} ❌", sqlite3_errmsg(db));
