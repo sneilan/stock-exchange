@@ -18,3 +18,5 @@ compile_commands.json
 cmake_install.cmake
 Makefile
 _deps/
+db/users.db
+

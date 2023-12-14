@@ -3,6 +3,7 @@
 #include <csignal>
 #include <spdlog/spdlog.h>
 #include <cstdio>
+#include <stdlib.h>
 
 #include "../../src/user_service/user_service.h"
 
@@ -28,13 +29,41 @@ TEST_CASE("LibSodium Test - Creating and authenticating password") {
   REQUIRE(crypto_pwhash_str_verify(hashed_password, wrong_password, strlen(wrong_password)) != 0);
 }
 
-TEST_CASE("Sqlite3 - Open and close database") {
+TEST_CASE("Sqlite3 - Smoke test") {
   sqlite3* db;
   const char * db_name = "/tmp/test.db";
+
+  // cleanup just in case
+  std::remove(db_name);
+
   int rc = sqlite3_open(db_name, &db);
 
   REQUIRE(rc == 0);
 
   sqlite3_close(db);
+  std::remove(db_name);
+}
+
+TEST_CASE("UserService - Create database, add user and try logging in") {
+  const char * db_name = "/tmp/users.db";
+
+  // cleanup just in case
+  std::remove(db_name);
+
+  int rc = system("/app/scripts/operations/create_databases.py --user-db /tmp/users.db");
+  REQUIRE(rc == 0);
+
+  rc = system("/app/scripts/operations/add_user.py --username sneilan --password password --user-db /tmp/users.db");
+  REQUIRE(rc == 0);
+
+  UserService* user_service = new UserService(db_name);
+  AuthRet ret;
+  ret.authenticated = false;
+  char username[] = "sneilan";
+  char password[] = "password";
+  user_service->authenticate(username, password, &ret);
+
+  REQUIRE(ret.authenticated == true);
+
   std::remove(db_name);
 }

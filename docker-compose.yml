@@ -8,3 +8,5 @@ services:
       - "8889:8889"
     volumes:
       - ./:/app
+    env_file:
+      - .env
