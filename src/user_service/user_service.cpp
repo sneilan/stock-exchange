@@ -54,9 +54,11 @@ void UserService::authenticate(char* username, char* password, AuthRet* return_v
 
     if (crypto_pwhash_str_verify(hashed_password, password, strlen(password)) == 0) {
       return_val->authenticated = true;
-      return;
     }
+    break;
   }
+
+  sqlite3_finalize(stmt);
 
   if (rc != SQLITE_DONE) {
     SPDLOG_CRITICAL("SQL error {}", sqlite3_errmsg(db));
