@@ -30,6 +30,7 @@ void MarketData::handleOutgoingMessage() {
 }
 
 void MarketData::run() {
-  bindSocket(8889);
+  char * port = getenv("MARKET_PORT");
+  bindSocket(atoi(port));
   listenToSocket();
 }

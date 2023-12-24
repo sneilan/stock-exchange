@@ -4,6 +4,7 @@ project(StockExchange)
 find_package(spdlog REQUIRED)
 find_package(Catch2 REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Including sodium with cmake using this magic hack.
 # https://github.com/robinlinden/libsodium-cmake/blob/master/README.md
@@ -41,9 +42,11 @@ target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(main PRIVATE librt.so)
 target_link_libraries(main PRIVATE sodium)
 target_link_libraries(main PRIVATE sqlite3)
+target_link_libraries(main PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(test PRIVATE Catch2::Catch2)
 target_link_libraries(test PRIVATE librt.so)
 target_link_libraries(test PRIVATE sodium)
 target_link_libraries(test PRIVATE sqlite3)
+target_link_libraries(test PRIVATE OpenSSL::SSL OpenSSL::Crypto)

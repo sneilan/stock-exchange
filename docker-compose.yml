@@ -4,8 +4,8 @@ services:
   core:
     build: .
     ports:
-      - "8888:8888"
-      - "8889:8889"
+      - "443:443"
+      - "4443:4443"
     volumes:
       - ./:/app
     env_file:

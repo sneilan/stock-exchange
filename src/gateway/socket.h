@@ -40,13 +40,16 @@ public:
   void sendMessageToAllClients(char* message, int message_size);
   void forceDisconnect(int client_id);
 
+protected:
+  int client_socket[MAX_CLIENTS];
+
 private:
   int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
   int readDataFromClient(int i);
   void acceptNewConn(fd_set *readfds);
   void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
 
-  int master_socket, client_socket[MAX_CLIENTS];
+  int master_socket;
   struct sockaddr_in address;
 
   char buffer[1025]; // data buffer of 1K

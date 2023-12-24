@@ -9,6 +9,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <stdlib.h>
 #include <spdlog/spdlog.h>
 #include <sys/mman.h>
 #include <sys/stat.h>

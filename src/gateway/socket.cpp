@@ -162,6 +162,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
   int bytes_written = send(client_socket[client_id], message, message_size, 0);
   if (bytes_written != message_size) {
+    // if error is not EAWOULDBLOCK, client is disconnected.
     // if EAWOULDBLOCK then have to repeat.
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", bytes_written, client_id,
                  client_socket[client_id]);
