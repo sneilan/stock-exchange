@@ -16,8 +16,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 #include <vector>
 
 #define GATEWAY_BUFLEN 100
@@ -36,13 +34,10 @@ public:
   // this function is called to send a message to the client.
   void handleOutgoingMessage() override;
   void run();
-  SSL* getNewSSLObj();
 
 private:
   Producer<NewOrderEvent>* incoming_msg_producer;
   Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer;
   MMapObjectPool<Order> *order_pool;
-  SSL_CTX *ctx;
-  std::vector<SSL*> ssl_pool;
 };
 #endif

@@ -16,6 +16,8 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <sys/types.h>
 #include <unistd.h> //close
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #define MAX_CLIENTS 30
 #define TIMEOUT_MICROSECONDS 1
@@ -48,6 +50,8 @@ private:
   int readDataFromClient(int i);
   void acceptNewConn(fd_set *readfds);
   void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
+  SSL* connections[MAX_CLIENTS];
+  SSL_CTX *ctx;
 
   int master_socket;
   struct sockaddr_in address;

@@ -1,5 +1,39 @@
 #include "socket.h"
 
+SocketServer::SocketServer() {
+  timeout.tv_sec = 0;
+  timeout.tv_usec = TIMEOUT_MICROSECONDS;
+
+  // Initialise all client_socket[] to 0
+  for (int i = 0; i < MAX_CLIENTS; i++) {
+    client_socket[i] = 0;
+  }
+
+  // Default to SSL.
+ 
+  ctx = SSL_CTX_new(SSLv23_server_method());
+
+  if (!ctx) {
+    SPDLOG_CRITICAL("Could not start SSL_CTX_new");
+    exit(1);
+  }
+
+  if (SSL_CTX_use_certificate_file(ctx, getenv("PUBLIC_KEY"), SSL_FILETYPE_PEM) <= 0) {
+    SPDLOG_CRITICAL("Could not load public key. Check PUBLIC_KEY env variable.");
+    exit(1);
+  }
+
+  if (SSL_CTX_use_PrivateKey_file(ctx, getenv("PRIVATE_KEY"), SSL_FILETYPE_PEM) <= 0) {
+    SPDLOG_CRITICAL("Could not load private key. Check PRIVATE_KEY env variable.");
+    exit(1);
+  }
+
+  // Initialize ssl connection pool
+  for (int i = 0; i < MAX_CLIENTS; i++) {
+    connections[i] = SSL_new(ctx);
+  }
+}
+
 void SocketServer::listenToSocket() {
   SPDLOG_INFO("Waiting for connections ...");
   while (1) {
@@ -51,17 +85,13 @@ void SocketServer::listenToSocket() {
   }
 }
 
-SocketServer::SocketServer() {
-  timeout.tv_sec = 0;
-  timeout.tv_usec = TIMEOUT_MICROSECONDS;
-
-  // Initialise all client_socket[] to 0
+SocketServer::~SocketServer() { 
   for (int i = 0; i < MAX_CLIENTS; i++) {
-    client_socket[i] = 0;
+    SSL_free(connections[i]);
   }
-}
 
-SocketServer::~SocketServer() { }
+  SSL_CTX_free(ctx);
+}
 
 void SocketServer::forceDisconnect(int client_id) {
   close(client_socket[client_id]);
@@ -145,6 +175,18 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
       exit(EXIT_FAILURE);
     }
 
+    SSL_clear(ssl);
+
+    SSL_set_fd(ssl, client_socket[client_id]);
+
+    // Perform SSL handshake
+    if (SSL_accept(ssl) != 1) {
+      SPDLOG_INFO("Client {} did not accept ssl", client_id);
+      forceDisconnect(client_id);
+      ssl_pool.push_back(ssl);
+      return;
+    }
+
     // Add new socket to array of sockets
     // Find the lowest available socket.
     for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -160,6 +202,9 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
+  // @TODO fix ssl write
+  SSL_write(connections[client_id], message, message_size);
+
   int bytes_written = send(client_socket[client_id], message, message_size, 0);
   if (bytes_written != message_size) {
     // if error is not EAWOULDBLOCK, client is disconnected.
@@ -181,6 +226,7 @@ void SocketServer::sendMessageToAllClients(char* message, int message_size) {
       continue;
     }
 
+    // @TODO use ssl write here
     int error = send(sd, message, message_size, 0);
     if (error != message_size) {
       SPDLOG_ERROR("Send error {} to client_id {} at socket {}", error, i, sd);
@@ -192,6 +238,14 @@ int SocketServer::readDataFromClient(int i) {
   int valread;
   int addrlen = sizeof(address);
   int sd = client_socket[i];
+
+  // @TODO use ssl read here.
+  // while ((bytes = SSL_read(ssl, buffer, sizeof(buffer))) > 0) {
+  //     buffer[bytes] = '\0';
+  //     printf("Received: %s\n", buffer);
+
+  //     // Echo the received data back to the client
+  // }
 
   if ((valread = read(sd, buffer, 1024)) == 0) {
     // Client disconnected.
