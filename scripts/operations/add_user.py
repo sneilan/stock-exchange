@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description="Create new user script")
 
 parser.add_argument("--username", required=True, help="Enter a username")
 parser.add_argument("--password", help="Enter a password (optional) (if not specified will prompt)")
-parser.add_argument("--user-db", required=False, help="Location of sqlite3 user db location")
+parser.add_argument("--user-db", required=False, help="Location of sqlite3 user db location. Defaults to USER_DATABASE env var.")
 
 args = parser.parse_args()
 

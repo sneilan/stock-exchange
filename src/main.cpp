@@ -1,12 +1,10 @@
-#include <cstring>
 #include <fcntl.h>
-#include <iostream>
+#include <sodium.h>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/version.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <sodium.h>
 
 #include "eventstore/eventstore.h"
 #include "gateway/gateway.h"
