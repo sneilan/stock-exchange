@@ -18,7 +18,11 @@ public:
     exit(0);
   };
 
-  void readMessage(int client_id, char *message) { };
+  void readMessage(int client_id, char *message) { 
+    SPDLOG_INFO("Read {} from client {}", message, client_id);
+    sendMessage(client_id, message, sizeof(message));
+  };
+
   void handleOutgoingMessage() { };
 };
 

@@ -205,7 +205,6 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
   int bytes_written = SSL_write(connections[client_id], message, message_size);
-  // send(client_socket[client_id], message, message_size, 0);
  
   if (bytes_written == 0) {
     // client disconnected.
@@ -226,12 +225,12 @@ bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
 void SocketServer::sendMessageToAllClients(char* message, int message_size) {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     int sd = client_socket[i];
+    // Skip unplugged sockets.
     if (sd == 0) {
       continue;
     }
 
-    // @TODO use ssl write here
-    int error = send(sd, message, message_size, 0);
+    int error = SSL_write(connections[i], message, message_size);
     if (error != message_size) {
       SPDLOG_ERROR("Send error {} to client_id {} at socket {}", error, i, sd);
     }
