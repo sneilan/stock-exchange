@@ -18,8 +18,8 @@ SocketServer::SocketServer() {
     exit(1);
   }
 
-  if (SSL_CTX_use_certificate_file(ctx, getenv("PUBLIC_KEY"), SSL_FILETYPE_PEM) <= 0) {
-    SPDLOG_CRITICAL("Could not load public key. Check PUBLIC_KEY env variable.");
+  if (SSL_CTX_use_certificate_file(ctx, getenv("CERTIFICATE"), SSL_FILETYPE_PEM) <= 0) {
+    SPDLOG_CRITICAL("Could not load certificate. Check CERTIFICATE env variable.");
     exit(1);
   }
 
@@ -175,25 +175,27 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
       exit(EXIT_FAILURE);
     }
 
-    SSL_clear(ssl);
-
-    SSL_set_fd(ssl, client_socket[client_id]);
-
-    // Perform SSL handshake
-    if (SSL_accept(ssl) != 1) {
-      SPDLOG_INFO("Client {} did not accept ssl", client_id);
-      forceDisconnect(client_id);
-      ssl_pool.push_back(ssl);
-      return;
-    }
-
     // Add new socket to array of sockets
     // Find the lowest available socket.
     for (int i = 0; i < MAX_CLIENTS; i++) {
       if (client_socket[i] == 0) {
+        SSL * ssl = connections[i];
+
+        SSL_clear(ssl);
+
+        SSL_set_fd(ssl, new_socket);
+
+        // Perform SSL handshake
+        if (SSL_accept(ssl) != 1) {
+          SPDLOG_INFO("Client {} did not accept ssl", i);
+          forceDisconnect(i);
+          return;
+        }
+
         client_socket[i] = new_socket;
+
         newClient(i);
-        SPDLOG_DEBUG("Registering new client {}", i);
+        SPDLOG_DEBUG("Registered new client {}", i);
 
         break;
       }
@@ -202,11 +204,13 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
 }
 
 bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
-  // @TODO fix ssl write
-  SSL_write(connections[client_id], message, message_size);
-
-  int bytes_written = send(client_socket[client_id], message, message_size, 0);
-  if (bytes_written != message_size) {
+  int bytes_written = SSL_write(connections[client_id], message, message_size);
+  // send(client_socket[client_id], message, message_size, 0);
+ 
+  if (bytes_written == 0) {
+    // client disconnected.
+    return false;
+  } else if (bytes_written != message_size) {
     // if error is not EAWOULDBLOCK, client is disconnected.
     // if EAWOULDBLOCK then have to repeat.
     SPDLOG_ERROR("send error {} to client_id {} at socket {}", bytes_written, client_id,
@@ -234,31 +238,23 @@ void SocketServer::sendMessageToAllClients(char* message, int message_size) {
   }
 }
 
-int SocketServer::readDataFromClient(int i) {
+int SocketServer::readDataFromClient(int client_id) {
   int valread;
+  int sd = client_socket[client_id];
   int addrlen = sizeof(address);
-  int sd = client_socket[i];
 
-  // @TODO use ssl read here.
-  // while ((bytes = SSL_read(ssl, buffer, sizeof(buffer))) > 0) {
-  //     buffer[bytes] = '\0';
-  //     printf("Received: %s\n", buffer);
-
-  //     // Echo the received data back to the client
-  // }
-
-  if ((valread = read(sd, buffer, 1024)) == 0) {
+  if ((valread = SSL_read(connections[client_id], buffer, 1024)) == 0) {
     // Client disconnected.
     getpeername(sd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 
     close(sd);
-    client_socket[i] = 0;
-    disconnected(i);
+    client_socket[client_id] = 0;
+    disconnected(client_id);
     SPDLOG_DEBUG("Client disconnected, ip {}, port {}, client {}",
-                 inet_ntoa(address.sin_addr), ntohs(address.sin_port), i);
+                 inet_ntoa(address.sin_addr), ntohs(address.sin_port), client_id);
   }
 
-  SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, i);
+  SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, client_id);
 
   return valread;
 }

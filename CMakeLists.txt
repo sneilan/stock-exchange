@@ -34,9 +34,11 @@ file(GLOB TEST_FILES_1 "tests/*cpp")
 file(GLOB TEST_FILES_2 "tests/util/*cpp")
 file(GLOB TEST_FILES_3 "tests/order_book/*cpp")
 file(GLOB TEST_FILES_4 "tests/user_service/*cpp")
+file(GLOB TEST_FILES_5 "tests/gateway/*cpp")
+file(GLOB TEST_FILES_6 "tests/misc/*cpp")
 
 add_executable(main src/main.cpp src/eventstore/eventstore.cpp ${ORDER_BOOK_SOURCES} ${GATEWAY_SOURCES} ${USER_SERVICE_SOURCES} ${UTIL_SOURCES} ${spdlog_DIR})
-add_executable(test ${TEST_FILES_1} ${TEST_FILES_2} ${TEST_FILES_3} ${TEST_FILES_4} src/eventstore/eventstore.cpp ${ORDER_BOOK_SOURCES} ${UTIL_SOURCES} ${USER_SERVICE_SOURCES} ${GATEWAY_SOURCES} ${spdlog_DIR})
+add_executable(test ${TEST_FILES_1} ${TEST_FILES_2} ${TEST_FILES_3} ${TEST_FILES_4} ${TEST_FILES_5} ${TEST_FILES_6} src/eventstore/eventstore.cpp ${ORDER_BOOK_SOURCES} ${UTIL_SOURCES} ${USER_SERVICE_SOURCES} ${GATEWAY_SOURCES} ${spdlog_DIR})
 
 target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(main PRIVATE librt.so)

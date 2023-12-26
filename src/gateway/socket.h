@@ -47,7 +47,7 @@ protected:
 
 private:
   int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
-  int readDataFromClient(int i);
+  int readDataFromClient(int client_id);
   void acceptNewConn(fd_set *readfds);
   void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
   SSL* connections[MAX_CLIENTS];
