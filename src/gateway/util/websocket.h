@@ -11,9 +11,15 @@
 #include <sstream>
 #include <map>
 
-std::string base64_encode(const std::string &original);
-std::string base64_decode(const std::string &encoded);
-std::string sha1(const std::string &input);
-std::map<std::string, std::string> parse_http_headers(const std::string& headers);
+using namespace std;
+
+// RFC-6455 specifies that we add this string to the websocket request nonce
+static const char * MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+string base64_encode(const string &original);
+string base64_decode(const string &encoded);
+string sha1(const string &input);
+map<string, string> parse_http_headers(const string& headers);
+string create_websocket_response(const string& websocket_request_key);
 
 #endif
