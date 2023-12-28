@@ -44,7 +44,7 @@ string base64_decode(const string &encoded) {
 
 string sha1(const string &input) {
   unsigned char sha1_hash[SHA_DIGEST_LENGTH];
-  SHA1((const unsigned char*)(input.c_str()), input.size(), sha1_hash);
+  SHA1((const unsigned char *)(input.c_str()), input.size(), sha1_hash);
   // SPDLOG_DEBUG("hash {}", sha1_hash);
 
   // cout << "SHA-1 Hash (Hexadecimal): ";
@@ -53,36 +53,36 @@ string sha1(const string &input) {
   // }
   // cout << endl;
 
-
-  string sha1_str(reinterpret_cast<char*>(sha1_hash), SHA_DIGEST_LENGTH);
+  string sha1_str(reinterpret_cast<char *>(sha1_hash), SHA_DIGEST_LENGTH);
   return sha1_str;
 }
 
-map<string, string> parse_http_headers(const string& headers) {
-    map<string, string> headerMap;
-    istringstream stream(headers);
-    string line;
+map<string, string> parse_http_headers(const string &headers) {
+  map<string, string> headerMap;
+  istringstream stream(headers);
+  string line;
 
-    while (getline(stream, line)) {
-        istringstream lineStream(line);
-        string key, value;
+  while (getline(stream, line)) {
+    istringstream lineStream(line);
+    string key, value;
 
-        if (getline(lineStream, key, ':')) {
-            if (getline(lineStream, value)) {
-                if (!key.empty() && !value.empty()) {
-                    size_t start = value.find_first_not_of(" ");
-                    if (start != string::npos) {
-                        value = value.substr(start);
-                    }
-                    headerMap[key] = value;
-                }
-            }
+    if (getline(lineStream, key, ':')) {
+      if (getline(lineStream, value)) {
+        if (!key.empty() && !value.empty()) {
+          size_t start = value.find_first_not_of(" ");
+          if (start != string::npos) {
+            value = value.substr(start);
+          }
+          headerMap[key] = value;
         }
+      }
     }
+  }
 
-    return headerMap;
+  return headerMap;
 }
 
-string create_websocket_response(const string& websocket_request_key) {
-
+string create_websocket_response(const string &websocket_request_key) {
+  string sha1_result = sha1(websocket_request_key + ws_magic_string);
+  return base64_encode(sha1_result);
 }
