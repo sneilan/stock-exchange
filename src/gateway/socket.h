@@ -53,6 +53,9 @@ private:
   SSL* connections[MAX_CLIENTS];
   SSL_CTX *ctx;
 
+  // Implement websocket handshakes at socket level.
+  // implement them in a subclass.
+
   int master_socket;
   struct sockaddr_in address;
 

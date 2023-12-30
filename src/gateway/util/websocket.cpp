@@ -1,4 +1,5 @@
 #include "websocket.h"
+#include <stdexcept>
 
 using namespace std;
 
@@ -45,12 +46,17 @@ string base64_decode(const string &encoded) {
 string sha1(const string &input) {
   unsigned char sha1_hash[SHA_DIGEST_LENGTH];
   SHA1((const unsigned char *)(input.c_str()), input.size(), sha1_hash);
+
+  // unsigned char sha1_human[SHA1_HUMAN_LEN];
+  // sha1_human[SHA1_HUMAN_LEN-1] = '\0';
+
+  // for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+  //   sprintf(sha1_human, "%02x", sha1_hash[i]);
+  // }
+
   // SPDLOG_DEBUG("hash {}", sha1_hash);
 
   // cout << "SHA-1 Hash (Hexadecimal): ";
-  // for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-  //   printf("%02x", sha1_hash[i]);
-  // }
   // cout << endl;
 
   string sha1_str(reinterpret_cast<char *>(sha1_hash), SHA_DIGEST_LENGTH);
@@ -82,7 +88,20 @@ map<string, string> parse_http_headers(const string &headers) {
   return headerMap;
 }
 
-string create_websocket_response(const string &websocket_request_key) {
+string create_websocket_response_nonce(const string &websocket_request_key) {
   string sha1_result = sha1(websocket_request_key + ws_magic_string);
   return base64_encode(sha1_result);
+}
+
+string websocket_request_response(const string &client_http_request) {
+  map<string, string> http_headers = parse_http_headers(client_http_request);
+
+  try {
+    string ws_request_nonce = http_headers.at(ws_request_header);
+    string ws_response_nonce = create_websocket_response_nonce(ws_request_nonce);
+    return ws_response + ws_response_nonce;
+  } catch (const out_of_range& e) {
+    // Make client disconnect here.
+    return "meow";
+  }
 }
