@@ -10,7 +10,7 @@ SocketServer::SocketServer() {
   }
 
   // Default to SSL.
- 
+
   ctx = SSL_CTX_new(SSLv23_server_method());
 
   if (!ctx) {
@@ -18,13 +18,17 @@ SocketServer::SocketServer() {
     exit(1);
   }
 
-  if (SSL_CTX_use_certificate_file(ctx, getenv("CERTIFICATE"), SSL_FILETYPE_PEM) <= 0) {
-    SPDLOG_CRITICAL("Could not load certificate. Check CERTIFICATE env variable.");
+  if (SSL_CTX_use_certificate_file(ctx, getenv("CERTIFICATE"),
+                                   SSL_FILETYPE_PEM) <= 0) {
+    SPDLOG_CRITICAL(
+        "Could not load certificate. Check CERTIFICATE env variable.");
     exit(1);
   }
 
-  if (SSL_CTX_use_PrivateKey_file(ctx, getenv("PRIVATE_KEY"), SSL_FILETYPE_PEM) <= 0) {
-    SPDLOG_CRITICAL("Could not load private key. Check PRIVATE_KEY env variable.");
+  if (SSL_CTX_use_PrivateKey_file(ctx, getenv("PRIVATE_KEY"),
+                                  SSL_FILETYPE_PEM) <= 0) {
+    SPDLOG_CRITICAL(
+        "Could not load private key. Check PRIVATE_KEY env variable.");
     exit(1);
   }
 
@@ -85,7 +89,7 @@ void SocketServer::listenToSocket() {
   }
 }
 
-SocketServer::~SocketServer() { 
+SocketServer::~SocketServer() {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     SSL_free(connections[i]);
   }
@@ -115,9 +119,9 @@ void SocketServer::bindSocket(int PORT) {
   }
 
   // Set up the address where we will host the exchange.
-  address.sin_family = AF_INET; // ipv4
+  address.sin_family = AF_INET;         // ipv4
   address.sin_addr.s_addr = INADDR_ANY; // bind to all interfaces
-  address.sin_port = htons(PORT); // bind to PORT
+  address.sin_port = htons(PORT);       // bind to PORT
 
   // Bind master socket to that address.
   if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
@@ -179,7 +183,7 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
     // Find the lowest available socket.
     for (int i = 0; i < MAX_CLIENTS; i++) {
       if (client_socket[i] == 0) {
-        SSL * ssl = connections[i];
+        SSL *ssl = connections[i];
 
         SSL_clear(ssl);
 
@@ -203,17 +207,18 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   }
 }
 
-bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
+bool SocketServer::sendMessage(int client_id, const char *message,
+                               int message_size) {
   int bytes_written = SSL_write(connections[client_id], message, message_size);
- 
+
   if (bytes_written == 0) {
     // client disconnected.
     return false;
   } else if (bytes_written != message_size) {
     // if error is not EAWOULDBLOCK, client is disconnected.
     // if EAWOULDBLOCK then have to repeat.
-    SPDLOG_ERROR("send error {} to client_id {} at socket {}", bytes_written, client_id,
-                 client_socket[client_id]);
+    SPDLOG_ERROR("send error {} to client_id {} at socket {}", bytes_written,
+                 client_id, client_socket[client_id]);
     return false;
   }
 
@@ -222,7 +227,8 @@ bool SocketServer::sendMessage(int client_id, char *message, int message_size) {
   return true;
 }
 
-void SocketServer::sendMessageToAllClients(char* message, int message_size) {
+void SocketServer::sendMessageToAllClients(const char *message,
+                                           int message_size) {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     int sd = client_socket[i];
     // Skip unplugged sockets.
@@ -250,7 +256,8 @@ int SocketServer::readDataFromClient(int client_id) {
     client_socket[client_id] = 0;
     disconnected(client_id);
     SPDLOG_DEBUG("Client disconnected, ip {}, port {}, client {}",
-                 inet_ntoa(address.sin_addr), ntohs(address.sin_port), client_id);
+                 inet_ntoa(address.sin_addr), ntohs(address.sin_port),
+                 client_id);
   }
 
   SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, client_id);

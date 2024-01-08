@@ -7,6 +7,8 @@
 #include <arpa/inet.h> //close
 #include <errno.h>
 #include <netinet/in.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <spdlog/spdlog.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,8 +18,6 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <sys/types.h>
 #include <unistd.h> //close
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 #define MAX_CLIENTS 30
 #define TIMEOUT_MICROSECONDS 1
@@ -38,8 +38,8 @@ public:
   virtual void handleOutgoingMessage() = 0;
 
   // Does not need to be implemented by subclass.
-  bool sendMessage(int client_id, char *message, int message_size);
-  void sendMessageToAllClients(char* message, int message_size);
+  bool sendMessage(int client_id, const char *message, int message_size);
+  void sendMessageToAllClients(const char *message, int message_size);
   void forceDisconnect(int client_id);
 
 protected:
@@ -50,7 +50,7 @@ private:
   int readDataFromClient(int client_id);
   void acceptNewConn(fd_set *readfds);
   void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
-  SSL* connections[MAX_CLIENTS];
+  SSL *connections[MAX_CLIENTS];
   SSL_CTX *ctx;
 
   // Implement websocket handshakes at socket level.
