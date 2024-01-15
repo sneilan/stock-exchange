@@ -17,7 +17,7 @@ RUN git clone https://github.com/catchorg/Catch2.git && \
   cmake --build build/ --target install
 
 RUN apk add py3-pip python3-dev libffi-dev
-RUN pip install argon2-cffi
+RUN pip install argon2-cffi websocket-client
 
 # Logging library
 # RUN git clone https://github.com/gabime/spdlog.git && \

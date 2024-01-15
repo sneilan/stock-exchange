@@ -29,19 +29,23 @@ public:
   };
 
   void readMessage(int client_id, char *message) {
+    // if (!connected_webclients[client_id]) {
+    SPDLOG_INFO("Client {} has not shaken hands", client_id);
+
     string response = websocket_request_response(message);
 
     if (!sendMessage(client_id, response.c_str(), response.length())) {
+      SPDLOG_INFO("Failure to send message to client {}", client_id);
       // @TODO perhaps sendMessage can handle what happens if a client
       // disconnects Then call our disconnected handler and let us know so we
       // don't have to an error handling pattern everywhere.
-      forceDisconnect(client_id);
+      // forceDisconnect(client_id);
     } else {
-      connected_webclients[client_id] = true;
+      // connected_webclients[client_id] = true;
       SPDLOG_INFO("Websocket handshake completed with {}", client_id);
     }
 
-    return;
+    exit(0);
   };
 
   void handleOutgoingMessage(){};
@@ -102,12 +106,12 @@ TEST_CASE("ASDFWebsocket Client Connection") {
     ss.listenToSocket();
   } else {
     // Attempt to connect to ssl server with test client.
-    int rc = system("/app/tests/gateway/ssl_test_client.py");
+    int client_rc = system("/app/tests/gateway/websocket_test_client.py");
 
-    int status;
-    pid_t terminated_pid = waitpid(child_pid, &status, 0);
+    // int server_rc;
+    // pid_t terminated_pid = waitpid(child_pid, &server_rc, 0);
     // If status is 0 then client successfully connected & server is exiting.
-    REQUIRE(status == 0);
+    REQUIRE(client_rc == 0);
   }
 }
 

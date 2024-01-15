@@ -213,6 +213,7 @@ bool SocketServer::sendMessage(int client_id, const char *message,
 
   if (bytes_written == 0) {
     // client disconnected.
+    SPDLOG_INFO("Discovered client {} when sending", client_id);
     return false;
   } else if (bytes_written != message_size) {
     // if error is not EAWOULDBLOCK, client is disconnected.
