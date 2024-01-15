@@ -16,7 +16,7 @@ void MarketData::newClient(int client_id) {
   }
 }
 void MarketData::disconnected(int client_id) {};
-void MarketData::readMessage(int client_id, char *message) {};
+void MarketData::readMessage(int client_id, const char *message) {};
 
 void MarketData::handleOutgoingMessage() {
   L1MarketData *market_data = market_l1_data_consumer->get();

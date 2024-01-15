@@ -75,7 +75,7 @@ void SocketServer::listenToSocket() {
         if (valread > 0) {
           // Set the string terminating NULL byte on the end of the data read
           buffer[valread] = '\0';
-          SPDLOG_INFO("Calling readMessage from client_id {}", i);
+          // SPDLOG_INFO("Calling readMessage from client_id {}", i);
           readMessage(i, buffer);
           memset(buffer, 0, sizeof(buffer));
         } else {
@@ -223,7 +223,7 @@ bool SocketServer::sendMessage(int client_id, const char *message,
     return false;
   }
 
-  SPDLOG_INFO("Sent message {} to client {}", message, client_id);
+  // SPDLOG_INFO("Sent message {} to client {}", message, client_id);
 
   return true;
 }
@@ -261,7 +261,7 @@ int SocketServer::readDataFromClient(int client_id) {
                  client_id);
   }
 
-  SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, client_id);
+  // SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, client_id);
 
   return valread;
 }

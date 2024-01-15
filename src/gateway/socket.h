@@ -34,7 +34,7 @@ public:
   // events that will be called on gateway by socket server.
   virtual void newClient(int client_id) = 0;
   virtual void disconnected(int client_id) = 0;
-  virtual void readMessage(int client_id, char *message) = 0;
+  virtual void readMessage(int client_id, const char *message) = 0;
   virtual void handleOutgoingMessage() = 0;
 
   // Does not need to be implemented by subclass.

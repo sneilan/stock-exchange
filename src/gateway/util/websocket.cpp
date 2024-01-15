@@ -94,18 +94,18 @@ string create_websocket_response_nonce(const string &websocket_request_key) {
 }
 
 string websocket_request_response(const string &client_http_request) {
-  SPDLOG_DEBUG("Client Http Request Raw {}", client_http_request);
+  // SPDLOG_DEBUG("Client Http Request Raw {}", client_http_request);
 
   map<string, string> http_headers = parse_http_headers(client_http_request);
 
-  for (const auto& pair : http_headers) {
-    SPDLOG_DEBUG("{} : {}", pair.first, pair.second);
-  }
+  // for (const auto& pair : http_headers) {
+  //   SPDLOG_DEBUG("{} : {}", pair.first, pair.second);
+  // }
 
   try {
     string ws_request_nonce = http_headers.at(ws_request_header);
     string ws_response_nonce = create_websocket_response_nonce(ws_request_nonce);
-    return ws_response + ws_response_nonce;
+    return ws_response + ws_response_nonce + "\r\n";
   } catch (const out_of_range& e) {
     // Make client disconnect here.
     return "meow";

@@ -3,6 +3,7 @@
 #include "../../../src/gateway/socket.h"
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <cstring>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <spdlog/spdlog.h>
@@ -15,37 +16,42 @@ using namespace std;
 class SSLWebSocketTest : public SocketServer {
 public:
   SSLWebSocketTest() {
-    fill(connected_webclients.begin(), connected_webclients.end(), false);
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+      this->connected_webclients.push_back(false);
+    }
   };
   ~SSLWebSocketTest() throw(){};
 
   void newClient(int client_id) {
-    SPDLOG_INFO("Client {} connected", client_id);
+    // SPDLOG_INFO("Client {} connected", client_id);
   };
 
   void disconnected(int client_id) {
-    SPDLOG_INFO("Client {} disconnected. Server exiting", client_id);
-    exit(0);
+    // SPDLOG_INFO("Client {} disconnected. Server exiting", client_id);
   };
 
-  void readMessage(int client_id, char *message) {
-    // if (!connected_webclients[client_id]) {
-    SPDLOG_INFO("Client {} has not shaken hands", client_id);
+  void readMessage(int client_id, const char *message) {
+    if (!connected_webclients[client_id]) {
+      SPDLOG_INFO("Client {} has not shaken hands", client_id);
 
-    string response = websocket_request_response(message);
+      string response = websocket_request_response(message);
 
-    if (!sendMessage(client_id, response.c_str(), response.length())) {
-      SPDLOG_INFO("Failure to send message to client {}", client_id);
-      // @TODO perhaps sendMessage can handle what happens if a client
-      // disconnects Then call our disconnected handler and let us know so we
-      // don't have to an error handling pattern everywhere.
-      // forceDisconnect(client_id);
+      if (!sendMessage(client_id, response.c_str(), response.length())) {
+        // SPDLOG_INFO("Failure to send message to client {}", client_id);
+        // @TODO perhaps sendMessage can handle what happens if a client
+        // disconnects Then call our disconnected handler and let us know so we
+        // don't have to an error handling pattern everywhere.
+        // forceDisconnect(client_id);
+      } else {
+        connected_webclients[client_id] = true;
+        SPDLOG_INFO("Websocket handshake completed with {}", client_id);
+        const char * meow = "meowjlkasjdflkasjdflkajsdflkjasdlfky7o8234";
+        sendMessage(client_id, meow, (int)strlen(meow));
+      }
     } else {
-      // connected_webclients[client_id] = true;
-      SPDLOG_INFO("Websocket handshake completed with {}", client_id);
+      SPDLOG_INFO("Recieved {} from client_id {}", message, client_id);
+      sendMessage(client_id, message, (int)strlen(message));
     }
-
-    exit(0);
   };
 
   void handleOutgoingMessage(){};
@@ -106,10 +112,8 @@ TEST_CASE("ASDFWebsocket Client Connection") {
     ss.listenToSocket();
   } else {
     // Attempt to connect to ssl server with test client.
-    int client_rc = system("/app/tests/gateway/websocket_test_client.py");
+    int client_rc = system("/app/tests/gateway/websocket_test_client.py > /dev/stdout");
 
-    // int server_rc;
-    // pid_t terminated_pid = waitpid(child_pid, &server_rc, 0);
     // If status is 0 then client successfully connected & server is exiting.
     REQUIRE(client_rc == 0);
   }
