@@ -105,7 +105,7 @@ string websocket_request_response(const string &client_http_request) {
   try {
     string ws_request_nonce = http_headers.at(ws_request_header);
     string ws_response_nonce = create_websocket_response_nonce(ws_request_nonce);
-    return ws_response + ws_response_nonce + "\r\n";
+    return ws_response + ws_response_nonce + "\nSec-WebSocket-Protocol: chat\n\n";
   } catch (const out_of_range& e) {
     // Make client disconnect here.
     return "meow";

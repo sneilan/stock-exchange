@@ -45,8 +45,8 @@ public:
       } else {
         connected_webclients[client_id] = true;
         SPDLOG_INFO("Websocket handshake completed with {}", client_id);
-        const char * meow = "meowjlkasjdflkasjdflkajsdflkjasdlfky7o8234";
-        sendMessage(client_id, meow, (int)strlen(meow));
+        // const char * meow = "meowjlkasjdflkasjdflkajsdflkjasdlfky7o8234";
+        // sendMessage(client_id, meow, (int)strlen(meow));
       }
     } else {
       SPDLOG_INFO("Recieved {} from client_id {}", message, client_id);
