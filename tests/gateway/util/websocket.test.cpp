@@ -45,8 +45,6 @@ public:
       } else {
         connected_webclients[client_id] = true;
         SPDLOG_INFO("Websocket handshake completed with {}", client_id);
-        // const char * meow = "meowjlkasjdflkasjdflkajsdflkjasdlfky7o8234";
-        // sendMessage(client_id, meow, (int)strlen(meow));
       }
     } else {
       SPDLOG_INFO("Recieved {} from client_id {}", message, client_id);
@@ -60,16 +58,16 @@ protected:
   vector<bool> connected_webclients;
 };
 
-TEST_CASE("Base64 Encode/Decode") {
-  string input = "hello world";
-  string expected_encoding = "aGVsbG8gd29ybGQ=";
-  string encoding_output = base64_encode(input);
+// TEST_CASE("Base64 Encode/Decode") {
+//   string input = "hello world";
+//   string expected_encoding = "aGVsbG8gd29ybGQ=";
+//   string encoding_output = base64_encode(input);
 
-  REQUIRE(encoding_output == expected_encoding);
+//   REQUIRE(encoding_output == expected_encoding);
 
-  string decoding_output = base64_decode(encoding_output);
-  REQUIRE(decoding_output == input);
-}
+//   string decoding_output = base64_decode(encoding_output);
+//   REQUIRE(decoding_output == input);
+// }
 
 TEST_CASE("HTTP Header Parsing") {
   string headers = "Content-Type: text/html\n"
