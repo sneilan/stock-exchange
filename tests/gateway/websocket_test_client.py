@@ -5,7 +5,7 @@ import ssl
 
 print('Connecting to websocket')
 
-websocket.enableTrace(True)
+# websocket.enableTrace(True)
 ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 ws.connect("wss://localhost", timeout=5)

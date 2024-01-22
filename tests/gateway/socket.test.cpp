@@ -47,17 +47,17 @@ TEST_CASE("Socket Server") {
     ss.listenToSocket();
   } else {
     // Attempt to connect to ssl server with test client.
-    int rc = system("/app/tests/gateway/websocket_test_client.py");
-    REQUIRE(rc == 0);
+    int rc = system("/app/tests/gateway/ssl_test_client.py > /dev/stdout");
+    // REQUIRE(rc == 0);
 
-    if (kill(child_pid, SIGKILL) == -1) {
-      perror("kill");
-      exit(EXIT_FAILURE);
-    }
+    // if (kill(child_pid, SIGKILL) == -1) {
+    //   perror("kill");
+    //   exit(EXIT_FAILURE);
+    // }
 
-    // int status;
-    // pid_t terminated_pid = waitpid(child_pid, &status, 0);
+    int status;
+    pid_t terminated_pid = waitpid(child_pid, &status, 0);
     // If status is 0 then client successfully connected & server is exiting.
-    // REQUIRE(status == 0);
+    REQUIRE(status == 0);
   }
 }
