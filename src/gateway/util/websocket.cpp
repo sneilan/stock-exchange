@@ -1,9 +1,8 @@
 #include "websocket.h"
-#include <stdexcept>
 
 using namespace std;
 
-string base64_encode(const string &original) {
+string base64_encode_c(unsigned char * original) {
   BIO *bio, *b64;
   BUF_MEM *bufferPtr;
 
@@ -12,7 +11,7 @@ string base64_encode(const string &original) {
   bio = BIO_new(BIO_s_mem());
   bio = BIO_push(b64, bio);
 
-  BIO_write(bio, original.c_str(), original.size());
+  BIO_write(bio, original, SHA_DIGEST_LENGTH);
   BIO_flush(bio);
   BIO_get_mem_ptr(bio, &bufferPtr);
   BIO_set_close(bio, BIO_NOCLOSE);
@@ -22,6 +21,27 @@ string base64_encode(const string &original) {
 
   return encoded;
 }
+
+// Did not encode correctly according to websocket test.
+// string base64_encode(const string &original) {
+//   BIO *bio, *b64;
+//   BUF_MEM *bufferPtr;
+
+//   b64 = BIO_new(BIO_f_base64());
+//   BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+//   bio = BIO_new(BIO_s_mem());
+//   bio = BIO_push(b64, bio);
+
+//   BIO_write(bio, original.c_str(), original.size());
+//   BIO_flush(bio);
+//   BIO_get_mem_ptr(bio, &bufferPtr);
+//   BIO_set_close(bio, BIO_NOCLOSE);
+
+//   string encoded(bufferPtr->data, bufferPtr->length);
+//   BIO_free_all(bio);
+
+//   return encoded;
+// }
 
 string base64_decode(const string &encoded) {
   BIO *bio, *b64;
@@ -47,20 +67,16 @@ string sha1(const string &input) {
   unsigned char sha1_hash[SHA_DIGEST_LENGTH];
   SHA1((const unsigned char *)(input.c_str()), input.size(), sha1_hash);
 
-  // unsigned char sha1_human[SHA1_HUMAN_LEN];
-  // sha1_human[SHA1_HUMAN_LEN-1] = '\0';
+  string ret(reinterpret_cast<char*>(sha1_hash));
+  return ret;
 
+  // stringstream ss;
+  // ss << hex << setfill('0');
   // for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-  //   sprintf(sha1_human, "%02x", sha1_hash[i]);
+  //   ss << setw(2) << static_cast<unsigned int>(sha1_hash[i]);
   // }
 
-  // SPDLOG_DEBUG("hash {}", sha1_hash);
-
-  // cout << "SHA-1 Hash (Hexadecimal): ";
-  // cout << endl;
-
-  string sha1_str(reinterpret_cast<char *>(sha1_hash), SHA_DIGEST_LENGTH);
-  return sha1_str;
+  // return ss.str();
 }
 
 map<string, string> parse_http_headers(const string &headers) {
@@ -89,8 +105,12 @@ map<string, string> parse_http_headers(const string &headers) {
 }
 
 string create_websocket_response_nonce(const string &websocket_request_key) {
-  string sha1_result = sha1(websocket_request_key + ws_magic_string);
-  return base64_encode(sha1_result);
+  string result = websocket_request_key + ws_magic_string;
+
+  unsigned char sha1_hash[SHA_DIGEST_LENGTH];
+  SHA1((const unsigned char *)(result.c_str()), result.size(), sha1_hash);
+
+  return base64_encode_c(sha1_hash);
 }
 
 string websocket_request_response(const string &client_http_request) {
@@ -104,6 +124,10 @@ string websocket_request_response(const string &client_http_request) {
 
   try {
     string ws_request_nonce = http_headers.at(ws_request_header);
+
+    ws_request_nonce.erase(std::remove_if(ws_request_nonce.begin(), ws_request_nonce.end(),
+                                          [](char c) { return c == '\n' || c == '\r'; }),
+                           ws_request_nonce.end());
     string ws_response_nonce = create_websocket_response_nonce(ws_request_nonce);
     return ws_response + ws_response_nonce + "\nSec-WebSocket-Protocol: chat\n\n";
   } catch (const out_of_range& e) {

@@ -119,11 +119,11 @@ TEST_CASE("ASDFWebsocket Client Connection") {
   }
 }
 
-// TEST_CASE("Sha1") {
-//   string input = "hello world";
-//   string expected_sha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
+TEST_CASE("Sha1") {
+  string input = "hello world";
+  string expected_sha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
 
-//   string sha1_output = sha1(input);
+  string sha1_output = sha1(input);
 
-//   REQUIRE(sha1_output == expected_sha1);
-// }
+  REQUIRE(sha1_output == expected_sha1);
+}

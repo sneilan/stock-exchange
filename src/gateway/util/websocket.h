@@ -8,8 +8,11 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <sstream>
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 using namespace std;
 
