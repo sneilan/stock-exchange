@@ -130,6 +130,7 @@ void SocketServer::bindSocket(int PORT) {
   }
 
   SPDLOG_INFO("Listener on port {}", PORT);
+
   // Specify maximum of 3 pending connections for the master socket
   if (listen(master_socket, 3) < 0) {
     SPDLOG_DEBUG("listen failure");
@@ -172,13 +173,16 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   int new_socket = 0;
   int addrlen = sizeof(address);
 
+  SPDLOG_INFO("1");
   if (FD_ISSET(master_socket, readfds)) {
+    SPDLOG_INFO("2");
     if ((new_socket = accept(master_socket, (struct sockaddr *)&address,
                              (socklen_t *)&addrlen)) < 0) {
       SPDLOG_ERROR("Failure to accept new connection.");
       exit(EXIT_FAILURE);
     }
 
+    SPDLOG_INFO("3");
     // Add new socket to array of sockets
     // Find the lowest available socket.
     for (int i = 0; i < MAX_CLIENTS; i++) {

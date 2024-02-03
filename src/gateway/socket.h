@@ -44,25 +44,24 @@ public:
 
 protected:
   int client_socket[MAX_CLIENTS];
-
-private:
-  int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
-  int readDataFromClient(int client_id);
-  void acceptNewConn(fd_set *readfds);
-  void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
   SSL *connections[MAX_CLIENTS];
   SSL_CTX *ctx;
-
-  // Implement websocket handshakes at socket level.
-  // implement them in a subclass.
+  // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
+  struct timeval timeout;
 
   int master_socket;
   struct sockaddr_in address;
 
   char buffer[1025]; // data buffer of 1K
 
-  // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
-  struct timeval timeout;
+private:
+  int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
+  int readDataFromClient(int client_id);
+  void acceptNewConn(fd_set *readfds);
+  void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
+
+  // Implement websocket handshakes at socket level.
+  // implement them in a subclass.
 };
 
 #endif
