@@ -73,10 +73,8 @@ void SocketServer::listenToSocket() {
         int valread = readDataFromClient(i);
 
         if (valread > 0) {
-          // Set the string terminating NULL byte on the end of the data read
-          buffer[valread] = '\0';
-          // SPDLOG_INFO("Calling readMessage from client_id {}", i);
-          readMessage(i, buffer);
+          buffer[valread] = '\0'; // safety precaution
+          readMessage(i, buffer, valread);
           memset(buffer, 0, sizeof(buffer));
         } else {
           // If no data was read, unset writefds.
@@ -173,16 +171,13 @@ void SocketServer::acceptNewConn(fd_set *readfds) {
   int new_socket = 0;
   int addrlen = sizeof(address);
 
-  SPDLOG_INFO("1");
   if (FD_ISSET(master_socket, readfds)) {
-    SPDLOG_INFO("2");
     if ((new_socket = accept(master_socket, (struct sockaddr *)&address,
                              (socklen_t *)&addrlen)) < 0) {
       SPDLOG_ERROR("Failure to accept new connection.");
       exit(EXIT_FAILURE);
     }
 
-    SPDLOG_INFO("3");
     // Add new socket to array of sockets
     // Find the lowest available socket.
     for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -265,7 +260,8 @@ int SocketServer::readDataFromClient(int client_id) {
                  client_id);
   }
 
-  // SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread, client_id);
+  // SPDLOG_DEBUG("Read valread {} bytes from client_id {}", valread,
+  // client_id);
 
   return valread;
 }

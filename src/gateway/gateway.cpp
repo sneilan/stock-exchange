@@ -64,7 +64,8 @@ void Gateway::handleOutgoingMessage() {
   }
 }
 
-void Gateway::readMessage(int client_id, const char *message) {
+void Gateway::readMessage(int client_id, const char *message,
+                          int message_size) {
   if (!connected_webclients[client_id]) {
     string response = websocket_request_response(message);
 

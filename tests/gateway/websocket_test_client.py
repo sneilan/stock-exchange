@@ -5,10 +5,10 @@ import ssl
 
 print('Connecting to websocket')
 
-# websocket.enableTrace(True)
+websocket.enableTrace(True)
 ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 ws.connect("wss://localhost", timeout=5)
-ws.send("asdf")
+ws.send("Hello world from client!")
 print("Got from server", ws.recv())
 ws.close()

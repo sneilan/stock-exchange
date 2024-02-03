@@ -35,7 +35,8 @@ public:
 
   void newClient(int client_id) override;
   void disconnected(int client_id) override;
-  void readMessage(int client_id, const char *message) override;
+  void readMessage(int client_id, const char *message,
+                   int message_size) override;
   // Whenever a message goes into the outgoing ring buffer
   // this function is called to send a message to the client.
   void handleOutgoingMessage() override;
