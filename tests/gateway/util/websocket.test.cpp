@@ -6,6 +6,7 @@
 #include <cstring>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <signal.h>
 #include <spdlog/spdlog.h>
 #include <stdlib.h>
 #include <string>
@@ -22,12 +23,12 @@ public:
   };
   ~SSLWebSocketTest() throw(){};
 
-  void newClient(int client_id) {
-    // SPDLOG_INFO("Client {} connected", client_id);
+  void newClient(int client_id){
+      // SPDLOG_INFO("Client {} connected", client_id);
   };
 
-  void disconnected(int client_id) {
-    // SPDLOG_INFO("Client {} disconnected. Server exiting", client_id);
+  void disconnected(int client_id){
+      // SPDLOG_INFO("Client {} disconnected. Server exiting", client_id);
   };
 
   void readMessage(int client_id, const char *message) {
@@ -110,10 +111,13 @@ TEST_CASE("Websocket Client Connection") {
     ss.listenToSocket();
   } else {
     // Attempt to connect to ssl server with test client.
-    int client_rc = system("/app/tests/gateway/websocket_test_client.py > /dev/stdout");
+    int client_rc =
+        system("/app/tests/gateway/websocket_test_client.py > /dev/stdout");
 
     // If status is 0 then client successfully connected & server is exiting.
     REQUIRE(client_rc == 0);
+
+    kill(child_pid, 9);
   }
 }
 
