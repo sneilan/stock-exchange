@@ -258,6 +258,11 @@ class ABNF:
                 self.data = self.data.encode("utf-8")
             return frame_header + self.data
         mask_key = self.get_mask_key(4)
+
+        input_string = mask_key.hex()
+        print(f"hex version of mask key from _abnf.py {input_string}")
+        # grouped_strings = [input_string[i:i+2] for i in range(0, len(input_string), 2)]
+        # print(f"Mask key from _abnf.py {' '.join(grouped_strings)}")
         return frame_header + self._get_masked(mask_key)
 
     def _get_masked(self, mask_key: Union[str, bytes]) -> bytes:

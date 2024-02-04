@@ -330,6 +330,10 @@ class WebSocket:
         data = frame.format()
         length = len(data)
         if isEnabledForTrace():
+
+            input_string = data.hex()
+            grouped_strings = [input_string[i:i+2] for i in range(0, len(input_string), 2)]
+            trace(f"++Sent raw as hex: {' '.join(grouped_strings)}")
             trace(f"++Sent raw: {repr(data)}")
             trace(f"++Sent decoded: {frame.__str__()}")
         with self.lock:

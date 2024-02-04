@@ -4,6 +4,8 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
+#include <iostream>
+#include <iomanip>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <signal.h>
@@ -13,6 +15,20 @@
 #include <unistd.h>
 
 using namespace std;
+
+void printStringAsHex(const string& str) {
+  for (size_t i = 0; i < str.size(); ++i) {
+    cout << hex << setw(2) << setfill('0') << static_cast<int>(str[i]) << " ";
+  }
+
+  cout << endl;
+}
+
+
+void printByteAsHex(const string & message, const uint8_t byte) {
+  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
+  cout << endl;
+}
 
 vector<uint8_t> encodeWebsocketFrame(const string &message) {
   vector<uint8_t> frame;
@@ -80,28 +96,22 @@ bool decodeWebSocketFrame(string frame, string &message) {
   bool maskBitSet = (frame[1] & 0x80) != 0;
 
   if (maskBitSet) {
-    SPDLOG_INFO("3");
     if (frame.size() < payload_offset + 4) {
       return false;
     }
 
     string masking_key = frame.substr(payload_offset, 4);
-    SPDLOG_INFO("Masking key size: {}", masking_key.size());
-    SPDLOG_INFO("Masking key: {}", masking_key);
+    cout << "Masking key hex ";
+    printStringAsHex(masking_key);
+
     payload_offset += 4;
 
-    for (size_t i = payload_offset; i < payload_offset + payload_len; ++i) {
-      SPDLOG_INFO("Mask Char: {}", static_cast<uint8_t>(masking_key[i % 4]));
-      SPDLOG_INFO("Raw Char: {}", static_cast<uint8_t>(frame[i]));
-      SPDLOG_INFO("Xored {}", static_cast<uint8_t>(frame[i]) ^
-                                  static_cast<uint8_t>(masking_key[i % 4]));
+    for (size_t i = 0; i < payload_len; ++i) {
+      printByteAsHex("Frame byte ", frame[payload_offset + i]);
+      printByteAsHex("Masking key byte ", masking_key[i % masking_key.size()]);
 
-      SPDLOG_INFO("Raw char {}", static_cast<uint8_t>(frame[i]) ^
-                                     static_cast<uint8_t>(masking_key[i % 4]));
-      frame[i] = static_cast<uint8_t>(frame[i]) ^
-                 static_cast<uint8_t>(masking_key[i % 4]);
-      SPDLOG_INFO("After XOR frame[{}] {}: {}", i, frame[i],
-                  static_cast<uint8_t>(frame[i]));
+      frame[payload_offset + i] = static_cast<uint8_t>(frame[payload_offset + i]) ^
+                 static_cast<uint8_t>(masking_key[i % masking_key.size()]);
     }
   }
 
