@@ -74,7 +74,7 @@ protected:
 // TEST_CASE("Base64 Encode/Decode") {
 //   string input = "hello world";
 //   string expected_encoding = "aGVsbG8gd29ybGQ=";
-//   string encoding_output = base64_encode(input);
+//   string encoding_output = base64_encode(input.c_str());
 
 //   REQUIRE(encoding_output == expected_encoding);
 
