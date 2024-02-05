@@ -16,103 +16,6 @@
 
 using namespace std;
 
-void printStringAsHex(const string &str) {
-  for (size_t i = 0; i < str.size(); ++i) {
-    cout << hex << setw(2) << setfill('0') << static_cast<int>(str[i]) << " ";
-  }
-
-  cout << endl;
-}
-
-void printByteAsHex(const string &message, const uint8_t byte) {
-  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte)
-       << " ";
-  cout << endl;
-}
-
-vector<uint8_t> encodeWebsocketFrame(const string &message) {
-  vector<uint8_t> frame;
-
-  // Final fragment for bit & opcode
-  frame.push_back(0x81); // FIN bit (1), Opcode: Text (0x01)
-
-  size_t payload_length = message.length();
-
-  if (payload_length < 126) {
-    frame.push_back(static_cast<uint8_t>(payload_length));
-  } else if (payload_length <= 65535) {
-    frame.push_back(126);
-    frame.push_back(static_cast<uint8_t>((payload_length >> 8) & 0xFF));
-    frame.push_back(static_cast<uint8_t>(payload_length & 0xFF));
-  } else {
-    /*
-     * We don't do payloads above 64k in this department.
-     * Why don't you try contacting customer service?
-     */
-  }
-
-  for (const char &c : message) {
-    frame.push_back(static_cast<uint8_t>(c));
-  }
-
-  return frame;
-}
-
-bool decodeWebSocketFrame(string frame, string &message) {
-  // invalid header
-  if (frame.size() < 2) {
-    return false;
-  }
-
-  bool fin = (frame[0] & 0x80) != 0;
-  uint8_t opcode = frame[0] & 0x0F;
-  if (opcode == 0x8) {
-    SPDLOG_INFO("Client disconnected using opcode 0x8");
-    return false;
-  }
-  uint8_t payload_len = frame[1] & 0x7F;
-  size_t payload_offset = 2;
-
-  if (payload_len == 126) {
-    // 16 bit payload length
-    if (frame.size() < 4) {
-      return false;
-    }
-    payload_len = (static_cast<uint16_t>(frame[2]) << 8) |
-                  static_cast<uint16_t>(frame[3]);
-    payload_offset = 4;
-  } else if (payload_len == 127) {
-    // skip extended payloads
-    return false;
-  }
-
-  bool maskBitSet = (frame[1] & 0x80) != 0;
-
-  if (maskBitSet) {
-    if (frame.size() < payload_offset + 4) {
-      return false;
-    }
-
-    string masking_key = frame.substr(payload_offset, 4);
-
-    payload_offset += 4;
-
-    for (size_t i = 0; i < payload_len; ++i) {
-      frame[payload_offset + i] =
-          static_cast<uint8_t>(frame[payload_offset + i]) ^
-          static_cast<uint8_t>(masking_key[i % masking_key.size()]);
-    }
-  }
-
-  if (frame.size() < payload_offset + payload_len) {
-    return false;
-  }
-
-  message.assign(frame, payload_offset, payload_len);
-
-  return true;
-}
-
 class SSLWebSocketTest : public SocketServer {
 public:
   SSLWebSocketTest() {
@@ -148,7 +51,6 @@ public:
       }
     } else {
       string decodedMessage;
-      string frame(message, message_size);
       bool ret = decodeWebSocketFrame(message, decodedMessage);
       if (ret) {
         SPDLOG_INFO("Recieved {} from client_id {}", decodedMessage, client_id);
