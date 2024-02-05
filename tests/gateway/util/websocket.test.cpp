@@ -4,8 +4,8 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <signal.h>
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-void printStringAsHex(const string& str) {
+void printStringAsHex(const string &str) {
   for (size_t i = 0; i < str.size(); ++i) {
     cout << hex << setw(2) << setfill('0') << static_cast<int>(str[i]) << " ";
   }
@@ -24,9 +24,9 @@ void printStringAsHex(const string& str) {
   cout << endl;
 }
 
-
-void printByteAsHex(const string & message, const uint8_t byte) {
-  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
+void printByteAsHex(const string &message, const uint8_t byte) {
+  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte)
+       << " ";
   cout << endl;
 }
 
@@ -59,27 +59,21 @@ vector<uint8_t> encodeWebsocketFrame(const string &message) {
 }
 
 bool decodeWebSocketFrame(string frame, string &message) {
-  SPDLOG_INFO("Recieved {} frame. Size {}", frame, frame.size());
-
   // invalid header
   if (frame.size() < 2) {
     return false;
   }
 
   bool fin = (frame[0] & 0x80) != 0;
-  SPDLOG_INFO("Fin?: {}", fin);
   uint8_t opcode = frame[0] & 0x0F;
-  SPDLOG_INFO("Opcode: {}", opcode);
   if (opcode == 0x8) {
     SPDLOG_INFO("Client disconnected using opcode 0x8");
     return false;
   }
   uint8_t payload_len = frame[1] & 0x7F;
-  SPDLOG_INFO("Payload length {}", payload_len);
   size_t payload_offset = 2;
 
   if (payload_len == 126) {
-    SPDLOG_INFO("1");
     // 16 bit payload length
     if (frame.size() < 4) {
       return false;
@@ -88,7 +82,6 @@ bool decodeWebSocketFrame(string frame, string &message) {
                   static_cast<uint16_t>(frame[3]);
     payload_offset = 4;
   } else if (payload_len == 127) {
-    SPDLOG_INFO("2");
     // skip extended payloads
     return false;
   }
@@ -101,17 +94,13 @@ bool decodeWebSocketFrame(string frame, string &message) {
     }
 
     string masking_key = frame.substr(payload_offset, 4);
-    cout << "Masking key hex ";
-    printStringAsHex(masking_key);
 
     payload_offset += 4;
 
     for (size_t i = 0; i < payload_len; ++i) {
-      printByteAsHex("Frame byte ", frame[payload_offset + i]);
-      printByteAsHex("Masking key byte ", masking_key[i % masking_key.size()]);
-
-      frame[payload_offset + i] = static_cast<uint8_t>(frame[payload_offset + i]) ^
-                 static_cast<uint8_t>(masking_key[i % masking_key.size()]);
+      frame[payload_offset + i] =
+          static_cast<uint8_t>(frame[payload_offset + i]) ^
+          static_cast<uint8_t>(masking_key[i % masking_key.size()]);
     }
   }
 
@@ -119,13 +108,8 @@ bool decodeWebSocketFrame(string frame, string &message) {
     return false;
   }
 
-  SPDLOG_INFO(
-      "Frame size: {}, payload offset: {}, Payload length: {}, Total {} ",
-      frame.size(), payload_offset, payload_len, payload_offset + payload_len);
-
   message.assign(frame, payload_offset, payload_len);
 
-  SPDLOG_INFO("4");
   return true;
 }
 
@@ -163,7 +147,6 @@ public:
         SPDLOG_INFO("Websocket handshake completed with {}", client_id);
       }
     } else {
-      SPDLOG_INFO("Raw message from client {}", message);
       string decodedMessage;
       string frame(message, message_size);
       bool ret = decodeWebSocketFrame(message, decodedMessage);
