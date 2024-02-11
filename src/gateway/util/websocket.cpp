@@ -2,7 +2,9 @@
 
 using namespace std;
 
-string base64_encode(unsigned char *original) {
+// I want this to take a string but had issues with the string
+// implementation. Will fix later.
+string base64_encode(const unsigned char *original) {
   BIO *bio, *b64;
   BUF_MEM *bufferPtr;
 

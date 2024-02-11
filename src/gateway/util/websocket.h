@@ -27,7 +27,7 @@ static const string ws_response = "HTTP/1.1 101 Switching Protocols\r\n"
 #define WS_ACCEPT_RESPONSE_LEN 130
 #define SHA1_HUMAN_LEN 41
 
-string base64_encode(unsigned char *original);
+string base64_encode(const unsigned char *original);
 string base64_decode(const string &encoded);
 string sha1(const string &input);
 map<string, string> parse_http_headers(const string &headers);
