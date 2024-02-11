@@ -28,8 +28,6 @@ void Gateway::handleOutgoingMessage() {
     // last fill price (integer)
     // last quantity filled (integer)
 
-    // hacked out for prototype purposes. Should replace with FIX or protobuf.
-    // Maybe even Apache Avro.
     int total_size = sizeof(char) + sizeof(order->id) +
                      sizeof(order->quantity) + sizeof(order->filled_quantity) +
                      sizeof(order->clientId);

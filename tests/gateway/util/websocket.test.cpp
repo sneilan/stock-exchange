@@ -142,11 +142,13 @@ TEST_CASE("Websocket Client Connection") {
   }
 }
 
+// Test case failing because sha1 output comes as binary not hex.
 // TEST_CASE("Sha1") {
 //   string input = "hello world";
 //   string expected_sha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
 
 //   string sha1_output = sha1(input);
+//   // printStringAsHex(sha1_output);
 
 //   REQUIRE(sha1_output == expected_sha1);
 // }

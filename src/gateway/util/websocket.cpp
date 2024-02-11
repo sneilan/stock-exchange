@@ -106,20 +106,6 @@ string websocket_request_response(const string &client_http_request) {
   }
 }
 
-void printStringAsHex(const string &str) {
-  for (size_t i = 0; i < str.size(); ++i) {
-    cout << hex << setw(2) << setfill('0') << static_cast<int>(str[i]) << " ";
-  }
-
-  cout << endl;
-}
-
-void printByteAsHex(const string &message, const uint8_t byte) {
-  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte)
-       << " ";
-  cout << endl;
-}
-
 vector<uint8_t> encodeWebsocketFrame(const string &message) {
   vector<uint8_t> frame;
 
@@ -201,4 +187,18 @@ bool decodeWebSocketFrame(string frame, string &message) {
   message.assign(frame, payload_offset, payload_len);
 
   return true;
+}
+
+void printStringAsHex(const string &str) {
+  for (size_t i = 0; i < str.size(); ++i) {
+    cout << hex << setw(2) << setfill('0') << static_cast<int>(str[i]) << " ";
+  }
+
+  cout << endl;
+}
+
+void printByteAsHex(const string &message, const uint8_t byte) {
+  cout << message << hex << setw(2) << setfill('0') << static_cast<int>(byte)
+       << " ";
+  cout << endl;
 }
