@@ -2,7 +2,7 @@
 #define _eventstore_h
 
 #include "../util/mmap_wrapper.h"
-#include "../util/object_pool.h"
+#include "../util/mmap_object_pool.h"
 #include "../util/types.h"
 #include <fcntl.h>
 #include <iostream>

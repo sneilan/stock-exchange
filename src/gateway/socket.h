@@ -7,6 +7,8 @@
 #include <arpa/inet.h> //close
 #include <errno.h>
 #include <netinet/in.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <spdlog/spdlog.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,27 +34,35 @@ public:
   // events that will be called on gateway by socket server.
   virtual void newClient(int client_id) = 0;
   virtual void disconnected(int client_id) = 0;
-  virtual void readMessage(int client_id, char *message) = 0;
+  virtual void readMessage(int client_id, const char *message,
+                           int message_size) = 0;
   virtual void handleOutgoingMessage() = 0;
 
   // Does not need to be implemented by subclass.
-  bool sendMessage(int client_id, char *message, int message_size);
-  void sendMessageToAllClients(char* message, int message_size);
+  bool sendMessage(int client_id, const char *message, int message_size);
+  void sendMessageToAllClients(const char *message, int message_size);
   void forceDisconnect(int client_id);
 
-private:
-  int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
-  int handleErrors(int i /*, fd_set *readfds*/);
-  void acceptNewConn(fd_set *readfds);
-  void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
+protected:
+  int client_socket[MAX_CLIENTS];
+  SSL *connections[MAX_CLIENTS];
+  SSL_CTX *ctx;
+  // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
+  struct timeval timeout;
 
-  int master_socket, client_socket[MAX_CLIENTS];
+  int master_socket;
   struct sockaddr_in address;
 
   char buffer[1025]; // data buffer of 1K
 
-  // Use non-blocking sockets to wait for activity. Only wait for 1 microsecond.
-  struct timeval timeout;
+private:
+  int getMaxClientID(int (*client_socket)[MAX_CLIENTS]);
+  int readDataFromClient(int client_id);
+  void acceptNewConn(fd_set *readfds);
+  void initFDSet(fd_set *fds, int (*client_socket)[MAX_CLIENTS]);
+
+  // Implement websocket handshakes at socket level.
+  // implement them in a subclass.
 };
 
 #endif

@@ -1,22 +1,29 @@
-#include "eventstore/eventstore.h"
-#include "gateway/gateway.h"
-#include "gateway/market_data.h"
-#include "gateway/socket.h"
-#include "order_book/order_book.h"
-#include "util/types.h"
-#include <cstring>
 #include <fcntl.h>
-#include <iostream>
+#include <sodium.h>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/version.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "eventstore/eventstore.h"
+#include "gateway/gateway.h"
+#include "gateway/market_data.h"
+#include "gateway/socket.h"
+#include "order_book/order_book.h"
+#include "util/types.h"
+
 int main() {
   spdlog::set_level(spdlog::level::debug);
   // https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
   spdlog::set_pattern("%-5l %E %-16s%-4#%-21! %v");
+
+  if (sodium_init() == -1) {
+    // Initialization failed
+    SPDLOG_CRITICAL("Could not initialize libsodium for user auth! ❌");
+    return -1;
+  }
+  SPDLOG_INFO("libsodium initialized.");
 
   const char *outgoing_message_buf = "/ss_outgoing_messages";
 

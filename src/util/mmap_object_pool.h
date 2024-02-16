@@ -1,49 +1,85 @@
-#ifndef object_pool_h
-#define object_pool_h
+#ifndef mmap_object_pool_h
+#define mmap_object_pool_h
 
-#include <cstddef>
+#include "mmap_wrapper.h"
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <sys/wait.h>
-#include <cstring>
-#include <stdlib.h>
 
 // Note to self, template classes must reside entirely in header files
 // Compiler needs access to all source to generate code for template
 // https://stackoverflow.com/a/1353981/761726
 // http://www.parashift.com/c++-faq-lite/templates-defn-vs-decl.html
 
-template <typename T> class ObjectPool {
+#define IS_CONTROLLER true
+#define IS_CLIENT false
+
+template <typename T> class MMapObjectPool {
 private:
   T *block;
   T *next_free_space;
 
+  // Need to track number of objects allocated so we don't overflow capacity.
   int max_num_obj;
   int cur_num_obj;
 
-  // this is a stack of free spaces
   T **free_spaces;
-  // original pointer to stack of free spaces.
-  T **free_space_block;
   int num_free_spaces;
+  MMapMeta *mmap_meta;
+  bool is_controller;
 
 public:
-  ObjectPool(int max_num_obj_);
-  ~ObjectPool();
+  MMapObjectPool(int max_num_obj, const char *pool_name, bool _is_controller);
+  ~MMapObjectPool();
   T *allocate();
+  int pointer_to_offset(T *pointer);
+  T *offset_to_pointer(int offset);
   void del(T *obj);
   int num_obj_stored();
   int num_random_free_spaces();
   void cleanup();
 };
 
+template <typename T> void MMapObjectPool<T>::cleanup() {
+  if (is_controller) {
+    delete_mmap(mmap_meta);
+  } else {
+    close_mmap(mmap_meta);
+  }
+}
+
+template <typename T> MMapObjectPool<T>::~MMapObjectPool() { cleanup(); }
+
+template <typename T> int MMapObjectPool<T>::num_obj_stored() {
+  return cur_num_obj;
+}
+
+template <typename T> int MMapObjectPool<T>::num_random_free_spaces() {
+  return num_free_spaces;
+}
+
+template <typename T> int MMapObjectPool<T>::pointer_to_offset(T *pointer) {
+  return pointer - (T *)mmap_meta->location;
+}
+
+template <typename T> T *MMapObjectPool<T>::offset_to_pointer(int offset) {
+  return (T *)mmap_meta->location + offset;
+}
+
 template <typename T>
-ObjectPool<T>::ObjectPool(int max_num_obj_) {
+MMapObjectPool<T>::MMapObjectPool(int max_num_obj_, const char *pool_name,
+                                  bool _is_controller) {
+  is_controller = _is_controller;
+
   max_num_obj = max_num_obj_;
 
-  size_t block_size = sizeof(T) * max_num_obj;
-  block = (T*)malloc(block_size);
-  memset(block, 0, block_size);
+  if (is_controller) {
+    mmap_meta = init_mmap(pool_name, sizeof(T) * max_num_obj);
+  } else {
+    mmap_meta = open_mmap(pool_name, sizeof(T) * max_num_obj);
+  }
+
+  block = (T *)mmap_meta->location;
 
   next_free_space = block;
   num_free_spaces = 0;
@@ -51,38 +87,18 @@ ObjectPool<T>::ObjectPool(int max_num_obj_) {
 
   // Keep track of free spaces in a stack in case we delete an object that's not
   // at end of array.
-  size_t free_space_size = sizeof(T*) * max_num_obj;
-  free_spaces = (T**)malloc(free_space_size);
-  memset(free_spaces, 0, free_space_size);
-  free_space_block = free_spaces;
+  free_spaces = new T *[max_num_obj];
 };
 
-template <typename T> void ObjectPool<T>::cleanup() {
-  free(block);
-  free(free_space_block);
-}
-
-template <typename T> ObjectPool<T>::~ObjectPool() {  }
-
-template <typename T> int ObjectPool<T>::num_obj_stored() {
-  return cur_num_obj;
-}
-
-template <typename T> int ObjectPool<T>::num_random_free_spaces() {
-  return num_free_spaces;
-}
-
-template <typename T> T *ObjectPool<T>::allocate() {
+template <typename T> T *MMapObjectPool<T>::allocate() {
   if (cur_num_obj + 1 > max_num_obj) {
     throw std::runtime_error("Could not allocate obj");
   }
 
   cur_num_obj++;
 
-  // if we want to overwrite some existing spaces
   if (num_free_spaces > 0) {
 
-    // subtract from number of existing spaces.
     num_free_spaces--;
     // Pointer in free spaces always points to null so decrementing gives us a
     // pointer to a good memory location.
@@ -94,7 +110,7 @@ template <typename T> T *ObjectPool<T>::allocate() {
   return next_free_space++;
 };
 
-template <typename T> void ObjectPool<T>::del(T *obj) {
+template <typename T> void MMapObjectPool<T>::del(T *obj) {
   // We don't wipe memory here. Up to caller to take care of allocation /
   // setting.
 
@@ -105,11 +121,9 @@ template <typename T> void ObjectPool<T>::del(T *obj) {
 
   cur_num_obj--;
 
-  // if object is deleting something already allocated.
   if (obj < next_free_space) {
     if (num_free_spaces + 1 > max_num_obj) {
-      SPDLOG_CRITICAL("Unexpected condition in object pool. {} {}", num_free_spaces, max_num_obj);
-      throw std::runtime_error("Unexpected condition in object pool");
+      throw std::runtime_error("Unexpected condition.");
     }
 
     // push location of obj we are freeing onto stack of memory spaces

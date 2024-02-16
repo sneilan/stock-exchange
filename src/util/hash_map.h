@@ -7,6 +7,8 @@
 // http://www.isthe.com/chongo/tech/comp/fnv/
 
 // UNUSED. Still using stl library but will probably use soon.
+// @TODO Does this beat HashDos attacks?
+// Should we use quadratic instead of linear probing?
 
 #ifndef hashtable_h
 #define hashtable_h

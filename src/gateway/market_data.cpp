@@ -1,13 +1,13 @@
 #include "market_data.h"
 
-MarketData::MarketData(Consumer<L1MarketData>* market_l1_data_consumer) {
+MarketData::MarketData(Consumer<L1MarketData> *market_l1_data_consumer) {
   this->market_l1_data_consumer = market_l1_data_consumer;
 }
 
 MarketData::~MarketData() throw() {}
 
-// I don't care about these for now because I am implementing authentication later.
-// For now anyone can get market data if they connect.
+// I don't care about these for now because I am implementing authentication
+// later. For now anyone can get market data if they connect.
 
 void MarketData::newClient(int client_id) {
   const char *msg = "Welcome new market data consumer";
@@ -15,8 +15,9 @@ void MarketData::newClient(int client_id) {
     forceDisconnect(client_id);
   }
 }
-void MarketData::disconnected(int client_id) {};
-void MarketData::readMessage(int client_id, char *message) {};
+void MarketData::disconnected(int client_id){};
+void MarketData::readMessage(int client_id, const char *message,
+                             int message_size){};
 
 void MarketData::handleOutgoingMessage() {
   L1MarketData *market_data = market_l1_data_consumer->get();
@@ -25,11 +26,12 @@ void MarketData::handleOutgoingMessage() {
   }
 
   // For every client, send market data.
-  sendMessageToAllClients((char*)market_data, sizeof(L1MarketData));
+  sendMessageToAllClients((char *)market_data, sizeof(L1MarketData));
   SPDLOG_DEBUG("Sent Mkt {} Value {} ", market_data->type, market_data->val);
 }
 
 void MarketData::run() {
-  bindSocket(8889);
+  char *port = getenv("MARKET_PORT");
+  bindSocket(atoi(port));
   listenToSocket();
 }

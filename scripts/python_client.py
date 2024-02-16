@@ -5,6 +5,9 @@ from struct import pack, unpack
 import random
 import threading
 
+GATEWAY_PORT = 443
+MARKET_PORT = 4443
+
 
 class Client:
     port = None
@@ -35,7 +38,7 @@ class Client:
 
 class MarketClient(Client):
     host = '0.0.0.0'
-    port = 8889
+    port = MARKET_PORT
 
     def listener(self):
         while True:
@@ -65,7 +68,7 @@ class MarketClient(Client):
 
 class TradingClient(Client):
     host = '0.0.0.0'
-    port = 8888
+    port = GATEWAY_PORT
 
     type_to_msg = {
         'u': 'updated',
