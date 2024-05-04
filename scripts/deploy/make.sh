@@ -1,6 +1,6 @@
 #!/bin/sh
 
 cd /app
-rm main test
+# rm main test
 cmake .
 make

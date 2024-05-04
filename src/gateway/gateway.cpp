@@ -1,11 +1,16 @@
 #include "gateway.h"
 
-Gateway::Gateway(Producer<NewOrderEvent>* incoming_msg_producer,
-                 Consumer<ORDER_MMAP_OFFSET> * outgoing_message_consumer,
+Gateway::Gateway(Producer<NewOrderEvent> *incoming_msg_producer,
+                 Consumer<ORDER_MMAP_OFFSET> *outgoing_message_consumer,
                  MMapObjectPool<Order> *order_pool) {
   this->incoming_msg_producer = incoming_msg_producer;
   this->outgoing_message_consumer = outgoing_message_consumer;
   this->order_pool = order_pool;
+  fill(connected_webclients.begin(), connected_webclients.end(), false);
+}
+
+Gateway::Gateway() {
+  fill(connected_webclients.begin(), connected_webclients.end(), false);
 }
 
 Gateway::~Gateway() throw() {}
@@ -23,11 +28,9 @@ void Gateway::handleOutgoingMessage() {
     // last fill price (integer)
     // last quantity filled (integer)
 
-    // hacked out for prototype purposes. Should replace with FIX or protobuf.
-    // Maybe even Apache Avro.
     int total_size = sizeof(char) + sizeof(order->id) +
-      sizeof(order->quantity) +
-      sizeof(order->filled_quantity) + sizeof(order->clientId);
+                     sizeof(order->quantity) + sizeof(order->filled_quantity) +
+                     sizeof(order->clientId);
     char buffer[total_size];
 
     char orderRecieved = 'r';
@@ -59,7 +62,24 @@ void Gateway::handleOutgoingMessage() {
   }
 }
 
-void Gateway::readMessage(int client_id, char *message) {
+void Gateway::readMessage(int client_id, const char *message,
+                          int message_size) {
+  if (!connected_webclients[client_id]) {
+    string response = websocket_request_response(message);
+
+    if (!sendMessage(client_id, response.c_str(), response.length())) {
+      // @TODO perhaps sendMessage can handle what happens if a client
+      // disconnects Then call our disconnected handler and let us know so we
+      // don't have to an error handling pattern everywhere.
+      forceDisconnect(client_id);
+    } else {
+      connected_webclients[client_id] = true;
+      SPDLOG_INFO("Websocket handshake completed with {}", client_id);
+    }
+
+    return;
+  };
+
   SPDLOG_INFO("Read message from {}", client_id);
 
   NewOrderEvent item;
@@ -80,13 +100,10 @@ void Gateway::readMessage(int client_id, char *message) {
 
 void Gateway::newClient(int client_id) {
   SPDLOG_INFO("New client {}", client_id);
-  const char *msg = "Welcome new client";
-  if (!sendMessage(client_id, const_cast<char *>(msg), strlen(msg))) {
-    // @TODO perhaps sendMessage can handle what happens if a client disconnects
-    // Then call our disconnected handler and let us know so we don't have to do
-    // an error handling pattern everywhere.
-    forceDisconnect(client_id);
-  }
+
+  connected_webclients[client_id] = false;
+
+  // const char *msg = "Welcome new client";
 }
 
 void Gateway::disconnected(int client_id) {
@@ -106,6 +123,7 @@ void Gateway::run() {
   Something else can handle parsing data from clients.
   */
 
-  bindSocket(8888);
+  char *port = getenv("GATEWAY_PORT");
+  bindSocket(atoi(port));
   listenToSocket();
 }
